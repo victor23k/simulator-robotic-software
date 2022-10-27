@@ -11,3 +11,5 @@ dist/
 doc/
 .VSCodeCounter/
 stats.dump
+
+*undo-tree*

@@ -1,4 +1,8 @@
 import unittest
+import sys
+
+sys.path.append('/home/gomezd/Git_Repositories/simulator-robotic-software/simulator')
+sys.path.append('/home/gomezd/Git_Repositories/simulator-robotic-software')
 
 from antlr4 import *
 from compiler.ArduinoLexer import ArduinoLexer
@@ -166,5 +170,10 @@ class TestConversion(TestBase):
     file = "tests/grammar-tests/testConversion.txt"
 
     def test_parsed(self):
+        print("done")
         self.read_results("tests/grammar-tests/outputs/outputTestConversion.txt")
         self.assertEqual(self.tokens, self.lines)
+
+
+if __name__ == '__main__':
+    unittest.main()
