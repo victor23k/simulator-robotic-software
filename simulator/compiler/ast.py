@@ -1,10 +1,52 @@
+# coding: utf-8
+
+
+# This class has all the classes needed in the roots of AST
+# Setters are generated automatically from the attributes that the class has
+from dataclasses import dataclass, field
+from typing import List
 from functools import reduce
+import re
 
 
-class ASTNode():
+# This decorator adds setters
 
+def generate_setter(name):
+    return lambda self, value: setattr(self, name, value)
+
+
+
+class BaseType(type):
+    '''
+    This base adds setters to all the classes
+    '''
+    def __new__(cls, clsname, bases, clsdict):
+        new_dict = dict()
+        for name, val in clsdict.items():
+            if not callable(val) and '__' not in name:
+                new_dict[f'set_{name}'] = generate_setter(name)
+        clsdict.update(new_dict)
+        return super().__new__(cls, clsname, bases, clsdict)
+
+
+@dataclass
+class ASTNode(metaclass=BaseType):
+    
+    position: int = field(init=False, default_factory=int)
+    line: int = field(init=False, default_factory=int)
+    
     def accept(self, visitor, param):
-        pass
+        '''
+        This method take the name of the class which must be NameNode and then
+        apply the method named visitor.visit_name(param)
+        '''
+        NAME = re.compile(r'([A-Z][a-z]+)')
+        name = '_'.join([i.lower() for i in NAME.findall(str(type(self)))
+                         if not i == "Node"])
+        if name:
+            return getattr(visitor, f'visit_{name}')(visitor, param)
+        else:
+            print("Warning: accept called from ASTNode!")
 
     def set_position(self, position):
         self.position = position
@@ -12,106 +54,69 @@ class ASTNode():
     def set_line(self, line):
         self.line = line
 
-
+@dataclass
 class TypeNode(ASTNode):
 
     def default_array_value(self):
         pass
 
 
+@dataclass
 class Sentence(ASTNode):
 
-    def __init__(self):
-        super().__init__()
-        self.function = None
-        self.is_loop_sent = False
-
-    def set_function(self, function):
-        self.function = function
-
-    def set_is_loop_sent(self, is_loop_sent):
-        self.is_loop_sent = is_loop_sent
+    function: int = field(init=False, default_factory=lambda :None)
+    is_loop_sent: bool = field(init=False, default_factory=lambda: False)
 
 
+@dataclass
 class Expression(Sentence):
-
-    def __init__(self):
-        super().__init__()
-        self.type = None
-        self.modifiable = False
-
-    def set_type(self, type):
-        self.type = type
-
-    def set_modifiable(self, modifiable):
-        self.modifiable = modifiable
+    type: int = field(init=False, default_factory=lambda :None)
+    modifiable: bool = field(init=False, default_factory=lambda :False)
 
 
+@dataclass
 class ProgramNode(ASTNode):
-
-    def __init__(self, includes=None, code=None):
-        super().__init__()
-        self.includes = includes
-        self.code = code
-
-    def accept(self, visitor, param):
-        return visitor.visit_program(self, param)
+    includes: int = field(default_factory=lambda :None)
+    code: int = None
 
 
+@dataclass
 class IncludeNode(ASTNode):
-
-    def __init__(self, file_name):
-        super().__init__()
-        self.file_name = file_name
-
-    def accept(self, visitor, param):
-        return visitor.visit_include(self, param)
+    file_name: str
 
 
+@dataclass
 class ProgramCodeNode(ASTNode):
-
-    def __init__(self, declaration, function, macro):
-        super().__init__()
-        self.declaration = declaration
-        self.function = function
-        self.macro = macro
-
-    def accept(self, visitor, param):
-        return visitor.visit_program_code(self, param)
+    declaration: str
+    function: str
+    macro: str
 
 
+@dataclass
 class DeclarationNode(Sentence):
-
-    def __init__(self, type, var_name=None, expr=None, is_const=False, is_static=False):
-        super().__init__()
-        self.type = type
-        self.var_name = var_name
-        self.expr = expr
-        self.is_const = is_const
-        self.is_static = is_static
-
-    def accept(self, visitor, param):
-        return visitor.visit_declaration(self, param)
+    type: str 
+    var_name: str = field(default_factory= lambda: None)
+    expr: str = field(default_factory= lambda: None)
+    is_const: bool = field(default_factory= lambda: False)
+    is_static: bool = field(default_factory= lambda: False)
 
 
+@dataclass
 class ArrayDeclarationNode(Sentence):
+    type: str
+    var_name: str
+    dimensions: int
+    size: List = field(default_factory=list)
+    elements: List = field(default_factory=list)
+    is_const: bool = False
+    is_static: bool = False
 
-    def __init__(self, type, var_name, dimensions, size=[], elements=[], is_const=False, is_static=False):
-        super().__init__()
-        self.type = type
-        self.var_name = var_name
-        self.dimensions = dimensions
-        self.size = size
-        self.elements = elements
-        self.is_const = is_const
-        self.is_static = is_static
-        if not (len(self.size) < 1 and (self.elements == [] or self.elements is None)):
+    def __post_init__(self):
+        # I suppose that self.size is a list
+        if self.size or self.elements not in (None, []):
             self.__fix_array()
         if self.elements is None:
-            self.elements = []
-
-    def accept(self, visitor, param):
-        return visitor.visit_array_declaration(self, param)
+            self.elements = list()
 
     def __fix_array(self):
         if len(self.size) < self.dimensions:
@@ -123,9 +128,9 @@ class ArrayDeclarationNode(Sentence):
         n = len(self.elements)
         if len(self.size) > 0:
             n = self.size[0]
-        for i in range(1, len(self.size)):
-            n *= self.size[i]
-        if self.elements != []:
+        n *= reduce(lambda x, y: x*y, self.size[1:])
+        # Here I suppose that self.elements is a list
+        if self.elements:
             n_elements = self.__total_elements(self.elements)
         size_of_rows = n
         if n < n_elements:
@@ -135,13 +140,8 @@ class ArrayDeclarationNode(Sentence):
         self.size.insert(0, size_of_rows)
 
     def __total_elements(self, elements):
-        count = 0
-        for elem in elements:
-            if isinstance(elem, list):
-                count += self.__total_elements(elem)
-            else:
-                count += 1
-        return count
+        return reduce (lambda x,y: y + (self.__total_elements(x) if isinstance(x, list) else 1),
+                       elements)
 
     def __organize_array_elements(self, current_elems, array_level=0):
         elems = []
@@ -163,568 +163,307 @@ class ArrayDeclarationNode(Sentence):
         return elems
 
 
+@dataclass
 class DefineMacroNode(Sentence):
+    macro_name: str = field(default_factory=str)
+    expr: Expression = field(default_factory=lambda: None)
+    elements: List = field(default_factory=list)
 
-    def __init__(self, macro_name, expr=None, elements=[]):
-        super().__init__()
+    def __post_init__(self):
         self.type = None
-        self.macro_name = macro_name
-        self.expr = expr
-        self.elements = elements
 
-    def accept(self, visitor, param):
-        return visitor.visit_define_macro(self, param)
-
-
+@dataclass
 class AssignmentNode(Sentence):
-
-    def __init__(self, var, expr, index=None):
-        super().__init__()
-        self.var = var
-        self.expr = expr
-
-    def accept(self, visitor, param):
-        return visitor.visit_assignment(self, param)
+    var: str = field(default_factory=str)
+    expr: Expression = field(default_factory=lambda: None)
+    index: str = field(default_factory=lambda: None)
 
 
+@dataclass
 class BooleanTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_boolean_type(self, param)
-
     def default_array_value(self):
         return BooleanNode(False)
 
 
+
+@dataclass
 class ByteTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_byte_type(self, param)
-
     def default_array_value(self):
         return IntNode(0)
 
 
+@dataclass
 class CharTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_char_type(self, param)
-
     def default_array_value(self):
         return CharNode('\0')
 
 
+@dataclass
 class DoubleTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_double_type(self, param)
-
     def default_array_value(self):
         return FloatNode(0.0)
 
 
+@dataclass
 class FloatTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_float_type(self, param)
-
     def default_array_value(self):
         return FloatNode(0.0)
 
 
+@dataclass
 class IntTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_int_type(self, param)
-
     def default_array_value(self):
         return IntNode(0)
 
 
+@dataclass
 class LongTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_long_type(self, param)
-
     def default_array_value(self):
         return IntNode(0)
 
 
+@dataclass
 class ShortTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_short_type()
-
     def default_array_value(self):
         return IntNode(0)
 
 
-# noinspection PyPep8Naming
+@dataclass
 class Size_tTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_size_t_type(self, param)
-
     def default_array_value(self):
         return IntNode(0)
 
 
+@dataclass
 class StringTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_string_type(self, param)
 
     def default_array_value(self):
         return StringNode("")
 
 
+@dataclass
 class UIntTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_u_int_type(self, param)
 
     def default_array_value(self):
         return IntNode(0)
 
-
+@dataclass
 class UCharTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_u_char_type(self, param)
 
     def default_array_value(self):
         return CharNode('\0')
 
 
+@dataclass
 class ULongTypeNode(TypeNode):
 
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_u_long_type(self, param)
-
     def default_array_value(self):
         return IntNode(0)
 
-
+@dataclass
 class VoidTypeNode(TypeNode):
 
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_void_type(self, param)
-
     def default_array_value(self):
         return None
 
-
+@dataclass
 class WordTypeNode(TypeNode):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_word_type(self, param)
 
     def default_array_value(self):
         return IntNode(0)
 
 
+@dataclass
 class IDTypeNode(TypeNode):
-
-    def __init__(self, type_name):
-        super().__init__()
-        self.type_name = type_name
-
-    def accept(self, visitor, param):
-        return visitor.visit_id_type(self, param)
 
     def default_array_value(self):
         return None
 
-
+@dataclass
 class FunctionNode(ASTNode):
-
-    def __init__(self, type, name, args=[], opt_args=[], sentences=None):
-        super().__init__()
-        self.type = type
-        self.name = name
-        self.args = args
-        self.opt_args = opt_args
-        self.sentences = sentences
-
-    def accept(self, visitor, param):
-        return visitor.visit_function(self, param)
+    type: str = ''
+    name: str = ''
+    args: List = field(default_factory=list)
+    opts_args: List = field(default_factory=list)
+    sentences: List = None
 
 
+@dataclass
 class WhileNode(Sentence):
-
-    def __init__(self, expression, sentences=None):
-        super().__init__()
-        self.expression = expression
-        self.sentences = sentences
-
-    def accept(self, visitor, param):
-        return visitor.visit_while(self, param)
+    expression: str = ''
+    sentences: str = None
 
 
+@dataclass
 class DoWhileNode(Sentence):
-
-    def __init__(self, expression, sentences=None):
-        super().__init__()
-        self.expression = expression
-        self.sentences = sentences
-
-    def accept(self, visitor, param):
-        return visitor.visit_do_while(self, param)
+    expression: str = ''
+    sentences: str = None
 
 
+@dataclass
 class ForNode(Sentence):
+    assignment: str = ''
+    condition: BooleanTypeNode = None
+    expression: Expression = None
+    sentences: str = None
 
-    def __init__(self, assignment, condition, expression, sentences=None):
-        super().__init__()
-        self.assignment = assignment
-        self.condition = condition
-        self.expression = expression
-        self.sentences = sentences
-
-    def accept(self, visitor, param):
-        return visitor.visit_for(self, param)
-
-
+@dataclass
 class ConditionalSentenceNode(Sentence):
-
-    def __init__(self, condition, if_expr=None, else_expr=None):
-        super().__init__()
-        self.condition = condition
-        self.if_expr = if_expr
-        self.else_expr = else_expr
-
-    def accept(self, visitor, param):
-        return visitor.visit_conditional_sentence(self, param)
+    condition: TypeNode = None
+    if_expr: Expression = None
+    else_expr: Expression = None
 
 
+@dataclass
 class SwitchSentenceNode(Sentence):
-
-    def __init__(self, expression, cases=None):
-        super().__init__()
-        self.expression = expression
-        self.cases = cases
-
-    def accept(self, visitor, param):
-        return visitor.visit_switch_sentence(self, param)
+    expression: Expression = None
+    cases: List = None
 
 
 class CaseNode(Sentence):
-
-    def __init__(self, type="case", expression=None, sentences=None):
-        super().__init__()
-        self.type = type
-        self.expression = expression
-        self.sentences = sentences
-
-    def accept(self, visitor, param):
-        return visitor.visit_case(self, param)
+    type: str = "case"
+    expression: Expression = None
+    sentences: List = None
 
 
+@dataclass
 class ArrayAccessNode(Expression):
+    value: IntTypeNode = None
+    indexes: List = None
 
-    def __init__(self, value, indexes):
-        super().__init__()
-        self.value = value
-        self.indexes = indexes
-
-    def accept(self, visitor, param):
-        return visitor.visit_array_access(self, param)
-
-
-class ArithmeticExpressionNode(Expression):
-
-    def __init__(self, left, op, right):
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def accept(self, visitor, param):
-        return visitor.visit_arithmetic_expression(self, param)
+@dataclass
+class BinaryOperation(Expression):
+    left: Expression = None
+    op: str = None
+    right: Expression = None
 
 
-class ComparisonExpressionNode(Expression):
-
-    def __init__(self, left, op, right):
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def accept(self, visitor, param):
-        return visitor.visit_comparision_expression(self, param)
+@dataclass
+class ArithmeticExpressionNode(BinaryOperation):
+    pass
 
 
-class BooleanExpressionNode(Expression):
-
-    def __init__(self, left, op, right):
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def accept(self, visitor, param):
-        return visitor.visit_boolean_expression(self, param)
+@dataclass
+class ComparisonExpressionNode(BinaryOperation):
+    pass
 
 
-class BitwiseExpressionNode(Expression):
-
-    def __init__(self, left, op, right):
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def accept(self, visitor, param):
-        return visitor.visit_bitwise_expression(self, param)
+@dataclass
+class BooleanExpressionNode(BinaryOperation):
+    pass
 
 
-class CompoundAssignmentNode(Expression):
-
-    def __init__(self, left, op, right):
-        super().__init__()
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def accept(self, visitor, param):
-        return visitor.visit_compound_assigment(self, param)
+@dataclass
+class BitwiseExpressionNode(BinaryOperation):
+    pass
 
 
+@dataclass
+class CompoundAssignmentNode(BinaryOperation):
+    pass
+
+
+@dataclass
 class IncDecExpressionNode(Expression):
-
-    def __init__(self, var, op):
-        super().__init__()
-        self.var = var
-        self.op = op
-
-    def accept(self, visitor, param):
-        return visitor.visit_inc_dec_expression(self, param)
+    var: int = 0
+    op: str = ''
 
 
-class NotExpressionNode(Expression):
-
-    def __init__(self, expression):
-        super().__init__()
-        self.expression = expression
-
-    def accept(self, visitor, param):
-        return visitor.visit_not_expression(self, param)
+@dataclass
+class UnaryOperation(Expression):
+    expression: Expression = None
 
 
-class BitNotExpressionNode(Expression):
-
-    def __init__(self, expression):
-        super().__init__()
-        self.expression = expression
-
-    def accept(self, visitor, param):
-        return visitor.visit_bit_not_expression(self, param)
+@dataclass
+class NotExpressionNode(UnaryOperation):
+    pass
 
 
-class IntNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_int(self, param)
+@dataclass
+class BitNotExpressionNode(UnaryOperation):
+    pass
 
 
-class FloatNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_float(self, param)
+@dataclass
+class SingleValue(Expression):
+    value: int = 0
 
 
-class HexNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_hex(self, param)
+@dataclass
+class IntNode(SingleValue):
+    pass
 
 
-class OctalNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_octal(self, param)
+@dataclass
+class FloatNode(SingleValue):
+    pass
 
 
-class BinaryNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_binary(self, param)
+@dataclass
+class HexNode(SingleValue):
+    pass
 
 
-class CharNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_char(self, param)
+@dataclass
+class OctalNode(SingleValue):
+    pass
 
 
-class StringNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_string(self, param)
+@dataclass
+class BinaryNode(SingleValue):
+    pass
 
 
-class BooleanNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def accept(self, visitor, param):
-        return visitor.visit_boolean(self, param)
+@dataclass
+class CharNode(SingleValue):
+    pass
 
 
+@dataclass
+class StringNode(SingleValue):
+    pass
+
+
+@dataclass
+class BooleanNode(SingleValue):
+    pass
+
+
+@dataclass
 class IDNode(Expression):
-
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-        self.function_call = None
-        self.definition = None
-
-    def accept(self, visitor, param):
-        return visitor.visit_id(self, param)
-
-    def set_function_call(self, function_call):
-        self.function_call = function_call
-
-    def set_definition(self, definition):
-        self.definition = definition
+    value: int = 0
+    function_call: Expression = field(init=False, default_factory=lambda:None)
+    definition: Expression = field(init=False, default_factory=lambda:None)
 
 
+@dataclass
 class MemberAccessNode(Expression):
-
-    def __init__(self, element, member):
-        super().__init__()
-        self.element = element
-        self.member = member
-        self.function_call = None
-
-    def accept(self, visitor, param):
-        return visitor.visit_member_access(self, param)
-
-    def set_function_call(self, function_call):
-        self.function_call = function_call
+    element: int = 0
+    member: int = None
+    function_call: Expression = field(init=False, default_factory=lambda:None)
 
 
+@dataclass
 class FunctionCallNode(Expression):
-
-    def __init__(self, name, parameters=None):
-        super().__init__()
-        self.name = name
-        self.parameters = parameters
-
-    def accept(self, visitor, param):
-        return visitor.visit_function_call(self, param)
+    name: str=''
+    parameters: List = None
 
 
+@dataclass
 class ConversionNode(Expression):
-
-    def __init__(self, conv_type, expr):
-        super().__init__()
-        self.conv_type = conv_type
-        self.expr = expr
-
-    def accept(self, visitor, param):
-        return visitor.visit_conversion(self, param)
+    conv_type: List = None
+    expr: Expression = None
 
 
+@dataclass
 class ReturnNode(Sentence):
-
-    def __init__(self, expression=None):
-        super().__init__()
-        self.expression = expression
-
-    def accept(self, visitor, param):
-        return visitor.visit_return(self, param)
+    expression: Expression = None
 
 
+@dataclass
 class BreakNode(Sentence):
+    pass
 
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_break(self, param)
-
-
+@dataclass
 class ContinueNode(Sentence):
-
-    def __init__(self):
-        super().__init__()
-
-    def accept(self, visitor, param):
-        return visitor.visit_continue(self, param)
+    pass
