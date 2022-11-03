@@ -117,8 +117,6 @@ class MoblileRobotLayer(Layer):
         super().__init__()
         self.hud = huds.MobileHUD()
         self.robot_data = self.rdr.parse_robot(n_light_sens-2)
-        print(n_light_sens-2)
-        print(self.robot_data)
         self.robot = robots.MobileRobot(n_light_sens, self.robot_data)
         self.robot_drawing = robot_drawings.MobileRobotDrawing(
             self.drawing, n_light_sens)

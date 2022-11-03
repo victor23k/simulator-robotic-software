@@ -134,7 +134,6 @@ class MainApplication(tk.Tk):
 
     def __update_robot(self):
         robot = self.selector_bar.robot_selector.current()
-        print(robot)
         self.controller.change_robot(robot)
         self.controller.configure_layer(
             self.drawing_frame.canvas, self.drawing_frame.hud_canvas)

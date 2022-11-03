@@ -43,7 +43,6 @@ class RobotDataReader:
         """
         list_elem = []
         robot_name = self.__name_from_opt(robot_opt)
-        print(f'robot name:{robot_name}')
         for robot in self.robots:
             if robot['name'] == robot_name:
                 for elem in robot['elements']:
