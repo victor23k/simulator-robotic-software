@@ -65,8 +65,12 @@ class RobotsController:
         elif option == 1:
             self.view.show_circuit_selector(True)
             self.view.show_joystick(False)
-            self.robot_layer = layers.MoblileRobotLayer(4)
+            self.robot_layer = layers.MoblileRobotLayer(3)
         elif option == 2:
+            self.view.show_circuit_selector(True)
+            self.view.show_joystick(False)
+            self.robot_layer = layers.MoblileRobotLayer(4)
+        elif option == 3:
             self.view.show_circuit_selector(False)
             self.view.show_joystick(True)
             self.robot_layer = layers.LinearActuatorLayer()

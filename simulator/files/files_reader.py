@@ -43,6 +43,7 @@ class RobotDataReader:
         """
         list_elem = []
         robot_name = self.__name_from_opt(robot_opt)
+        print(f'robot name:{robot_name}')
         for robot in self.robots:
             if robot['name'] == robot_name:
                 for elem in robot['elements']:
@@ -78,8 +79,10 @@ class RobotDataReader:
         if robot_opt == 0:
             return "mobile2"
         elif robot_opt == 1:
-            return "mobile4"
+            return "mobile3"
         elif robot_opt == 2:
+            return "mobile4"
+        elif robot_opt == 3:
             return "actuator"
         return "mobile2"
 

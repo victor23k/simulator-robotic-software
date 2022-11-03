@@ -134,6 +134,7 @@ class MainApplication(tk.Tk):
 
     def __update_robot(self):
         robot = self.selector_bar.robot_selector.current()
+        print(robot)
         self.controller.change_robot(robot)
         self.controller.configure_layer(
             self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
@@ -268,8 +269,10 @@ class PinConfigurationWindow(tk.Toplevel):
         if robot_option == 0:
             self.show_for_mobile2()
         if robot_option == 1:
-            self.show_for_mobile4()
+            self.show_for_mobile3()
         if robot_option == 2:
+            self.show_for_mobile4()
+        if robot_option == 3:
             self.show_for_actuator()
 
         self.btn_accept.grid(row=0, column=0, sticky="se", padx=(0, 10))
@@ -353,6 +356,41 @@ class PinConfigurationWindow(tk.Toplevel):
         """
         Shows the window with the components needed to
         configure the mobile robot which has 2 light sensors
+        """
+        self.data = self.application.controller.get_pin_data()
+
+        self.lb_mobile.grid(row=0, column=0, sticky="w")
+        self.lb_pin_servo1.grid(row=1, column=0, sticky="w")
+        self.entry_pin_se1.grid(row=1, column=1, sticky="w", padx=5)
+        self.lb_pin_servo2.grid(row=1, column=2, sticky="w")
+        self.entry_pin_se2.grid(row=1, column=3, sticky="w", padx=5)
+        self.lb_pin_light2.grid(row=2, column=0, sticky="w")
+        self.entry_pin_l2.grid(row=2, column=1, sticky="w", padx=5)
+        self.lb_pin_light3.grid(row=2, column=2, sticky="w")
+        self.entry_pin_l3.grid(row=2, column=3, sticky="w", padx=5)
+        self.lb_pin_sound1.grid(row=4, column=0, sticky="w")
+        self.entry_pin_so1.grid(row=4, column=1, sticky="w", padx=5)
+        self.lb_pin_sound2.grid(row=4, column=2, sticky="w")
+        self.entry_pin_so2.grid(row=4, column=3, sticky="w", padx=5)
+
+        self.entry_pin_se1.insert(tk.END, self.data["servo_left"])
+        self.entry_pin_se2.insert(tk.END, self.data["servo_right"])
+        self.entry_pin_l2.insert(tk.END, self.data["light_left"])
+        self.entry_pin_l3.insert(tk.END, self.data["light_right"])
+        self.entry_pin_so1.insert(tk.END, self.data["sound_trig"])
+        self.entry_pin_so2.insert(tk.END, self.data["sound_echo"])
+
+        self.bind("<Alt-i>", lambda event: self.entry_pin_se1.focus())
+        self.bind("<Alt-d>", lambda event: self.entry_pin_se2.focus())
+        self.bind("<Alt-z>", lambda event: self.entry_pin_l2.focus())
+        self.bind("<Alt-r>", lambda event: self.entry_pin_l3.focus())
+        self.bind("<Alt-t>", lambda event: self.entry_pin_so1.focus())
+        self.bind("<Alt-e>", lambda event: self.entry_pin_so2.focus())
+
+    def show_for_mobile3(self):
+        """
+        Shows the window with the components needed to
+        configure the mobile robot which has 3 light sensors
         """
         self.data = self.application.controller.get_pin_data()
 
@@ -1214,7 +1252,9 @@ class SelectorBar(tk.Frame):
             "Consolas", 13), underline=1)
         self.track_selector = ttk.Combobox(self, state="readonly")
 
-        self.robot_selector['values'] = ["Robot móvil (2 infrarrojos)", "Robot móvil (4 infrarrojos)",
+        self.robot_selector['values'] = ["Robot móvil (2 infrarrojos)",
+                                         "Robot móvil (3 infrarrojos)",
+                                         "Robot móvil (4 infrarrojos)",
                                          "Actuador lineal"]
         self.robot_selector.current(0)
         self.track_selector['values'] = [
