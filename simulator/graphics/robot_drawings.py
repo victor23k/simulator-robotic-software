@@ -604,8 +604,13 @@ class Circuit:
             elif part['type'] == 'turn':
                 x, y = self.__correct_turn_start(x, y, part)
                 self.__create_turn(
-                    x, y, part['bounding_len'], part['angle'], part['starting_angle'], self.ROAD_WIDTH)
+                    x, y, part['bounding_len'], part['angle'], part['starting_angle'],
+                    self.ROAD_WIDTH)
                 x, y = self.__correct_turn_end(x, y, part)
+            elif part['type'] == 'id':
+                self.__create_id(x, y, part["dist"], self.ROAD_WIDTH, part["number"])
+                x += part["dist"]
+
 
     def __save_coords_x(self, x, y, part):
         list_coords = []
@@ -778,7 +783,26 @@ class Circuit:
         self.circuit_parts.append(
             self.CircuitStraight(x, y, width, height)
         )
-
+    def __create_id(self, x, y, width, height, number):
+        """
+        Creates a straight
+        Arguments:
+            x: the x coordinate of the straight
+            y: the y coordinate of the straight
+            width: the width of the straight
+            heigth: the height of the straight
+        """
+        if width < 0:
+            x += self.ROAD_WIDTH
+            x += width
+            width *= -1
+        if height < 0:
+            y += self.ROAD_WIDTH
+            y += height
+            height *= -1
+        self.circuit_parts.append(
+            self.CircuitId(x, y, width, height, number)
+        )
     def __create_turn(self, x, y, bounding_len, angle, starting_angle, track_width):
         """
         Creates a turn
@@ -835,6 +859,7 @@ class Circuit:
             """
             pass
 
+
     class CircuitStraight(CircuitPart):
 
         def __init__(self, x, y, width, height):
@@ -876,6 +901,51 @@ class Circuit:
                     and y <= self.y + self.height
                 )
             )
+
+    class CircuitId(CircuitStraight):
+
+            def __init__(self, x, y, width, height, number):
+                """
+                Constructor for circuit straight
+                Arguments:
+                x: the x coordinate of the id
+                y: the y coordinate of the id
+                width: the width of the id
+                heigth: the height of the id
+                number: the identifier of the id
+                """
+                super().__init__(x, y, width, height)
+                self.number = number
+
+            def draw(self, drawing: drawing.Drawing):
+                temp = self.number
+                bits = []
+                for cont in range(3):
+                    bits.append((temp >> cont) % 2)
+                bits.append(0)
+                bits.reverse()
+                for cont, bit in enumerate(bits):
+                    drawing.draw_rectangle(
+                        {
+                            "x": self.x + (2 * cont + 1) * self.width / 8,
+                            "y": self.y,
+                            "width": self.width / 8,
+                            "height": self.height,
+                            "color": "black",
+                            "group": "circuit"
+                        }
+                    )
+                    if bit:
+                        drawing.draw_rectangle(
+                            {
+                                "x": self.x + cont * self.width / 4,
+                                "y": self.y - 2 * self.height,
+                                "width": self.width / 8,
+                                "height": 5 * self.height,
+                                "color": "black",
+                                "group": "circuit"
+                            }
+                        )
 
     class CircuitTurn(CircuitPart):
 

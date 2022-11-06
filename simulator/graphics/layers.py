@@ -267,6 +267,8 @@ class MoblileRobotLayer(Layer):
             return "obstacle"
         elif circuit_opt == 4:
             return "straight and obstacle"
+        elif circuit_opt == 5:
+            return "node circuit"
         return "circuit"
 
     def _drawing_config(self):

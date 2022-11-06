@@ -114,6 +114,15 @@ class RobotDataReader:
                         'bounding_len': part['bounding_len']
                     }
                 )
+            elif part['type'] == 'id':
+                circuit_parts.append(
+                    {
+                        'type': part['type'],
+                        'anchor': 'end',
+                        'number': part['number'],
+                        'dist': part['dist']
+                    }
+                    )
         return circuit_parts
 
     def __read_obstacles(self, obstacles):

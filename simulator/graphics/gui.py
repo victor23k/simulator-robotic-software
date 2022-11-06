@@ -1257,7 +1257,9 @@ class SelectorBar(tk.Frame):
                                          "Actuador lineal"]
         self.robot_selector.current(0)
         self.track_selector['values'] = [
-            "Circuito", "Laberinto", "Recta", "Obstáculo", "Recta y obstáculo"]
+            "Circuito", "Laberinto", "Recta",
+            "Obstáculo", "Recta y obstáculo",
+            "Circuito con nodos"]
         self.track_selector.current(0)
 
         self.robot_selector.bind(
