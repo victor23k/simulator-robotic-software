@@ -55,7 +55,8 @@ class Compile(Command):
                 self.print_warnings(warns)
                 return True
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             self.controller.console.write_error(
                 console.Error("Error de compilación", 0, 0, "El sketch no se ha podido compilar correctamente"))
 

@@ -1,3 +1,10 @@
+# coding: utf-8
+
+import sys
+
+sys.path.append(".")
+sys.path.append("./simulator")
+
 from antlr4 import *
 from compiler.ArduinoLexer import ArduinoLexer
 from compiler.ArduinoParser import ArduinoParser
@@ -31,11 +38,10 @@ def transpile(code):
     sem_analysis = semantical_analysis.Semantic(lib_manager)
 
     code_gen = code_generator.CodeGenerator(lib_manager)
-
     tree = parser.program()
     errors.extend(listener.errors)
     if len(errors) < 1:
-        ast = visitor.visit(tree)
+        ast = visitor.visitProgram(tree)
         sem_analysis.execute(ast)
         try:
             errors.extend(sem_analysis.errors)
@@ -48,3 +54,12 @@ def transpile(code):
                 warns = warning_analysis.warnings
 
     return warns, errors
+
+
+def test():
+    test_code = open('tests/grammar-tests/EjemploWhile.txt', 'r').read()
+    arbol = transpile(test_code)
+    visitor = ast_builder_visitor.ASTBuilderVisitor()
+    return visitor.visitProgram(arbol)
+
+transpile(open('tests/grammar-tests/EjemploArduino.txt', 'r').read())

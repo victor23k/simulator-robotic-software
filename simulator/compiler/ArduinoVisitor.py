@@ -7,7 +7,8 @@ else:
 
 # This class defines a complete generic visitor for a parse tree produced by ArduinoParser.
 def visitChildren(self, ctx):
-    return self.visitChildren(ctx)
+    a =  self.visitChildren(ctx)
+    return a
 
 
 # this is the list of methods that we have to implement

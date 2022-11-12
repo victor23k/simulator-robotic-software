@@ -30,8 +30,10 @@ class DeclarationAnalyzer(ast_visitor.ASTVisitor):
         self.functions = {}
 
     def visit_program(self, program: ast.ProgramNode, param):
-        self.visit_children(program.includes, param)
-        self.visit_children(program.code, param)
+        for inc in program.includes:
+            self.visit_include(inc, param)
+        for cod in program.code:
+            self.visit_program_code(cod, param)
         if "setup" not in self.functions:
             self.add_error("Declaración", program, "No hay función setup")
         if "loop" not in self.functions:
@@ -50,7 +52,7 @@ class DeclarationAnalyzer(ast_visitor.ASTVisitor):
             for arg in function.args:
                 arg.set_function(function)
                 arg.accept(self, param)
-        if len(function.opt_args) > 0:
+        if len(function.opts_args) > 0:
             for arg in function.opt_args:
                 arg.set_function(function)
                 arg.accept(self, param)
@@ -240,8 +242,8 @@ class SemanticAnalyzer(ast_visitor.ASTVisitor):
         if len(function.args) > 0:
             for arg in function.args:
                 arg.accept(self, param)
-        if len(function.opt_args) > 0:
-            for arg in function.opt_args:
+        if len(function.opts_args) > 0:
+            for arg in function.opts_args:
                 arg.accept(self, param)
         if function.sentences is not None:
             for sent in function.sentences:
@@ -546,7 +548,7 @@ class SemanticAnalyzer(ast_visitor.ASTVisitor):
                 decls.append(decl)
             else:
                 opt_decls.append(decl)
-        definition = ast.FunctionNode(f_type, func_name, args=decls, opt_args=opt_decls)
+        definition = ast.FunctionNode(f_type, func_name, args=decls, opts_args=opt_decls)
         return definition
 
     def __parse_type(self, func_type):

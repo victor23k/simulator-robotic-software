@@ -15,7 +15,6 @@ def generate_setter(name):
     return lambda self, value: setattr(self, name, value)
 
 
-
 class BaseType(type):
     '''
     This base adds setters to all the classes
@@ -31,10 +30,10 @@ class BaseType(type):
 
 @dataclass
 class ASTNode(metaclass=BaseType):
-    
+
     position: int = field(init=False, default_factory=int)
     line: int = field(init=False, default_factory=int)
-    
+
     def accept(self, visitor, param):
         '''
         This method take the name of the class which must be NameNode and then
@@ -44,7 +43,7 @@ class ASTNode(metaclass=BaseType):
         name = '_'.join([i.lower() for i in NAME.findall(str(type(self)))
                          if not i == "Node"])
         if name:
-            return getattr(visitor, f'visit_{name}')(visitor, param)
+            return getattr(visitor, f'visit_{name}')(self, param)
         else:
             print("Warning: accept called from ASTNode!")
 
@@ -53,6 +52,7 @@ class ASTNode(metaclass=BaseType):
 
     def set_line(self, line):
         self.line = line
+
 
 @dataclass
 class TypeNode(ASTNode):
@@ -64,19 +64,19 @@ class TypeNode(ASTNode):
 @dataclass
 class Sentence(ASTNode):
 
-    function: int = field(init=False, default_factory=lambda :None)
+    function: int = field(init=False, default_factory=lambda: None)
     is_loop_sent: bool = field(init=False, default_factory=lambda: False)
 
 
 @dataclass
 class Expression(Sentence):
-    type: int = field(init=False, default_factory=lambda :None)
-    modifiable: bool = field(init=False, default_factory=lambda :False)
+    type: int = field(init=False, default_factory=lambda: None)
+    modifiable: bool = field(init=False, default_factory=lambda: False)
 
 
 @dataclass
 class ProgramNode(ASTNode):
-    includes: int = field(default_factory=lambda :None)
+    includes: int = field(default_factory=lambda: None)
     code: int = None
 
 
@@ -95,10 +95,10 @@ class ProgramCodeNode(ASTNode):
 @dataclass
 class DeclarationNode(Sentence):
     type: str 
-    var_name: str = field(default_factory= lambda: None)
-    expr: str = field(default_factory= lambda: None)
-    is_const: bool = field(default_factory= lambda: False)
-    is_static: bool = field(default_factory= lambda: False)
+    var_name: str = field(default_factory=lambda: None)
+    expr: str = field(default_factory=lambda: None)
+    is_const: bool = field(default_factory=lambda: False)
+    is_static: bool = field(default_factory=lambda: False)
 
 
 @dataclass
@@ -172,6 +172,7 @@ class DefineMacroNode(Sentence):
     def __post_init__(self):
         self.type = None
 
+
 @dataclass
 class AssignmentNode(Sentence):
     var: str = field(default_factory=str)
@@ -183,7 +184,6 @@ class AssignmentNode(Sentence):
 class BooleanTypeNode(TypeNode):
     def default_array_value(self):
         return BooleanNode(False)
-
 
 
 @dataclass

@@ -1,3 +1,6 @@
+# coding: utf-8
+
+
 from ast import operator
 from cmath import exp
 from functools import reduce
@@ -27,11 +30,11 @@ class ASTBuilderVisitor(ArduinoVisitor):
         decs = []
         if ctx.include_directives is not None:
             for include_s in ctx.include_directives:
-                decs.append(self.visit(include_s))
+                decs.append(self.visitInclude(include_s))
         code = []
         if ctx.code is not None:
             for sent in ctx.code:
-                code.append(self.visit(sent))
+                code.append(self.visitProgram_code(sent))
         node = ProgramNode(decs, code)
         self.__add_line_info(node, ctx)
         return node
@@ -52,11 +55,11 @@ class ASTBuilderVisitor(ArduinoVisitor):
     def visitProgram_code(self, ctx: ArduinoParser.Program_codeContext):
         declaration = function = macro = None
         if ctx.var_dec is not None:
-            declaration = self.visit(ctx.var_dec)
+            declaration = self.visitDeclaration(ctx.var_dec)
         if ctx.func_def is not None:
-            function = self.visit(ctx.func_def)
+            function = self.visitFunction(ctx.func_def)
         if ctx.def_mac is not None:
-            macro = self.visit(ctx.def_mac)
+            macro = self.visitDefine_macro(ctx.def_mac)
         node = ProgramCodeNode(declaration, function, macro)
         self.__add_line_info(node, ctx)
         return node
@@ -65,11 +68,11 @@ class ASTBuilderVisitor(ArduinoVisitor):
     def visitDeclaration(self, ctx: ArduinoParser.DeclarationContext):
         node = None
         if ctx.declaration() is not None:
-            node = self.visit(ctx.declaration())
+            node = self.visitDeclaration(ctx.declaration())
         if ctx.s_def is not None:
-            node = self.visit(ctx.s_def)
+            node = self.visitSimple_declaration(ctx.s_def)
         if ctx.a_def is not None:
-            node = self.visit(ctx.a_def)
+            node = self.visitArray_declaration(ctx.a_def)
         if ctx.qual is not None:
             if ctx.qual.text == "const":
                 node.is_const = True
@@ -82,11 +85,11 @@ class ASTBuilderVisitor(ArduinoVisitor):
     def visitSimple_declaration(self, ctx: ArduinoParser.Simple_declarationContext):
         v_type = var_name = expr = None
         if ctx.v_type is not None:
-            v_type = self.visit(ctx.v_type)
+            v_type = self.visitVar_type(ctx.v_type)
         if ctx.ID() is not None:
             var_name = ctx.ID().getText()
         if ctx.val is not None:
-            expr = self.visit(ctx.val)
+            expr = self.visitExpression(ctx.val)
         node = DeclarationNode(v_type, var_name, expr)
         self.__add_line_info(node, ctx)
         return node
@@ -97,13 +100,13 @@ class ASTBuilderVisitor(ArduinoVisitor):
         v_type = var_name = dimensions = None
         is_constant = False
         if ctx.v_type is not None:
-            v_type = self.visit(ctx.v_type)
+            v_type = self.visitVar_type(ctx.v_type)
         if ctx.ID() is not None:
             var_name = ctx.ID().getText()
         if ctx.elems is not None:
-            elements = self.visit(ctx.elems)
+            elements = self.visitArray_elements(ctx.elems)
         if ctx.a_index is not None:
-            arr_tuple = self.visit(ctx.a_index)
+            arr_tuple = self.visitArray_index(ctx.a_index)
             sizes = arr_tuple[0]
             dimensions = arr_tuple[1]
         if ctx.expr is not None:
@@ -124,9 +127,9 @@ class ASTBuilderVisitor(ArduinoVisitor):
         if ctx.ID() is not None:
             name = ctx.ID().getText()
         if ctx.val is not None:
-            value = self.visit(ctx.val)
+            value = self.visitExpression(ctx.val)
         if ctx.elems is not None:
-            elems = self.visit(ctx.elems)
+            elems = self.visitArray_elements(ctx.elems)
         node = DefineMacroNode(name, value, elems)
         self.__add_line_info(node, ctx)
         return node
@@ -197,14 +200,14 @@ class ASTBuilderVisitor(ArduinoVisitor):
         args = []
         sentences = []
         if ctx.v_type is not None:
-            v_type = self.visit(ctx.v_type)
+            v_type = self.visitVar_type(ctx.v_type)
         if ctx.ID() is not None:
             f_name = ctx.ID().getText()
         if ctx.f_args is not None:
-            args = self.visit(ctx.f_args)
+            args = self.visitFunction_args(ctx.f_args)
         if ctx.sentences is not None:
             for sent in ctx.sentences:
-                sentences.append(self.visit(sent))
+                sentences.append(self.visitSentence(sent))
         node = FunctionNode(v_type, f_name, args=args, sentences=sentences)
         self.__add_line_info(node, ctx)
         return node
@@ -214,7 +217,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
         args = []
         if ctx.f_args is not None:
             for arg in ctx.f_args:
-                args.append(self.visit(arg))
+                args.append(self.visitDeclaration(arg))
         return args
 
     # Visit a parse tree produced by ArduinoParser#iteration_sentence.
@@ -223,18 +226,18 @@ class ASTBuilderVisitor(ArduinoVisitor):
         it_type = ctx.it_type.text
         sents = []
         if ctx.code is not None:
-            sents = self.visit(ctx.code)
+            sents = self.visitCode_block(ctx.code)
         if ctx.expr is not None:
-            expr = self.visit(ctx.expr)
+            expr = self.visitExpression(ctx.expr)
         if it_type == "while":
             node = WhileNode(expr, sents)
         if it_type == "do":
             node = DoWhileNode(expr, sents)
         if it_type == "for":
             if ctx.assign_def is not None:
-                a_def = self.visit(ctx.assign_def)
+                a_def = self.visitSimple_declaration(ctx.assign_def)
             if ctx.condition is not None:
-                cond = self.visit(ctx.condition)
+                cond = self.visitExpression(ctx.condition)
             node = ForNode(a_def, cond, expr, sents)
         self.__add_line_info(node, ctx)
         return node
@@ -248,16 +251,31 @@ class ASTBuilderVisitor(ArduinoVisitor):
             if_sents = []
             else_sents = []
             if ctx.if_code is not None:
-                if_sents = self.visit(ctx.if_code)
+                if_sents = self.visitCode_block(ctx.if_code)
             if ctx.else_code is not None:
-                else_sents = self.visit(ctx.else_code)
+                else_sents = self.visitCode_block(ctx.else_code)
             node = ConditionalSentenceNode(cond, if_sents, else_sents)
         if ctx.cond_type.text == "switch":
             cases = []
             if ctx.sentences is not None:
                 for sent in ctx.sentences:
-                    cases.append(self.visit(sent))
+                    cases.append(self.visitSentence(sent))
             node = SwitchSentenceNode(cond, cases)
+        self.__add_line_info(node, ctx)
+        return node
+
+    # Visit a parse tree produced by ArduinoParser#case_sentence.
+    def visitCase_sentence(self, ctx: ArduinoParser.Case_sentenceContext):
+        expr = s_type = None
+        sents = []
+        if ctx.sent_type is not None:
+            s_type = ctx.sent_type.text
+        if ctx.expr is not None:
+            expr = self.visitExpression(ctx.expr)
+        if ctx.sentences is not None:
+            for sent in ctx.sentences:
+                sents.append(self.visitSentence(sent))
+        node = CaseNode(s_type, expr, sents)
         self.__add_line_info(node, ctx)
         return node
 
@@ -266,29 +284,29 @@ class ASTBuilderVisitor(ArduinoVisitor):
         sents = []
         if ctx.sentences is not None:
             for sent in ctx.sentences:
-                sents.append(self.visit(sent))
+                sents.append(self.visitSentence(sent))
         return sents
 
     # Visit a parse tree produced by ArduinoParser#sentence.
     def visitSentence(self, ctx: ArduinoParser.SentenceContext):
         node = None
         if ctx.dec is not None:
-            node = self.visit(ctx.dec)
+            node = self.visitDeclaration(ctx.dec)
         if ctx.it_sent is not None:
-            node = self.visit(ctx.it_sent)
+            node = self.visitIteration_sentence(ctx.it_sent)
         if ctx.cond_sent is not None:
-            node = self.visit(ctx.cond_sent)
+            node = self.visitConditional_sentence(ctx.cond_sent)
         if ctx.assign is not None:
-            node = self.visit(ctx.assign)
+            node = self.visitAssignment(ctx.assign)
         if ctx.expr is not None:
-            node = self.visit(ctx.expr)
+            node = self.visitExpression(ctx.expr)
         if ctx.def_mac is not None:
-            node = self.visit(ctx.def_mac)
+            node = self.visitDefine_macro(ctx.def_mac)
         if ctx.s_type is not None:
             if ctx.s_type.text == "return":
                 expr = None
                 if ctx.expr is not None:
-                    expr = self.visit(ctx.expr)
+                    expr = self.visitExpression(ctx.expr)
                 node = ReturnNode(expr)
             if ctx.s_type.text == "break":
                 node = BreakNode()
@@ -301,27 +319,13 @@ class ASTBuilderVisitor(ArduinoVisitor):
     def visitAssignment(self, ctx: ArduinoParser.AssignmentContext):
         assign = value = None
         if ctx.assign is not None:
-            assign = self.visit(ctx.assign)
+            assign = self.visitExpression(ctx.assign)
         if ctx.value is not None:
-            value = self.visit(ctx.value)
+            value = self.visitExpression(ctx.value)
         node = AssignmentNode(assign, value)
         self.__add_line_info(node, ctx)
         return node
 
-    # Visit a parse tree produced by ArduinoParser#case_sentence.
-    def visitCase_sentence(self, ctx: ArduinoParser.Case_sentenceContext):
-        expr = s_type = None
-        sents = []
-        if ctx.sent_type is not None:
-            s_type = ctx.sent_type.text
-        if ctx.expr is not None:
-            expr = self.visit(ctx.expr)
-        if ctx.sentences is not None:
-            for sent in ctx.sentences:
-                sents.append(self.visit(sent))
-        node = CaseNode(s_type, expr, sents)
-        self.__add_line_info(node, ctx)
-        return node
 
     # Visit a parse tree produced by ArduinoParser#expression.
     def visitExpression(self, ctx: ArduinoParser.ExpressionContext):
@@ -332,9 +336,9 @@ class ASTBuilderVisitor(ArduinoVisitor):
         comp_ops = {'==', '!=', '>', '>=', '<', '<='}
         comp_assign_ops = {'%=', '&=', '*=', '+=', '-=', '/=', '^=', '|='}
         if ctx.r_expr is not None:
-            node = self.visit(ctx.r_expr)
+            node = self.visitExpression(ctx.r_expr)
         if ctx.member_acc is not None:
-            element = self.visit(ctx.member_acc)
+            element = self.visitExpression(ctx.member_acc)
             member = IDNode(ctx.id_acc.text)
             node = MemberAccessNode(element, member)
         if ctx.array_name is not None:
@@ -342,25 +346,25 @@ class ASTBuilderVisitor(ArduinoVisitor):
             indexes = []
             if ctx.indexes is not None:
                 for i in ctx.indexes:
-                    indexes.append(self.visit(i))
+                    indexes.append(self.visitExpression(i))
             node = ArrayAccessNode(name, indexes)
         if ctx.f_call is not None:
             args = []
-            name = self.visit(ctx.f_call)
+            name = self.visitExpression(ctx.f_call)
             if ctx.args is not None:
-                args = self.visit(ctx.args)
+                args = self.visitParameter(ctx.args)
             node = FunctionCallNode(name, args)
         if ctx.conv is not None:
-            node = self.visit(ctx.conv)
+            node = self.visitConversion(ctx.conv)
         if ctx.operator is not None:
             left = right = expr = None
             op = ctx.operator
             if ctx.left is not None:
-                left = self.visit(ctx.left)
+                left = self.visitExpression(ctx.left)
             if ctx.right is not None:
-                right = self.visit(ctx.right)
+                right = self.visitExpression(ctx.right)
             if ctx.expr is not None:
-                expr = self.visit(ctx.expr)
+                expr = self.visitExpression(ctx.expr)
             if op is not None:
                 operator = op.text
                 if operator == '++' or operator == '--':
@@ -429,9 +433,9 @@ class ASTBuilderVisitor(ArduinoVisitor):
             elif ctx.uc_type.text == 'String':
                 conv_type = StringTypeNode()
         if ctx.c_type is not None:
-            conv_type = self.visit(ctx.c_type)
+            conv_type = self.visitType_convert(ctx.c_type)
         if ctx.expr is not None:
-            expr = self.visit(ctx.expr)
+            expr = self.visitExpression(ctx.expr)
         node = ConversionNode(conv_type, expr)
         self.__add_line_info(node, ctx)
         return node
@@ -459,7 +463,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
         params = []
         if ctx.parameters is not None:
             for param in ctx.parameters:
-                params.append(self.visit(param))
+                params.append(self.visitExpression(param))
         return params
 
     def __add_line_info(self, node, ctx):
