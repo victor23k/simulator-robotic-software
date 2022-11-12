@@ -45,7 +45,8 @@ class ASTNode(metaclass=BaseType):
         if name:
             return getattr(visitor, f'visit_{name}')(self, param)
         else:
-            print("Warning: accept called from ASTNode!")
+            raise Exception("Warning!")
+            print(f"Warning: {type(self)}.accept called from ASTNode!")
 
     def set_position(self, position):
         self.position = position
@@ -279,6 +280,9 @@ class IDTypeNode(TypeNode):
     def default_array_value(self):
         return None
 
+    def accept(self, visitor, param):
+        return visitor.visit_id_type(self, param)
+
 @dataclass
 class FunctionNode(ASTNode):
     type: str = ''
@@ -432,9 +436,11 @@ class BooleanNode(SingleValue):
 @dataclass
 class IDNode(Expression):
     value: int = 0
-    function_call: Expression = field(init=False, default_factory=lambda:None)
-    definition: Expression = field(init=False, default_factory=lambda:None)
+    function_call: Expression = field(init=False, default_factory=lambda: None)
+    definition: Expression = field(init=False, default_factory=lambda: None)
 
+    def accept(self, visitor, param):
+        return visitor.visit_id(self, param)
 
 @dataclass
 class MemberAccessNode(Expression):

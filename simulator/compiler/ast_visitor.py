@@ -4,8 +4,8 @@ import compiler.ast as ast
 class ASTVisitor:
 
     def visit_program(self, program: ast.ProgramNode, param):
-        self.visit_include(program.includes, param)
-        self.visit_program_code(program.code, param)
+        self.visit_children(program.includes, param)
+        self.visit_children(program.code, param)
         return None
 
     def visit_include(self, program: ast.IncludeNode, param):

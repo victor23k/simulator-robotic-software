@@ -42,13 +42,14 @@ def transpile(code):
     errors.extend(listener.errors)
     if len(errors) < 1:
         ast = visitor.visitProgram(tree)
+        print(ast)
         sem_analysis.execute(ast)
         try:
             errors.extend(sem_analysis.errors)
         except AttributeError:
             pass
         else:
-            if len(errors) < 1:
+            if not errors:
                 code_gen.visit_program(ast, None)
                 warning_analysis.visit_program(ast, None)
                 warns = warning_analysis.warnings
@@ -57,9 +58,14 @@ def transpile(code):
 
 
 def test():
-    test_code = open('tests/grammar-tests/EjemploWhile.txt', 'r').read()
+    test_code = open('tests/grammar-tests/ejemploPeque.txt', 'r').read()
     arbol = transpile(test_code)
     visitor = ast_builder_visitor.ASTBuilderVisitor()
-    return visitor.visitProgram(arbol)
+    ast =  visitor.visitProgram(arbol)
+    lib_manager = libraries.LibraryManager()
+    warning_analysis = warnings.WarningAnalyzer()
+    sem_analysis = semantical_analysis.Semantic(lib_manager)
+    return sem_analysis.execute(ast)
 
-transpile(open('tests/grammar-tests/EjemploArduino.txt', 'r').read())
+transpile(open('tests/grammar-tests/ejemploPeque.txt', 'r').read())
+#test()

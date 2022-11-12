@@ -1,3 +1,4 @@
+import traceback
 import importlib.util
 import sys
 import time
@@ -56,7 +57,8 @@ class Compile(Command):
                 return True
             return True
         except Exception as e:
-            print(e)
+            print(f'la excepción es {e}')
+            traceback.print_exc()
             self.controller.console.write_error(
                 console.Error("Error de compilación", 0, 0, "El sketch no se ha podido compilar correctamente"))
 

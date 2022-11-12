@@ -172,7 +172,7 @@ class CodeGenerator(ast_visitor.ASTVisitor):
     def visit_function(self, function: ast.FunctionNode, param):
         for func in self.functions[function.name]:
             nparams = func['nparams']
-            if nparams == len(function.args) + len(function.opt_args):
+            if nparams == len(function.args) + len(function.opts_args):
                 self.write_to_script("def {}".format(func['name']))
                 break
 
@@ -636,14 +636,14 @@ class FunctionDefiner(ast_visitor.ASTVisitor):
             self.functions[function.name] = [
                 {
                     'name': function.name,
-                    'nparams': len(function.args) + len(function.opt_args)
+                    'nparams': len(function.args) + len(function.opts_args)
                 }
             ]
         else:
             self.functions[function.name].append(
                 {
                     'name': str(function.name) + str(len(self.functions[function.name])),
-                    'nparams': len(function.args) + len(function.opt_args)
+                    'nparams': len(function.args) + len(function.opts_args)
                 }
             )
         return None
