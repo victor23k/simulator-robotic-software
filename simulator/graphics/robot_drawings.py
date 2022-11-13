@@ -566,7 +566,7 @@ class Circuit:
         self.parts = parts
         self.circuit_parts = []
         self.drawing = drawing
-        self.ROAD_WIDTH = 125
+        self.ROAD_WIDTH = 100
 
     def create_circuit(self):
         """
@@ -946,6 +946,32 @@ class Circuit:
                                 "group": "circuit"
                             }
                         )
+            def check_overlap(self, x, y):
+                """
+                Checks if the point is overlapped with the
+                circuit
+                """
+                temp = self.number
+                bits = []
+                for cont in range(3):
+                    bits.append((temp >> cont) % 2)
+                bits.append(0)
+                bits.reverse()
+                for cont, bit in enumerate(bits):
+                    if ((self.x + (2 * cont + 1) * self.width / 8 <= x
+                         <= self.x + (2 * cont + 2) * self.width / 8)
+                        and
+                        (self.y <= y <= self.y + self.height)
+                        ):
+                        return True
+                    if bit:
+                        if ((self.x + cont * self.width / 4 <= x
+                             <= self.x + (2 * cont + 1) * self.width / 8)
+                            and
+                            (self.y - 2 * self.height <= y <= self.y + 2 * self.height)
+                            ):
+                            return True
+                return False
 
     class CircuitTurn(CircuitPart):
 

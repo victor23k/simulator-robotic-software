@@ -125,6 +125,8 @@ class MoblileRobotLayer(Layer):
 
         self.is_rotating = False
         self.is_moving = False
+        self.circuit = None
+        self.obstacle = None
 
     def move(self, using_keys, move_WASD):
         """

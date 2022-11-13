@@ -77,8 +77,10 @@ class RobotsController:
 
     def change_circuit(self, option):
         if self.robot_layer is not None:
+            print("ENTRO")
             self.stop()
         if isinstance(self.robot_layer, layers.MoblileRobotLayer):
+            print("ENTRO 2")
             self.robot_layer.set_circuit(option)
 
     def send_input(self, text):

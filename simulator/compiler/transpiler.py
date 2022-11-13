@@ -42,7 +42,6 @@ def transpile(code):
     errors.extend(listener.errors)
     if len(errors) < 1:
         ast = visitor.visitProgram(tree)
-        print(ast)
         sem_analysis.execute(ast)
         try:
             errors.extend(sem_analysis.errors)

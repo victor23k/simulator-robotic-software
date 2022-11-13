@@ -145,7 +145,7 @@ class MainApplication(tk.Tk):
     def __update_track(self):
         circuit = self.selector_bar.track_selector.current()
         robot = self.selector_bar.robot_selector.current()
-        if robot == 0 or robot == 1:
+        if robot in (0, 1, 2): # Aquí hay que mejorar los tipos de robots
             self.controller.change_circuit(circuit)
         self.controller.configure_layer(
             self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
