@@ -17,7 +17,7 @@ class TestBaseAST(unittest.TestCase):
         parser = ArduinoParser(stream)
         visitor = ASTBuilderVisitor()
         tree = parser.program()
-        self.ast = visitor.visit(tree)
+        self.ast = visitor.visitProgram(tree)
 
     def tearDown(self):
         return super().tearDown()
@@ -1172,3 +1172,7 @@ class TestConversion(TestBaseAST):
             self.code[1].function.sentences[6].expr.value,
             6468
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

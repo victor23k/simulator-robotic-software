@@ -489,7 +489,7 @@ class SemanticAnalyzer(ast_visitor.ASTVisitor):
         for d in definitions:
             if (
                     len(function_call.parameters) == len(d.args)
-                    or len(function_call.parameters) == len(d.args) + len(d.opt_args)
+                    or len(function_call.parameters) == len(d.args) + len(d.opts_args)
             ):
                 n_params_correct = True
                 definition = d
@@ -505,7 +505,7 @@ class SemanticAnalyzer(ast_visitor.ASTVisitor):
                 if i < len(definition.args):
                     type_to_check = definition.args[i].type
                 else:
-                    type_to_check = definition.opt_args[i - len(definition.args)].type
+                    type_to_check = definition.opts_args[i - len(definition.args)].type
                 not_any = True
                 if type(type_to_check) == ast.IDTypeNode:
                     if type_to_check.type_name == 'any':
@@ -693,7 +693,7 @@ class SemanticAnalyzer(ast_visitor.ASTVisitor):
         arithmetic_expression.set_type(arithmetic_expression.left.type)
         return None
 
-    def visit_comparision_expression(self, comparison_expression: ast.ComparisonExpressionNode, param):
+    def visit_comparision_expression(self, comparison_expression: ast.ComparisionExpressionNode, param):
         if comparison_expression.left is not None:
             comparison_expression.left.set_function(comparison_expression.function)
             comparison_expression.left.accept(self, param)

@@ -153,7 +153,7 @@ class ASTVisitor:
             arithmetic_expression.right.accept(self, param)
         return None
 
-    def visit_comparision_expression(self, comparison_expression: ast.ComparisonExpressionNode, param):
+    def visit_comparision_expression(self, comparison_expression: ast.ComparisionExpressionNode, param):
         if comparison_expression.left is not None:
             comparison_expression.left.accept(self, param)
         if comparison_expression.right is not None:

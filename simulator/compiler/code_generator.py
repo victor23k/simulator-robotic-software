@@ -395,7 +395,7 @@ class CodeGenerator(ast_visitor.ASTVisitor):
         self.write_to_script(")")
         return None
 
-    def visit_comparision_expression(self, comparison_expression: ast.ComparisonExpressionNode, param):
+    def visit_comparision_expression(self, comparison_expression: ast.ComparisionExpressionNode, param):
         self.write_to_script("(")
         if comparison_expression.left is not None:
             comparison_expression.left.accept(self, param)

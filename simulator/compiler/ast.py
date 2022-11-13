@@ -129,7 +129,8 @@ class ArrayDeclarationNode(Sentence):
         n = len(self.elements)
         if len(self.size) > 0:
             n = self.size[0]
-        n *= reduce(lambda x, y: x*y, self.size[1:])
+            if self.size[1:]:
+                n *= reduce(lambda x, y: x*y, self.size[1:])
         # Here I suppose that self.elements is a list
         if self.elements:
             n_elements = self.__total_elements(self.elements)
@@ -141,13 +142,18 @@ class ArrayDeclarationNode(Sentence):
         self.size.insert(0, size_of_rows)
 
     def __total_elements(self, elements):
-        return reduce (lambda x,y: y + (self.__total_elements(x) if isinstance(x, list) else 1),
-                       elements)
+        count = 0
+        for elem in elements:
+            if isinstance(elem, list):
+                count += self.__total_elements(elem)
+            else:
+                count += 1
+        return count
 
     def __organize_array_elements(self, current_elems, array_level=0):
         elems = []
         for i in range(0, self.size[array_level]):
-            if array_level < self.dimensions - 1:
+            if (array_level < self.dimensions - 1):
                 sub_elems = current_elems[i]
                 # implies its 2d but declared as 1d
                 if not isinstance(current_elems[i], list):
@@ -277,6 +283,7 @@ class WordTypeNode(TypeNode):
 @dataclass
 class IDTypeNode(TypeNode):
 
+    type_name: str
     def default_array_value(self):
         return None
 
@@ -348,7 +355,7 @@ class ArithmeticExpressionNode(BinaryOperation):
 
 
 @dataclass
-class ComparisonExpressionNode(BinaryOperation):
+class ComparisionExpressionNode(BinaryOperation):
     pass
 
 

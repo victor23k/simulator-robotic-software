@@ -90,7 +90,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
             var_name = ctx.ID().getText()
         if ctx.val is not None:
             expr = self.visitExpression(ctx.val)
-        node = DeclarationNode(v_type, var_name, expr)
+        node = DeclarationNode(type=v_type, var_name=var_name, expr=expr)
         self.__add_line_info(node, ctx)
         return node
 
@@ -246,7 +246,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
     def visitConditional_sentence(self, ctx: ArduinoParser.Conditional_sentenceContext):
         node = cond = None
         if ctx.expr is not None:
-            cond = self.visit(ctx.expr)
+            cond = self.visitExpression(ctx.expr)
         if ctx.cond_type.text == "if":
             if_sents = []
             else_sents = []
@@ -254,7 +254,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
                 if_sents = self.visitCode_block(ctx.if_code)
             if ctx.else_code is not None:
                 else_sents = self.visitCode_block(ctx.else_code)
-            node = ConditionalSentenceNode(cond, if_sents, else_sents)
+            node = ConditionalSentenceNode(condition=cond, if_expr=if_sents, else_expr=else_sents)
         if ctx.cond_type.text == "switch":
             cases = []
             if ctx.sentences is not None:
@@ -376,7 +376,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
                 if operator in bool_ops:
                     node = BooleanExpressionNode(left, operator, right)
                 if operator in comp_ops:
-                    node = ComparisonExpressionNode(left, operator, right)
+                    node = ComparisionExpressionNode(left, operator, right)
                 if operator in comp_assign_ops:
                     node = CompoundAssignmentNode(left, operator, right)
                 if operator == '!':
