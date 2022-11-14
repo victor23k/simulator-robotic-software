@@ -330,7 +330,7 @@ class SwitchSentenceNode(Sentence):
     expression: Expression = None
     cases: List = None
 
-
+@dataclass
 class CaseNode(Sentence):
     type: str = "case"
     expression: Expression = None

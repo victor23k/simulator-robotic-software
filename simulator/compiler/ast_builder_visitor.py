@@ -150,10 +150,10 @@ class ASTBuilderVisitor(ArduinoVisitor):
         elements = []
         if ctx.array_elements() is not None:
             for elem in ctx.array_elements():
-                elements.append(self.visit(elem))
+                elements.append(self.visitArray_elements(elem))
         if ctx.elements is not None:
             for elem in ctx.elements:
-                elements.append(self.visit(elem))
+                elements.append(self.visitExpression(elem))
         return elements
 
     # Visit a parse tree produced by ArduinoParser#var_type.
@@ -259,7 +259,7 @@ class ASTBuilderVisitor(ArduinoVisitor):
             cases = []
             if ctx.sentences is not None:
                 for sent in ctx.sentences:
-                    cases.append(self.visitSentence(sent))
+                    cases.append(self.visitCase_sentence(sent))
             node = SwitchSentenceNode(cond, cases)
         self.__add_line_info(node, ctx)
         return node

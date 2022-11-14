@@ -16,7 +16,7 @@ import compiler.code_generator as code_generator
 import libraries.libs as libraries
 
 
-def transpile(code, lib_add=None):
+def transpile(code):
     errors = []
     warns = []
     input = InputStream(code)
@@ -41,8 +41,6 @@ def transpile(code, lib_add=None):
     errors.extend(listener.errors)
     if len(errors) < 1:
         ast = visitor.visitProgram(tree)
-        if lib_add != None:
-            ast.code += lib.add.code
         sem_analysis.execute(ast)
         try:
             errors.extend(sem_analysis.errors)
@@ -67,19 +65,5 @@ def test():
     sem_analysis = semantical_analysis.Semantic(lib_manager)
     return sem_analysis.execute(ast)
 
-
-class Prueba:
-    file = 'simulator/libraries/library_elegoo.c'
-    def setUp(self):
-        input = FileStream(fileName=self.file, encoding="utf-8")
-        lexer = ArduinoLexer(input)
-        stream = CommonTokenStream(lexer)
-        parser = ArduinoParser(stream)
-        visitor = ast_builder_visitor.ASTBuilderVisitor()
-        tree = parser.program()
-        self.ast = visitor.visitProgram(tree)
-        return self.ast
-
-print(transpile(open('simulator/libraries/library_elegoo.c', 'r').read()))
-#test()
-
+f = open('tests/file-tests/arrays.txt').read()
+transpile(f)
