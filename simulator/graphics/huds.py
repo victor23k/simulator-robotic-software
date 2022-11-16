@@ -121,7 +121,7 @@ class MobileHUD(HUD):
 
     def set_detect_obstacle(self, dists):
         """
-        Displays if the robot is detecting a obstacle, and the distance
+        Displays if the robot is detecting an obstacle, and the distance
         to it.
         Arguments:
             dists: a list with the distances

@@ -61,15 +61,15 @@ class RobotsController:
         if option == 0:
             self.view.show_circuit_selector(True)
             self.view.show_joystick(False)
-            self.robot_layer = layers.MoblileRobotLayer(2)
+            self.robot_layer = layers.MobileRobotLayer(2)
         elif option == 1:
             self.view.show_circuit_selector(True)
             self.view.show_joystick(False)
-            self.robot_layer = layers.MoblileRobotLayer(3)
+            self.robot_layer = layers.MobileRobotLayer(3)
         elif option == 2:
             self.view.show_circuit_selector(True)
             self.view.show_joystick(False)
-            self.robot_layer = layers.MoblileRobotLayer(4)
+            self.robot_layer = layers.MobileRobotLayer(4)
         elif option == 3:
             self.view.show_circuit_selector(False)
             self.view.show_joystick(True)
@@ -78,7 +78,7 @@ class RobotsController:
     def change_circuit(self, option):
         if self.robot_layer is not None:
             self.stop()
-        if isinstance(self.robot_layer, layers.MoblileRobotLayer):
+        if isinstance(self.robot_layer, layers.MobileRobotLayer):
             self.robot_layer.set_circuit(option)
 
     def send_input(self, text):

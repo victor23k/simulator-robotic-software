@@ -106,7 +106,7 @@ class Layer:
         self.drawing.empty_drawing()
 
 
-class MoblileRobotLayer(Layer):
+class MobileRobotLayer(Layer):
 
     def __init__(self, n_light_sens):
         """

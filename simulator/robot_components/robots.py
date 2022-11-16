@@ -61,6 +61,27 @@ class MobileRobot(Robot):
                 "sound_trig": self.sound.pin_trig,
                 "sound_echo": self.sound.pin_echo
             }
+        elif len(self.light_sensors) == 3:
+            data = {
+                "servo_left": self.servo_left.pin,
+                "servo_right": self.servo_right.pin,
+                "light_mleft": self.light_sensors[0].pin,
+                "light_left": self.light_sensors[1].pin,
+                "light_right": self.light_sensors[2].pin,
+                "sound_trig": self.sound.pin_trig,
+                "sound_echo": self.sound.pin_echo
+            }
+        elif len(self.light_sensors) == 4:
+            data = {
+                "servo_left": self.servo_left.pin,
+                "servo_right": self.servo_right.pin,
+                "light_mleft": self.light_sensors[0].pin,
+                "light_left": self.light_sensors[1].pin,
+                "light_right": self.light_sensors[2].pin,
+                "light_mright": self.light_sensors[3].pin,
+                "sound_trig": self.sound.pin_trig,
+                "sound_echo": self.sound.pin_echo
+            }
         else:
             data = {
                 "servo_left": self.servo_left.pin,
