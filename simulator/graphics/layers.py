@@ -12,11 +12,13 @@ class Layer:
         Constructor for superclass layer
         """
         self.drawing = drawing.Drawing()
+        self.is_drawing = False
         self.hud = None
         self.robot = None
         self.robot_drawing: robot_drawings.RobotDrawing = None
         self._zoom_percentage()
         self.is_drawing = False
+        self.is_board = False
 
         self.rdr = filesr.RobotDataReader()
 
@@ -368,6 +370,63 @@ class MobileRobotLayer(Layer):
         so it can be parsed
         """
         self.hud.set_wheel([self.robot_drawing.vl, self.robot_drawing.vr])
+
+
+class ArduinoBoardLayer(Layer):
+    def __init__(self):
+        """
+        Constuctor for ArduinoBoard
+        """
+        super().__init__()
+        self.is_board = True
+        self.hud = huds.ArduinoBoardHUD()
+        self.robot = robots.ArduinoBoard(self)
+        self.robot_drawing = robot_drawings.ArduinoBoardDrawing(
+            self.drawing)
+
+    def set_canvas(self, canvas, hud_canvas):
+        """
+        Sets the canvas that the drawing and will use
+        Arguments:
+            canvas: the canvas of the drawing
+            hud_canvas: the canvas of the hud
+        """
+        self.drawing.set_canvas(canvas)
+        self.drawing.set_size(self.robot_drawing.drawing_width,
+                              self.robot_drawing.drawing_height)
+        self.hud.set_canvas(hud_canvas)
+        self.robot_drawing.draw()
+
+    def _zoom_config(self):
+        """
+        Configures the zoom in case when it changes
+        """
+        self._zoom_percentage()
+        self._zoom_redraw()
+
+    def stop(self):
+        """
+        Stops all the executing code and clears the canvas
+        """
+        self.hud.reboot()
+        self.is_drawing = False
+
+    def draw_component(self, x, y):
+        if self.hud.drawing is not None:
+            self.drawing.draw_component(self.hud.drawing, x, y)
+            self.robot.add_component(self.hud.drawing)
+            self.hud.drawing = None
+        else:
+            self.abrir_selector(x, y)
+
+    def _draw_before_robot(self):
+        """Draw the components on the canvas"""
+        self.drawing.draw_all_components()
+
+    def abrir_selector(self, x, y):
+        # TODO -> si se pulsa un componente se guarda para unir con el siguiente que se pulse (cables)
+        print(x)
+        print(y)
 
 
 class LinearActuatorLayer(Layer):

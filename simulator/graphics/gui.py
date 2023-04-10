@@ -55,7 +55,7 @@ class MainApplication(tk.Tk):
         self.vertical_pane.pack(fill="both", expand=True)
 
         self.horizontal_pane.add(
-            self.drawing_frame, stretch="first", width=500, minsize=100)
+            self.drawing_frame, stretch="first", width=1000, minsize=100)
         self.horizontal_pane.add(self.editor_frame, minsize=100)
         self.vertical_pane.add(self.horizontal_pane,
                                stretch="first", minsize=100)
@@ -100,7 +100,7 @@ class MainApplication(tk.Tk):
     def save_file(self, event=None):
         content = self.editor_frame.text.get("1.0", tk.END)
         file = asksaveasfilename(defaultextension=".ino", filetypes=[
-                                 ("Arduino sketch", ".ino")])
+            ("Arduino sketch", ".ino")])
         if file != '':
             self.file_manager.save(file, content)
 
@@ -131,6 +131,8 @@ class MainApplication(tk.Tk):
         self.console_frame.console.config(state=tk.NORMAL)
         self.console_frame.console.insert(tk.END, "Robot cambiado con éxito\n")
         self.console_frame.console.config(state=tk.DISABLED)
+        self.controller.robot_layer.is_drawing = False
+        self.drawing_frame.key_drawing.deselect()
 
     def __update_robot(self):
         robot = self.selector_bar.robot_selector.current()
@@ -145,7 +147,7 @@ class MainApplication(tk.Tk):
     def __update_track(self):
         circuit = self.selector_bar.track_selector.current()
         robot = self.selector_bar.robot_selector.current()
-        if robot in (0, 1, 2): # Aquí hay que mejorar los tipos de robots
+        if robot in (0, 1, 2):  # Aquí hay que mejorar los tipos de robots
             self.controller.change_circuit(circuit)
         self.controller.configure_layer(
             self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
@@ -161,6 +163,12 @@ class MainApplication(tk.Tk):
             self.drawing_frame.show_joystick()
         else:
             self.drawing_frame.hide_joystick()
+
+    def show_hud(self, showing):
+        if showing:
+            self.drawing_frame.show_hud()
+        else:
+            self.drawing_frame.hide_hud()
 
     def key_press(self, event):
         pressed_key = event.char
@@ -194,6 +202,11 @@ class MainApplication(tk.Tk):
 
     def toggle_keys(self):
         self.keys_used = not self.keys_used
+
+    def set_drawing(self):
+        self.controller.robot_layer.is_drawing = not self.controller.robot_layer.is_drawing
+        if self.controller.robot_layer.is_drawing:
+            self.controller.robot_layer.hud.drawing = None
 
     def close(self):
         self.controller.exit()
@@ -260,6 +273,9 @@ class PinConfigurationWindow(tk.Toplevel):
             frame_content, text="Pin echo:", underline=4)
         self.entry_pin_so2 = tk.Entry(frame_content)
 
+        self.lb_board = tk.Label(frame_content, text="Placa arduino")
+        self.lb_arduinoBoardComponent = tk.Entry(frame_content)
+
         self.btn_accept = tk.Button(
             frame_buttons, text="Aceptar", command=self.commit_data, underline=0)
         self.btn_cancel = tk.Button(
@@ -273,6 +289,8 @@ class PinConfigurationWindow(tk.Toplevel):
             self.show_for_mobile4()
         if robot_option == 3:
             self.show_for_actuator()
+        if robot_option == 4:
+            self.show_for_arduinoboard()
 
         self.btn_accept.grid(row=0, column=0, sticky="se", padx=(0, 10))
         self.btn_cancel.grid(row=0, column=1, sticky="se")
@@ -404,8 +422,8 @@ class PinConfigurationWindow(tk.Toplevel):
         self.entry_pin_l3.grid(row=2, column=3, sticky="w", padx=5)
         self.lb_pin_light1.grid(row=3, column=0, sticky="w")
         self.entry_pin_l1.grid(row=3, column=1, sticky="w", padx=5)
-        #self.lb_pin_light4.grid(row=3, column=2, sticky="w")
-        #self.entry_pin_l4.grid(row=3, column=3, sticky="w", padx=5)
+        # self.lb_pin_light4.grid(row=3, column=2, sticky="w")
+        # self.entry_pin_l4.grid(row=3, column=3, sticky="w", padx=5)
         self.lb_pin_sound1.grid(row=4, column=0, sticky="w")
         self.entry_pin_so1.grid(row=4, column=1, sticky="w", padx=5)
         self.lb_pin_sound2.grid(row=4, column=2, sticky="w")
@@ -416,7 +434,7 @@ class PinConfigurationWindow(tk.Toplevel):
         self.entry_pin_l1.insert(tk.END, self.data["light_mleft"])
         self.entry_pin_l2.insert(tk.END, self.data["light_left"])
         self.entry_pin_l3.insert(tk.END, self.data["light_right"])
-        #self.entry_pin_l4.insert(tk.END, self.data["light_mright"])
+        # self.entry_pin_l4.insert(tk.END, self.data["light_mright"])
         self.entry_pin_so1.insert(tk.END, self.data["sound_trig"])
         self.entry_pin_so2.insert(tk.END, self.data["sound_echo"])
 
@@ -425,7 +443,7 @@ class PinConfigurationWindow(tk.Toplevel):
         self.bind("<Alt-z>", lambda event: self.entry_pin_l2.focus())
         self.bind("<Alt-r>", lambda event: self.entry_pin_l3.focus())
         self.bind("<Alt-q>", lambda event: self.entry_pin_l1.focus())
-        #self.bind("<Alt-h>", lambda event: self.entry_pin_l4.focus())
+        # self.bind("<Alt-h>", lambda event: self.entry_pin_l4.focus())
         self.bind("<Alt-t>", lambda event: self.entry_pin_so1.focus())
         self.bind("<Alt-e>", lambda event: self.entry_pin_so2.focus())
 
@@ -507,6 +525,16 @@ class PinConfigurationWindow(tk.Toplevel):
         self.bind("<Alt-x>", lambda event: self.entry_pin_joystick_x.focus())
         self.bind("<Alt-y>", lambda event: self.entry_pin_joystick_y.focus())
 
+    def show_for_arduinoboard(self):
+        """
+        Shows the window with the components needed to
+        configure the arduino board which has an arduino board
+        """
+        self.data = self.application.controller.get_pin_data()
+
+        self.lb_board.grid(row=0, column=0, sticky="w")
+        self.lb_arduinoBoardComponent.grid(row=1, column=0, sticky="w")
+
 
 class MenuBar(tk.Menu):
 
@@ -585,9 +613,10 @@ class MenuBar(tk.Menu):
         messagebox.showinfo('Simulador de Software para robots',
                             str(
                                 'Aplicación realizada como trabajo de fin de grado.\n'
-                                + 'Autor: Diego Fernández Suárez\n'
+                                + 'Autor inicial: Diego Fernández Suárez\n'
+                                + 'Autora extensión: María Suárez Hevia\n'
                                 + 'Tutor: Cristian González García\n'
-                                + 'Versión actual: b-0.4'
+                                + 'Versión actual: b-0.5'
                             ))
 
 
@@ -613,6 +642,10 @@ class DrawingFrame(tk.Frame):
                                            font=("Consolas", 12),
                                            bg=BLUE, activebackground=BLUE, selectcolor="black",
                                            command=application.toggle_keys, underline=0)
+        self.key_drawing = tk.Checkbutton(self.bottom_frame, text="Dibujar", fg="white",
+                                           font=("Consolas", 12),
+                                           bg=BLUE, activebackground=BLUE, selectcolor="black",
+                                           command=application.set_drawing, underline=0)
         self.zoom_frame = tk.Frame(self.bottom_frame, bg=BLUE)
         self.zoom_in_button = ImageButton(
             self.zoom_frame,
@@ -637,8 +670,9 @@ class DrawingFrame(tk.Frame):
             bd=0
         )
 
-        self.canvas.bind("<ButtonPress-1>", self.scroll_start)
-        self.canvas.bind("<B1-Motion>", self.scroll_move)
+        self.canvas.bind("<ButtonPress-1>", self.press)
+        self.canvas.bind("<ButtonRelease-1>", self.release)
+        self.canvas.bind("<B1-Motion>", self.move)
         self.canvas.bind("<MouseWheel>", self.zoom)
         application.bind("<Alt-m>", self.__toggle_check_manually)
         self.zoom_in_button.configure(command=self.application.zoom_in)
@@ -652,21 +686,41 @@ class DrawingFrame(tk.Frame):
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         self.key_movement.pack(anchor="w", side=tk.LEFT)
+        self.key_drawing.pack(anchor="w", side=tk.LEFT)
         self.zoom_frame.pack(anchor="e", side=tk.RIGHT)
 
         self.hud_canvas.pack(fill=tk.X, expand=False)
         self.canvas_frame.pack(fill=tk.BOTH, expand=True)
         self.bottom_frame.pack(fill=tk.X)
 
+        self.init_x = 0
+        self.init_y = 0
+
     def __toggle_check_manually(self, event=None):
         self.key_movement.toggle()
         self.application.toggle_keys()
 
-    def scroll_start(self, event):
+    def press(self, event):
+        if self.application.controller.robot_layer.is_drawing:
+            self.application.controller.robot_layer.draw_component(event.x, event.y)
         self.canvas.focus_force()
+        self.init_x = event.x
+        self.init_y = event.y
         self.canvas.scan_mark(event.x, event.y)
 
-    def scroll_move(self, event):
+    def release(self, event):
+        self.application.controller.robot_layer.drawing.dx += self.init_x - event.x
+        self.application.controller.robot_layer.drawing.dy += self.init_y - event.y
+        if self.application.controller.robot_layer.drawing.dx < 0:
+            self.application.controller.robot_layer.drawing.dx = 0
+        if self.application.controller.robot_layer.drawing.dx > 545:
+            self.application.controller.robot_layer.drawing.dx = 545
+        if self.application.controller.robot_layer.drawing.dy < 0:
+            self.application.controller.robot_layer.drawing.dy = 0
+        if self.application.controller.robot_layer.drawing.dy > 580:
+            self.application.controller.robot_layer.drawing.dy = 580
+
+    def move(self, event):
         self.canvas.scan_dragto(event.x, event.y, gain=1)
 
     def zoom(self, event):
@@ -853,8 +907,8 @@ class EditorFrame(tk.Frame):
                     if comm_start[0] == fl_start[0] == comm_end[0]:
                         if fl_end[0] == fl_start[0]:
                             finished = (
-                                comm_start[1] < fl_start[1] < comm_end[1]
-                                and comm_start [1] < fl_end[1] < comm_end[1]
+                                    comm_start[1] < fl_start[1] < comm_end[1]
+                                    and comm_start[1] < fl_end[1] < comm_end[1]
                             )
                         else:
                             finished = True
@@ -1262,7 +1316,8 @@ class SelectorBar(tk.Frame):
         self.robot_selector['values'] = ["Robot móvil (2 infrarrojos)",
                                          "Robot móvil (3 infrarrojos)",
                                          "Robot móvil (4 infrarrojos)",
-                                         "Actuador lineal"]
+                                         "Actuador lineal",
+                                         "Placa arduino"]
         self.robot_selector.current(0)
         self.track_selector['values'] = [
             "Circuito", "Laberinto", "Recta",

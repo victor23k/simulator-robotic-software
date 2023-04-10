@@ -552,6 +552,45 @@ class MobileRobotDrawing(RobotDrawing):
             self.is_detecting = is_detecting
 
 
+class ArduinoBoardDrawing(RobotDrawing):
+
+    def __init__(self, drawing: drawing.Drawing):
+        """
+        Constructor for arduino board drawing
+        Arguments:
+            drawing: the drawing where the robot is going
+            to be represented
+        """
+        super().__init__(drawing)
+
+        self.drawing_width = 6300
+        self.drawing_height = 4300
+        self.x = 500
+        self.y = 500
+        self.real_x = self.x
+        self.real_y = self.y
+        self.width = 516
+        self.height = 584
+        self.create_robot()
+        self.drawing.set_robot(robot=self)
+
+    def create_robot(self):
+        """
+        Creates the board
+        """
+        self.board = {
+            "x": self.x,
+            "y": self.y,
+            "image": "assets/arduinoBoard.png"
+        }
+
+    def draw(self):
+        """
+        Draws the board
+        """
+        self.drawing.draw_image(self.board, "arduinoBoard")
+
+
 class Circuit:
 
     def __init__(self, parts, drawing: drawing.Drawing):

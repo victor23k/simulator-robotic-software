@@ -74,6 +74,11 @@ class RobotsController:
             self.view.show_circuit_selector(False)
             self.view.show_joystick(True)
             self.robot_layer = layers.LinearActuatorLayer()
+        # Option for the arduino board
+        elif option == 4:
+            self.view.show_circuit_selector(False)
+            self.view.show_joystick(True)
+            self.robot_layer = layers.ArduinoBoardLayer()
 
     def change_circuit(self, option):
         if self.robot_layer is not None:

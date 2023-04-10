@@ -83,6 +83,8 @@ class RobotDataReader:
             return "mobile4"
         elif robot_opt == 3:
             return "actuator"
+        elif robot_opt == 4:
+            return "arduinoBoard"
         return "mobile2"
 
     def __read_parts(self, parts):

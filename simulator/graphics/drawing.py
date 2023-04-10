@@ -9,11 +9,16 @@ class Drawing:
         Constructor for the drawing
         """
         self.canvas = None
+        self.robot = None
         self.images = {}
         self.canvas_images = {}
         self.scale = 0.2
         self.hud_w = 0
         self.hud_h = 0
+        self.component = 0
+        self.components = []
+        self.dx = 0
+        self.dy = 0
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -22,6 +27,9 @@ class Drawing:
             canvas: the canvas
         """
         self.canvas = canvas
+
+    def set_robot(self, robot):
+        self.robot = robot
 
     def empty_drawing(self):
         """
@@ -34,10 +42,12 @@ class Drawing:
         """
         Deletes all the elements that have to be zoomed
         """
-        self.canvas.delete('actuator', 'button_left', 'button_right', 'block')
+        self.canvas.delete('actuator', 'button_left', 'button_right', 'block', 'arduinoBoard')
         self.canvas.delete('robot', 'circuit', 'obstacle',
                            'light_1', 'light_2', 'light_3', 'light_4')
         self.canvas.delete('prueba')
+        for component in self.components:
+            self.canvas.delete(component["group"])
 
     def draw_image(self, element, group):
         """
@@ -95,7 +105,7 @@ class Drawing:
         self.canvas.delete(group)
         image = self.__open_image(element["image"], group)
         rotated_img = self.images[element["image"]
-                                  ] = image.rotate(angle, expand=True)
+        ] = image.rotate(angle, expand=True)
         self.__add_to_canvas(element["x"], element["y"], rotated_img, group)
 
     def draw_rectangle(self, form: dict):
@@ -185,7 +195,7 @@ class Drawing:
         Arguments:
             x: the x coordinate of the image
             y: the y coordinate of the image
-            image_path: the image to add (as Image instance)
+            image: the image to add (as Image instance)
             group: the group (tag of tkinter)
         """
         width = int(image.width * self.scale)
@@ -218,3 +228,23 @@ class Drawing:
             "path": image_path
         }
         return image
+
+    def draw_component(self, drawing, x, y):
+        x_total = x + self.dx
+        y_total = y + self.dy
+        print(x_total)
+        print(y_total)
+        path = "assets/" + drawing + ".png"
+        image = {
+            "x": x_total / self.scale,
+            "y": y_total / self.scale,
+            "image": path,
+            "group": "component" + str(self.component)
+        }
+        self.draw_image(image, image["group"])
+        self.components.append(image)
+        self.component += 1
+
+    def draw_all_components(self):
+        for component in self.components:
+            self.draw_image(component, component["group"])

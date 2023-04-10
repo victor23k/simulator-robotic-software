@@ -24,6 +24,9 @@ class Robot:
             return int(pin[1]) + 14
         return int(pin)
 
+    def add_component(self, component):
+        pass
+
 
 class MobileRobot(Robot):
 
@@ -425,3 +428,41 @@ class LinearActuator(Robot):
         """
         self.board.detach_pin(self.joystick.pinb)
         self.joystick.pinb = -1
+
+
+class ArduinoBoard(Robot):
+
+    def __init__(self, pins):
+        """
+        Constructor for arduino board
+        """
+        super().__init__(boards.ArduinoUno())
+        self.robot_elements = []
+
+    def add_component(self, component):
+        if component == "resistance":
+            resistance = elements.ResistanceArduino()
+            self.robot_elements.append(resistance)
+
+    def assign_pins(self, pins):
+        """
+        Assigns the pins to the corresponding element
+        Arguments:
+            pins: a list of tuples with the name of the element
+            and the corresponding pin
+        """
+        for pin in pins:
+            name = pin[0]
+            pin = self.parse_pin(pin[1])
+            if name == "resistance1":
+                self.set_resistance1(pin)
+
+    def set_resistance1(self, pin):
+        """
+        Attaches resistance to board pin
+        Arguments:
+            pin: the pin of the board
+        """
+        if self.board.check_type(pin, self.resistance.get_pin1_type()):
+            if self.board.attach_pin(pin, self.resistance):
+                self.resistance.pin1 = pin

@@ -127,6 +127,10 @@
                     "pin": "7"
                 }
             ]
+        },
+        {
+            "name": "arduinoBoard",
+            "elements": []
         }
     ],
     "circuits": [
