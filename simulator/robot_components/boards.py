@@ -53,6 +53,8 @@ class Board:
         Returns:
             True if it is of the type, False if else
         """
+        if type == "both":
+            return True
         if type == "digital":
             return self.is_digital(pin)
         elif type == "analog":

@@ -443,26 +443,701 @@ class ArduinoBoard(Robot):
         if component == "resistance":
             resistance = elements.ResistanceArduino()
             self.robot_elements.append(resistance)
+        elif component == "button":
+            button = elements.ButtonArduino()
+            self.robot_elements.append(button)
+        elif component == "potentiometer":
+            potentiometer = elements.PotentiometerArduino()
+            self.robot_elements.append(potentiometer)
+        elif component == "led":
+            led = elements.LedArduino()
+            led.set_color(1)
+            self.robot_elements.append(led)
+        elif component == "ledYellow":
+            led = elements.LedArduino()
+            led.set_color(2)
+            self.robot_elements.append(led)
+        elif component == "ledGreen":
+            led = elements.LedArduino()
+            led.set_color(3)
+            self.robot_elements.append(led)
+        elif component == "buzzer":
+            buzzer = elements.BuzzerArduino()
+            self.robot_elements.append(buzzer)
+        elif component == "ledRGB":
+            led_rgb = elements.RGBArduino()
+            self.robot_elements.append(led_rgb)
+        elif component == "lightSensor":
+            light_sensor = elements.LightSensorArduino()
+            self.robot_elements.append(light_sensor)
+        elif component == "PIRSensor":
+            pir_sensor = elements.PIRSensorArduino()
+            self.robot_elements.append(pir_sensor)
+        elif component == "vibrationSensor":
+            vibration_sensor = elements.VibrationSensorArduino()
+            self.robot_elements.append(vibration_sensor)
+        elif component == "infraredSensor":
+            infrared_sensor = elements.InfraredSensorArduino()
+            self.robot_elements.append(infrared_sensor)
+        elif component == "ultrasonicSensor":
+            ultrasonic_sensor = elements.UltrasoundSensorArduino()
+            self.robot_elements.append(ultrasonic_sensor)
+        elif component == "keyboard":
+            keyboard = elements.KeyBoardArduino()
+            self.robot_elements.append(keyboard)
+        elif component == "screen":
+            screen = elements.ScreenArduino()
+            self.robot_elements.append(screen)
+        elif component == "servomotor180":
+            servomotor = elements.ServomotorArduino()
+            self.robot_elements.append(servomotor)
+        print(self.robot_elements)
 
     def assign_pins(self, pins):
         """
         Assigns the pins to the corresponding element
         Arguments:
-            pins: a list of tuples with the name of the element
-            and the corresponding pin
+            pins: a list of tuples with the name of the element,
+            the corresponding pin and the element
         """
         for pin in pins:
             name = pin[0]
             pin = self.parse_pin(pin[1])
+            element = pin[2]
             if name == "resistance1":
-                self.set_resistance1(pin)
+                self.set_resistance1(pin, element)
+            elif name == "resistance2":
+                self.set_resistance2(pin, element)
+            elif name == "button1":
+                self.set_button1(pin, element)
+            elif name == "button2":
+                self.set_button2(pin, element)
+            elif name == "button3":
+                self.set_button3(pin, element)
+            elif name == "button4":
+                self.set_button4(pin, element)
+            elif name == "potentiometer1":
+                self.set_potentiometer1(pin, element)
+            elif name == "potentiometer2":
+                self.set_potentiometer2(pin, element)
+            elif name == "potentiometer3":
+                self.set_potentiometer3(pin, element)
+            elif name == "led1":
+                self.set_led1(pin, element)
+            elif name == "led2":
+                self.set_led2(pin, element)
+            elif name == "buzzer1":
+                self.set_buzzer1(pin, element)
+            elif name == "buzzer2":
+                self.set_buzzer2(pin, element)
+            elif name == "buzzer3":
+                self.set_buzzer3(pin, element)
+            elif name == "rgb1":
+                self.set_rgb1(pin, element)
+            elif name == "rgb2":
+                self.set_rgb2(pin, element)
+            elif name == "rgb3":
+                self.set_rgb3(pin, element)
+            elif name == "rgb4":
+                self.set_rgb4(pin, element)
+            elif name == "lightSensor1":
+                self.set_light_sensor1(pin, element)
+            elif name == "lightSensor2":
+                self.set_light_sensor2(pin, element)
+            elif name == "lightSensor3":
+                self.set_light_sensor3(pin, element)
+            elif name == "PIRSensor1":
+                self.set_pir_sensor1(pin, element)
+            elif name == "PIRSensor2":
+                self.set_pir_sensor2(pin, element)
+            elif name == "PIRSensor3":
+                self.set_pir_sensor3(pin, element)
+            elif name == "vibrationSensor1":
+                self.set_vibration_sensor1(pin, element)
+            elif name == "vibrationSensor2":
+                self.set_vibration_sensor2(pin, element)
+            elif name == "vibrationSensor3":
+                self.set_vibration_sensor3(pin, element)
+            elif name == "infraredSensor1":
+                self.set_infrared_sensor1(pin, element)
+            elif name == "infraredSensor2":
+                self.set_infrared_sensor2(pin, element)
+            elif name == "infraredSensor3":
+                self.set_infrared_sensor3(pin, element)
+            elif name == "ultrasonicSensor1":
+                self.set_ultrasonic_sensor1(pin, element)
+            elif name == "ultrasonicSensor2":
+                self.set_ultrasonic_sensor2(pin, element)
+            elif name == "ultrasonicSensor3":
+                self.set_ultrasonic_sensor3(pin, element)
+            elif name == "ultrasonicSensor4":
+                self.set_ultrasonic_sensor4(pin, element)
+            elif name == "keyboard1":
+                self.set_keyboard1(pin, element)
+            elif name == "keyboard2":
+                self.set_keyboard2(pin, element)
+            elif name == "keyboard3":
+                self.set_keyboard3(pin, element)
+            elif name == "keyboard4":
+                self.set_keyboard4(pin, element)
+            elif name == "keyboard5":
+                self.set_keyboard5(pin, element)
+            elif name == "keyboard6":
+                self.set_keyboard6(pin, element)
+            elif name == "keyboard7":
+                self.set_keyboard7(pin, element)
+            elif name == "keyboard8":
+                self.set_keyboard8(pin, element)
+            elif name == "screen1":
+                self.set_screen2(pin, element)
+            elif name == "screen2":
+                self.set_screen3(pin, element)
+            elif name == "screen3":
+                self.set_screen1(pin, element)
+            elif name == "screen4":
+                self.set_screen4(pin, element)
+            elif name == "servomotor1":
+                self.set_servomotor1(pin, element)
+            elif name == "servomotor2":
+                self.set_servomotor2(pin, element)
+            elif name == "servomotor3":
+                self.set_servomotor3(pin, element)
 
-    def set_resistance1(self, pin):
+    def set_resistance1(self, pin, resistance):
         """
-        Attaches resistance to board pin
+        Attaches the pin 1 of a resistance to board pin
         Arguments:
             pin: the pin of the board
+            resistance: the resistance to attach
         """
-        if self.board.check_type(pin, self.resistance.get_pin1_type()):
-            if self.board.attach_pin(pin, self.resistance):
-                self.resistance.pin1 = pin
+        if self.board.check_type(pin, resistance.get_pin1_type()):
+            if self.board.attach_pin(pin, resistance):
+                resistance.pin1 = pin
+
+    def set_resistance2(self, pin, resistance):
+        """
+        Attaches the pin 2 of a resistance to board pin
+        Arguments:
+            pin: the pin of the board
+            resistance: the resistance to attach
+        """
+        if self.board.check_type(pin, resistance.get_pin2_type()):
+            if self.board.attach_pin(pin, resistance):
+                resistance.pin2 = pin
+
+    def set_button1(self, pin, button):
+        """
+        Attaches the pin 1 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin1_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin1 = pin
+
+    def set_button2(self, pin, button):
+        """
+        Attaches the pin 2 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin2_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin2 = pin
+
+    def set_button3(self, pin, button):
+        """
+        Attaches the pin 3 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin3_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin3 = pin
+
+    def set_button4(self, pin, button):
+        """
+        Attaches the pin 4 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin4_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin4 = pin
+
+    def set_potentiometer1(self, pin, potentiometer):
+        """
+        Attaches the pin 1 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin1_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin1 = pin
+
+    def set_potentiometer2(self, pin, potentiometer):
+        """
+        Attaches the pin 2 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin2_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin2 = pin
+
+    def set_potentiometer3(self, pin, potentiometer):
+        """
+        Attaches the pin 3 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin3_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin3 = pin
+
+    def set_led1(self, pin, led):
+        """
+        Attaches the pin 1 of a LED to board pin
+        Arguments:
+            pin: the pin of the board
+            led: the LED to attach
+        """
+        if self.board.check_type(pin, led.get_pin1_type()):
+            if self.board.attach_pin(pin, led):
+                led.pin1 = pin
+
+    def set_led2(self, pin, led):
+        """
+        Attaches the pin 2 of a LED to board pin
+        Arguments:
+            pin: the pin of the board
+            led: the LED to attach
+        """
+        if self.board.check_type(pin, led.get_pin2_type()):
+            if self.board.attach_pin(pin, led):
+                led.pin2 = pin
+
+    def set_buzzer1(self, pin, buzzer):
+        """
+        Attaches the pin 1 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin1_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin1 = pin
+
+    def set_buzzer2(self, pin, buzzer):
+        """
+        Attaches the pin 2 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin2_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin2 = pin
+
+    def set_buzzer3(self, pin, buzzer):
+        """
+        Attaches the pin 3 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin3_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin3 = pin
+
+    def set_rgb1(self, pin, rgb):
+        """
+        Attaches the pin 1 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin1_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin1 = pin
+
+    def set_rgb2(self, pin, rgb):
+        """
+        Attaches the pin 2 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin2_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin2 = pin
+
+    def set_rgb3(self, pin, rgb):
+        """
+        Attaches the pin 3 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin3_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin3 = pin
+
+    def set_rgb4(self, pin, rgb):
+        """
+        Attaches the pin 4 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin4_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin4 = pin
+
+    def set_light_sensor1(self, pin, light_sensor):
+        """
+        Attaches the pin 1 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light_sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin1 = pin
+
+    def set_light_sensor2(self, pin, light_sensor):
+        """
+        Attaches the pin 2 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light_sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin2 = pin
+
+    def set_light_sensor3(self, pin, light_sensor):
+        """
+        Attaches the pin 3 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin3 = pin
+
+    def set_pir_sensor1(self, pin, pir_sensor):
+        """
+        Attaches the pin 1 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin1 = pin
+
+    def set_pir_sensor2(self, pin, pir_sensor):
+        """
+        Attaches the pin 2 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin2 = pin
+
+    def set_pir_sensor3(self, pin, pir_sensor):
+        """
+        Attaches the pin 3 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin3 = pin
+
+    def set_vibration_sensor1(self, pin, vibration_sensor):
+        """
+        Attaches the pin 1 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin1 = pin
+
+    def set_vibration_sensor2(self, pin, vibration_sensor):
+        """
+        Attaches the pin 2 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin2 = pin
+
+    def set_vibration_sensor3(self, pin, vibration_sensor):
+        """
+        Attaches the pin 3 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin3 = pin
+
+    def set_infrared_sensor1(self, pin, infrared_sensor):
+        """
+        Attaches the pin 1 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin1 = pin
+
+    def set_infrared_sensor2(self, pin, infrared_sensor):
+        """
+        Attaches the pin 2 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin2 = pin
+
+    def set_infrared_sensor3(self, pin, infrared_sensor):
+        """
+        Attaches the pin 3 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin3 = pin
+
+    def set_ultrasonic_sensor1(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 1 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin1 = pin
+
+    def set_ultrasonic_sensor2(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 2 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin2 = pin
+
+    def set_ultrasonic_sensor3(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 3 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin3 = pin
+
+    def set_ultrasonic_sensor4(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 4 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin4_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin4 = pin
+
+    def set_keyboard1(self, pin, keyboard):
+        """
+        Attaches the pin 1 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin1_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin1 = pin
+
+    def set_keyboard2(self, pin, keyboard):
+        """
+        Attaches the pin 2 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin2_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin2 = pin
+
+    def set_keyboard3(self, pin, keyboard):
+        """
+        Attaches the pin 3 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin3_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin3 = pin
+
+    def set_keyboard4(self, pin, keyboard):
+        """
+        Attaches the pin 4 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin4_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin4 = pin
+
+    def set_keyboard5(self, pin, keyboard):
+        """
+        Attaches the pin 5 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin5_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin5 = pin
+
+    def set_keyboard6(self, pin, keyboard):
+        """
+        Attaches the pin 6 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin6_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin6 = pin
+
+    def set_keyboard7(self, pin, keyboard):
+        """
+        Attaches the pin 7 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin7_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin7 = pin
+
+    def set_keyboard8(self, pin, keyboard):
+        """
+        Attaches the pin 8 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin8_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin8 = pin
+
+    def set_screen1(self, pin, screen):
+        """
+        Attaches the pin 1 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin1_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin1 = pin
+
+    def set_screen2(self, pin, screen):
+        """
+        Attaches the pin 2 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin2_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin2 = pin
+
+    def set_screen3(self, pin, screen):
+        """
+        Attaches the pin 3 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin3_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin3 = pin
+
+    def set_screen4(self, pin, screen):
+        """
+        Attaches the pin 4 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin4_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin4 = pin
+
+    def set_servomotor1(self, pin, servomotor):
+        """
+        Attaches the pin 1 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin1_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin1 = pin
+
+    def set_servomotor2(self, pin, servomotor):
+        """
+        Attaches the pin 2 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin2_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin2 = pin
+
+    def set_servomotor3(self, pin, servomotor):
+        """
+        Attaches the pin 3 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin3_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin3 = pin
