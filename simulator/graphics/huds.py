@@ -219,9 +219,12 @@ class ArduinoBoardHUD(HUD):
         """
         super().__init__()
         self.img_resistance = Image.open('assets/resistance.png')
+        self.img_resistance2 = Image.open('assets/resistance.png')
         self.img_button = Image.open('assets/button.png')
         self.img_potentiometer = Image.open('assets/potentiometer.png')
         self.img_led = Image.open('assets/led.png')
+        self.img_led_yellow = Image.open('assets/ledYellow.png')
+        self.img_led_green = Image.open('assets/ledGreen.png')
         self.img_buzzer = Image.open('assets/buzzer.png')
         self.img_led_rgb = Image.open('assets/ledRGB.png')
         self.img_light_sensor = Image.open('assets/lightSensor.png')
@@ -257,8 +260,23 @@ class ArduinoBoardHUD(HUD):
         self.create_photo_screen()
         self.create_photo_servomotor()
 
+    def open_resistance_selector(self):
+        self.selector_resistance = tk.Toplevel()
+        self.selector_resistance.geometry("200x100")
+        self.selector_resistance.title("Resistances")
+        self.selector_resistance.configure(background="#006468")
+        """Buttons"""
+        self.resistance2 = self.img_resistance2.resize((15, 50), Image.ANTIALIAS)
+        self.photo_resistance2 = ImageTk.PhotoImage(self.resistance2)
+        button_resistance2 = tk.Button(self.selector_resistance, width=40, height=90,
+                                           image=self.photo_resistance2,
+                                           command=self.put_resistance)
+        button_resistance2.config(background='#006468', activebackground='#006468')
+        button_resistance2.pack(side="left", padx=10)
+
     def put_resistance(self):
         self.drawing = "resistance"
+        self.selector_resistance.destroy()
 
     def put_button(self):
         self.drawing = "button"
@@ -266,8 +284,43 @@ class ArduinoBoardHUD(HUD):
     def put_potentiometer(self):
         self.drawing = "potentiometer"
 
-    def put_led(self):
+    def open_led_selector(self):
+        self.selector_led = tk.Toplevel()
+        self.selector_led.geometry("200x100")
+        self.selector_led.title("LED")
+        self.selector_led.configure(background="#006468")
+        """Buttons"""
+        button_led_red = tk.Button(self.selector_led, width=40, height=90,
+                                   image=self.photo_led,
+                                   command=self.put_led_red)
+        button_led_red.config(background='#006468', activebackground='#006468')
+        self.led_yellow = self.img_led_yellow.resize((15, 50), Image.ANTIALIAS)
+        self.photo_led_yellow = ImageTk.PhotoImage(self.led_yellow)
+        button_led_yellow = tk.Button(self.selector_led, width=40, height=90,
+                                    image=self.photo_led_yellow,
+                                    command=self.put_led_yellow)
+        button_led_yellow.config(background='#006468', activebackground='#006468')
+        self.led_green = self.img_led_green.resize((15, 50), Image.ANTIALIAS)
+        self.photo_led_green = ImageTk.PhotoImage(self.led_green)
+        button_led_green = tk.Button(self.selector_led, width=40, height=90,
+                                      image=self.photo_led_green,
+                                      command=self.put_led_green)
+        button_led_green.config(background='#006468', activebackground='#006468')
+        button_led_red.pack(side="left", padx=10)
+        button_led_yellow.pack(side="left", padx=10)
+        button_led_green.pack(side="left", padx=10)
+
+    def put_led_red(self):
         self.drawing = "led"
+        self.selector_led.destroy()
+
+    def put_led_yellow(self):
+        self.drawing = "ledYellow"
+        self.selector_led.destroy()
+
+    def put_led_green(self):
+        self.drawing = "ledGreen"
+        self.selector_led.destroy()
 
     def put_buzzer(self):
         self.drawing = "buzzer"
@@ -304,7 +357,7 @@ class ArduinoBoardHUD(HUD):
         self.photo_resistance = ImageTk.PhotoImage(self.resistance)
         self.button_resistance = tk.Button(self.canvas, width=20, height=90,
                                            image=self.photo_resistance,
-                                           command=self.put_resistance)
+                                           command=self.open_resistance_selector)
         self.button_resistance.config(background='#006468', activebackground='#006468')
         self.canvas.create_window(15, 50, window=self.button_resistance)
 
@@ -331,7 +384,7 @@ class ArduinoBoardHUD(HUD):
         self.photo_led = ImageTk.PhotoImage(self.led)
         self.button_led = tk.Button(self.canvas, width=22, height=90,
                                     image=self.photo_led,
-                                    command=self.put_led)
+                                    command=self.open_led_selector)
         self.button_led.config(background='#006468', activebackground='#006468')
         self.canvas.create_window(149, 50, window=self.button_led)
 
