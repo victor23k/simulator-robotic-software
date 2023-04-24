@@ -1,6 +1,7 @@
 from math import atan2, sqrt
 from math import cos, pi, sin
 import graphics.drawing as drawing
+import robot_components.boards as boards
 
 
 class RobotDrawing:

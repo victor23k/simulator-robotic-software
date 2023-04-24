@@ -221,8 +221,15 @@ class ResistanceArduino(Element):
         Constructor for resistance
         A resistance has two pins and a value
         """
-        self.pin1 = -1
-        self.pin2 = -1
+        self.name = "Resistencia"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
         self.value = 10
 
     def get_pin1_type(self):
@@ -240,6 +247,45 @@ class ResistanceArduino(Element):
     def set_value(self, value):
         self.value = value
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/resistance.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y - 55
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x,
+            "y": y + 55
+        }
+        return [button1, button2]
+
 
 class ButtonArduino(Element):
     def __init__(self):
@@ -247,10 +293,23 @@ class ButtonArduino(Element):
         Constructor for button
         A button has four pins and a state
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
-        self.pin4 = -1
+        self.name = "Botón"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin4 = {
+            "element": None,
+            "pin": -1
+        }
         self.state = True
 
     def get_pin1_type(self):
@@ -285,6 +344,65 @@ class ButtonArduino(Element):
         """Close the button"""
         self.state = True
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3", "pin4"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 4:
+            self.pin4 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/button.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x + 25,
+            "y": y - 60
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 25,
+            "y": y + 60
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 25,
+            "y": y + 60
+        }
+        button4 = {
+            "n_pin": 4,
+            "x": x - 25,
+            "y": y - 60
+        }
+        return [button1, button2, button3, button4]
+
 
 class PotentiometerArduino(Element):
     def __init__(self):
@@ -292,9 +410,19 @@ class PotentiometerArduino(Element):
         Constructor for potentiometer
         A potentiometer has three pins and a value
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Potenciómetro"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.value = 100
 
     def get_pin1_type(self):
@@ -320,6 +448,55 @@ class PotentiometerArduino(Element):
         if 0 <= value <= 100:
             self.value = value
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/potentiometer.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y + 64
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 30,
+            "y": y + 56
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 31,
+            "y": y + 56
+        }
+        return [button1, button2, button3]
+
 
 class LedArduino(Element):
     def __init__(self):
@@ -329,8 +506,15 @@ class LedArduino(Element):
         - Color: 1 for red, 2 for yellow and 3 for green
             In future expansions, more colors could be added
         """
-        self.pin1 = -1
-        self.pin2 = -1
+        self.name = "Led rojo"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
         self.state = False
         self.color = 1
 
@@ -356,8 +540,60 @@ class LedArduino(Element):
 
     def set_color(self, color):
         """For now there are only three colors"""
-        if color == 1 or color == 2 or color == 3:
+        if color == 1:
             self.color = color
+            self.name = "Led rojo"
+        elif color == 2:
+            self.color = color
+            self.name = "Led Ámbar"
+        elif color == 3:
+            self.color = color
+            self.name = "Led Verde"
+
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        if self.color == 1:
+            color = ""
+        elif self.color == 2:
+            color = "Yellow"
+        elif self.color == 3:
+            color = "Green"
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/led" + color + ".png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x - 15,
+            "y": y + 60
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 5,
+            "y": y + 50
+        }
+        return [button1, button2]
 
 
 class BuzzerArduino(Element):
@@ -366,9 +602,19 @@ class BuzzerArduino(Element):
         Constructor for buzzer
         A buzzer has three pins and a state
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Buzzer"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.state = False
 
     def get_pin1_type(self):
@@ -397,6 +643,55 @@ class BuzzerArduino(Element):
         """Turns off the buzzer"""
         self.state = False
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/buzzer.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y + 90
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 20,
+            "y": y + 90
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 20,
+            "y": y + 90
+        }
+        return [button1, button2, button3]
+
 
 class RGBArduino(Element):
     def __init__(self):
@@ -404,10 +699,23 @@ class RGBArduino(Element):
         Constructor for LED RGB
         A LED RGB has four pins and a value
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
-        self.pin4 = -1
+        self.name = "Led RGB"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin4 = {
+            "element": None,
+            "pin": -1
+        }
         self.value = 1
 
     def get_pin1_type(self):
@@ -438,6 +746,65 @@ class RGBArduino(Element):
         """Sets the value of the LED to a certain value"""
         self.value = value
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3", "pin4"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 4:
+            self.pin4 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/ledRGB.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x + 5,
+            "y": y + 60
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 17,
+            "y": y + 48
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 8,
+            "y": y + 70
+        }
+        button4 = {
+            "n_pin": 4,
+            "x": x - 20,
+            "y": y + 50
+        }
+        return [button1, button2, button3, button4]
+
 
 class LightSensorArduino(Element):
     def __init__(self):
@@ -445,9 +812,19 @@ class LightSensorArduino(Element):
         Constructor for Light Sensor
         A Light sensor has three pins and a sensor
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Sensor de luz"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.sensor = False
 
     def get_pin1_type(self):
@@ -476,6 +853,55 @@ class LightSensorArduino(Element):
         """Turns the sensor off"""
         self.sensor = False
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/lightSensor.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x - 2,
+            "y": y + 60
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 17,
+            "y": y + 60
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 22,
+            "y": y + 60
+        }
+        return [button1, button2, button3]
+
 
 class PIRSensorArduino(Element):
     def __init__(self):
@@ -483,9 +909,19 @@ class PIRSensorArduino(Element):
         Constructor for PIR Sensor
         A PIR sensor has three pins and a sensor
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Sensor PIR"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.sensor = False
 
     def get_pin1_type(self):
@@ -513,6 +949,55 @@ class PIRSensorArduino(Element):
     def set_sensor_off(self):
         """Turns the sensor off"""
         self.sensor = False
+
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/PIRSensor.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y + 60
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 25,
+            "y": y + 60
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 25,
+            "y": y + 60
+        }
+        return [button1, button2, button3]
 
 
 class VibrationSensorArduino(Element):
@@ -521,9 +1006,19 @@ class VibrationSensorArduino(Element):
         Constructor for Vibration Sensor
         A Vibration sensor has three pins and a sensor
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Sensor de vibración"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.sensor = True
 
     def get_pin1_type(self):
@@ -551,6 +1046,55 @@ class VibrationSensorArduino(Element):
     def set_sensor_off(self):
         """Turns the sensor off"""
         self.sensor = False
+
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/VibrationSensor.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y + 110
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 17,
+            "y": y + 110
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 17,
+            "y": y + 110
+        }
+        return [button1, button2, button3]
 
 
 class InfraredSensorArduino(Element):
@@ -559,9 +1103,19 @@ class InfraredSensorArduino(Element):
         Constructor for Infrared Sensor
         An Infrared sensor has three pins and a sensor
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Sensor de infrarrojos"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.sensor = True
 
     def get_pin1_type(self):
@@ -590,6 +1144,52 @@ class InfraredSensorArduino(Element):
         """Turns the sensor off"""
         self.sensor = False
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/infraredSensor.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "x": x,
+            "y": y + 110
+        }
+        button2 = {
+            "x": x + 20,
+            "y": y + 110
+        }
+        button3 = {
+            "x": x - 20,
+            "y": y + 110
+        }
+        return [button1, button2, button3]
+
 
 class UltrasoundSensorArduino(Element):
     def __init__(self):
@@ -597,10 +1197,23 @@ class UltrasoundSensorArduino(Element):
         Constructor for Ultrasound Sensor
         An Ultrasound sensor has four pins and a sensor
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
-        self.pin4 = -1
+        self.name = "Sensor de ultrasonidos"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin4 = {
+            "element": None,
+            "pin": -1
+        }
         self.sensor = True
 
     def get_pin1_type(self):
@@ -635,6 +1248,65 @@ class UltrasoundSensorArduino(Element):
         """Turns the sensor off"""
         self.sensor = False
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3", "pin4"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 4:
+            self.pin4 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/ultrasonicSensor.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x + 6,
+            "y": y + 50
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 20,
+            "y": y + 50
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 8,
+            "y": y + 50
+        }
+        button4 = {
+            "n_pin": 4,
+            "x": x - 22,
+            "y": y + 50
+        }
+        return [button1, button2, button3, button4]
+
 
 class KeyBoardArduino(Element):
     def __init__(self):
@@ -642,14 +1314,39 @@ class KeyBoardArduino(Element):
         Constructor for keyboard
         A keyboard has eight pins
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
-        self.pin4 = -1
-        self.pin5 = -1
-        self.pin6 = -1
-        self.pin7 = -1
-        self.pin8 = -1
+        self.name = "Teclado"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin4 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin5 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin6 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin7 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin8 = {
+            "element": None,
+            "pin": -1
+        }
 
     def get_pin1_type(self):
         """
@@ -699,6 +1396,105 @@ class KeyBoardArduino(Element):
         """
         return "digital"
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3", "pin4", "pin5", "pin6", "pin7", "pin8"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 4:
+            self.pin4 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 5:
+            self.pin5 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 6:
+            self.pin6 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 7:
+            self.pin7 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 8:
+            self.pin8 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/keyBoard.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x - 20,
+            "y": y + 185
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 20,
+            "y": y + 185
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 60,
+            "y": y + 185
+        }
+        button4 = {
+            "n_pin": 4,
+            "x": x + 60,
+            "y": y + 185
+        }
+        button5 = {
+            "n_pin": 5,
+            "x": x - 90,
+            "y": y + 185
+        }
+        button6 = {
+            "n_pin": 6,
+            "x": x + 95,
+            "y": y + 185
+        }
+        button7 = {
+            "n_pin": 7,
+            "x": x - 130,
+            "y": y + 185
+        }
+        button8 = {
+            "n_pin": 8,
+            "x": x + 130,
+            "y": y + 185
+        }
+        return [button1, button2, button3, button4, button5, button6, button7, button8]
+
 
 class ScreenArduino(Element):
     def __init__(self):
@@ -706,10 +1502,23 @@ class ScreenArduino(Element):
         Constructor for Screen
         A screen has four pins
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
-        self.pin4 = -1
+        self.name = "Pantalla"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin4 = {
+            "element": None,
+            "pin": -1
+        }
 
     def get_pin1_type(self):
         """
@@ -735,6 +1544,65 @@ class ScreenArduino(Element):
         """
         return "digital"
 
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3", "pin4"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 4:
+            self.pin4 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/screen.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x - 170,
+            "y": y + 8
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x - 170,
+            "y": y + 25
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 170,
+            "y": y - 10
+        }
+        button4 = {
+            "n_pin": 4,
+            "x": x - 170,
+            "y": y - 27
+        }
+        return [button1, button2, button3, button4]
+
 
 class ServomotorArduino(Element):
     def __init__(self):
@@ -742,9 +1610,19 @@ class ServomotorArduino(Element):
         Constructor for servomotor
         A servomotor has three pins and a state
         """
-        self.pin1 = -1
-        self.pin2 = -1
-        self.pin3 = -1
+        self.name = "Servomotor"
+        self.pin1 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin2 = {
+            "element": None,
+            "pin": -1
+        }
+        self.pin3 = {
+            "element": None,
+            "pin": -1
+        }
         self.state = False
 
     def get_pin1_type(self):
@@ -772,3 +1650,52 @@ class ServomotorArduino(Element):
     def set_off(self):
         """Turns off the servomotor"""
         self.state = False
+
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin1", "pin2", "pin3"]
+
+    def attach_element(self, pin, component_to_attach, pin_component):
+        if pin == 1:
+            self.pin1 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 2:
+            self.pin2 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+        if pin == 3:
+            self.pin3 = {
+                "element": component_to_attach,
+                "pin": pin_component
+            }
+
+    def draw_self(self, x, y, number):
+        image = {
+            "x": x,
+            "y": y,
+            "image": "assets/servomotor180.png",
+            "group": "component" + str(number),
+            "element": self
+        }
+        return image
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": 1,
+            "x": x,
+            "y": y + 91
+        }
+        button2 = {
+            "n_pin": 2,
+            "x": x + 20,
+            "y": y + 91
+        }
+        button3 = {
+            "n_pin": 3,
+            "x": x - 20,
+            "y": y + 91
+        }
+        return [button1, button2, button3]

@@ -14,17 +14,30 @@ class RobotsController:
         self.setup_command = commands.Setup(self)
         self.loop_command = commands.Loop(self)
         self.executing = False
+        self.board = False
 
-    def execute(self):
-        screen_updater.layer = self.robot_layer
-        screen_updater.view = self.view
-        self.view.abort_after()
-        self.robot_layer.execute()
-        self.console.clear()
-        if self.compile_command.execute():
-            if self.setup_command.execute():
-                self.executing = True
-                self.drawing_loop()
+    def execute(self, option_gamification):
+        if not self.board:
+            screen_updater.layer = self.robot_layer
+            screen_updater.view = self.view
+            self.view.abort_after()
+            self.robot_layer.execute()
+            self.console.clear()
+            if self.compile_command.execute():
+                if self.setup_command.execute():
+                    self.executing = True
+                    self.drawing_loop()
+        else:
+            user_ast = self.compile_command.compile(self.get_code())
+            if user_ast is not None:
+                self.robot_layer.probe(option_gamification, self.get_code(),
+                                       self.robot_layer.get_robot_challenge(option_gamification).get_code())
+            self.console.logger.write_log('info', "El usuario ha comprobado el desafío " + str(option_gamification))
+            mensaje = "El usuario tiene los siguientes componentes: "
+            for component in self.robot_layer.drawing.components:
+                mensaje += component['element'].name
+                mensaje += " "
+            self.console.logger.write_log('info', mensaje)
 
     def drawing_loop(self):
         screen_updater.refresh()
@@ -60,25 +73,40 @@ class RobotsController:
             self.stop()
         if option == 0:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_buttons_gamification(False)
             self.robot_layer = layers.MobileRobotLayer(2)
+            self.board = False
         elif option == 1:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_buttons_gamification(False)
             self.robot_layer = layers.MobileRobotLayer(3)
+            self.board = False
         elif option == 2:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_buttons_gamification(False)
             self.robot_layer = layers.MobileRobotLayer(4)
+            self.board = False
         elif option == 3:
             self.view.show_circuit_selector(False)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(True)
+            self.view.show_buttons_gamification(False)
             self.robot_layer = layers.LinearActuatorLayer()
+            self.board = False
         # Option for the arduino board
         elif option == 4:
             self.view.show_circuit_selector(False)
+            self.view.show_gamification_option_selector(True)
             self.view.show_joystick(False)
+            self.view.show_buttons_gamification(False)
             self.robot_layer = layers.ArduinoBoardLayer()
+            self.board = True
 
     def change_circuit(self, option):
         if self.robot_layer is not None:
@@ -235,3 +263,12 @@ class RobotsController:
 
     def exit(self):
         self.console.logger.close_log()
+
+    def show_tutorial(self, option_gamification):
+        self.robot_layer.show_tutorial(option_gamification)
+
+    def show_help(self, option_gamification):
+        self.robot_layer.show_help(option_gamification)
+
+    def delete_elements(self):
+        self.robot_layer.delete_elements()

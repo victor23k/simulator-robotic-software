@@ -11,6 +11,8 @@ class HUD:
         """
         self.canvas: tk.Canvas = None
         self.drawing = None
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -220,6 +222,7 @@ class ArduinoBoardHUD(HUD):
         super().__init__()
         self.img_resistance = Image.open('assets/resistance.png')
         self.img_resistance2 = Image.open('assets/resistance.png')
+        self.img_resistance3 = Image.open('assets/resistance.png')
         self.img_button = Image.open('assets/button.png')
         self.img_potentiometer = Image.open('assets/potentiometer.png')
         self.img_led = Image.open('assets/led.png')
@@ -235,6 +238,7 @@ class ArduinoBoardHUD(HUD):
         self.img_keyboard = Image.open('assets/keyboard.png')
         self.img_screen = Image.open('assets/screen.png')
         self.img_servomotor = Image.open('assets/servomotor180.png')
+        self.img_wire = Image.open('assets/wire.png')
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -259,6 +263,7 @@ class ArduinoBoardHUD(HUD):
         self.create_photo_keyboard()
         self.create_photo_screen()
         self.create_photo_servomotor()
+        self.create_wire()
 
     def open_resistance_selector(self):
         self.selector_resistance = tk.Toplevel()
@@ -266,23 +271,53 @@ class ArduinoBoardHUD(HUD):
         self.selector_resistance.title("Resistances")
         self.selector_resistance.configure(background="#006468")
         """Buttons"""
+        button_resistance = tk.Button(self.selector_resistance, width=40, height=90,
+                                           image=self.photo_resistance,
+                                           command=self.put_resistance)
+        button_resistance.config(background='#006468', activebackground='#006468')
         self.resistance2 = self.img_resistance2.resize((15, 50), Image.ANTIALIAS)
         self.photo_resistance2 = ImageTk.PhotoImage(self.resistance2)
         button_resistance2 = tk.Button(self.selector_resistance, width=40, height=90,
                                            image=self.photo_resistance2,
-                                           command=self.put_resistance)
+                                           command=self.put_resistance2)
         button_resistance2.config(background='#006468', activebackground='#006468')
+        self.resistance3 = self.img_resistance3.resize((15, 50), Image.ANTIALIAS)
+        self.photo_resistance3 = ImageTk.PhotoImage(self.resistance3)
+        button_resistance3 = tk.Button(self.selector_resistance, width=40, height=90,
+                                           image=self.photo_resistance3,
+                                           command=self.put_resistance3)
+        button_resistance3.config(background='#006468', activebackground='#006468')
+        button_resistance.pack(side="left", padx=10)
         button_resistance2.pack(side="left", padx=10)
+        button_resistance3.pack(side="left", padx=10)
 
     def put_resistance(self):
         self.drawing = "resistance"
         self.selector_resistance.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
+
+    def put_resistance2(self):
+        self.drawing = "resistance"
+        self.selector_resistance.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
+
+    def put_resistance3(self):
+        self.drawing = "resistance"
+        self.selector_resistance.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_button(self):
         self.drawing = "button"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_potentiometer(self):
         self.drawing = "potentiometer"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def open_led_selector(self):
         self.selector_led = tk.Toplevel()
@@ -313,44 +348,74 @@ class ArduinoBoardHUD(HUD):
     def put_led_red(self):
         self.drawing = "led"
         self.selector_led.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_led_yellow(self):
         self.drawing = "ledYellow"
         self.selector_led.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_led_green(self):
         self.drawing = "ledGreen"
         self.selector_led.destroy()
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_buzzer(self):
         self.drawing = "buzzer"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_led_rgb(self):
         self.drawing = "ledRGB"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_light_sensor(self):
         self.drawing = "lightSensor"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_pir_sensor(self):
         self.drawing = "PIRSensor"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_vibration_sensor(self):
         self.drawing = "vibrationSensor"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_infrared_sensor(self):
         self.drawing = "infraredSensor"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_ultrasonic_sensor(self):
         self.drawing = "ultrasonicSensor"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_keyboard(self):
         self.drawing = "keyboard"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_screen(self):
         self.drawing = "screen"
+        self.draw_wire = False
+        self.component_to_attach = None
 
     def put_servomotor(self):
         self.drawing = "servomotor180"
+        self.draw_wire = False
+        self.component_to_attach = None
+
+    def put_wire(self):
+        self.drawing = None
+        self.draw_wire = True
 
     def create_photo_resistance(self):
         self.resistance = self.img_resistance.resize((15, 50), Image.ANTIALIAS)
@@ -477,3 +542,12 @@ class ArduinoBoardHUD(HUD):
                                            command=self.put_servomotor)
         self.button_servomotor.config(background='#006468', activebackground='#006468')
         self.canvas.create_window(687, 50, window=self.button_servomotor)
+
+    def create_wire(self):
+        self.wire = self.img_wire.resize((20, 50), Image.ANTIALIAS)
+        self.photo_wire = ImageTk.PhotoImage(self.wire)
+        self.button_wire = tk.Button(self.canvas, width=22, height=90,
+                                           image=self.photo_wire,
+                                           command=self.put_wire)
+        self.button_wire.config(background='#006468', activebackground='#006468')
+        self.canvas.create_window(728, 50, window=self.button_wire)

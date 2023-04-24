@@ -210,9 +210,15 @@ class ArduinoUno(Board):
         communication)
         """
         super().__init__()
+        self.name = "Placa arduino"
         self.pins["digital"] = list(map(lambda x: x, range(2, 14)))
         self.pins["analog"] = list(map(lambda x: x, range(14, 20)))
         self.pins["txrx"] = [0, 1]
+
+    def get_pines(self):
+        """Returns the pins of the element"""
+        return ["pin0", "pin1", "pin2", "pin3", "pin4", "pin5", "pin6", "pin7", "pin8", "pin9",
+                "pin10", "pin11", "pin12", "pin13", "pinA0", "pinA1", "pinA2", "pinA3", "pinA4", "pinA5"]
 
 
 class BQzumBT328(Board):

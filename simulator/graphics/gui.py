@@ -55,7 +55,7 @@ class MainApplication(tk.Tk):
         self.vertical_pane.pack(fill="both", expand=True)
 
         self.horizontal_pane.add(
-            self.drawing_frame, stretch="first", width=1000, minsize=100)
+            self.drawing_frame, stretch="first", width=1100, minsize=100)
         self.horizontal_pane.add(self.editor_frame, minsize=100)
         self.vertical_pane.add(self.horizontal_pane,
                                stretch="first", minsize=100)
@@ -78,7 +78,7 @@ class MainApplication(tk.Tk):
 
     def execute(self):
         self.drawing_frame.canvas.focus_force()
-        self.controller.execute()
+        self.controller.execute(self.selector_bar.gamification_option_selector.current())
 
     def stop(self):
         self.controller.stop()
@@ -128,6 +128,8 @@ class MainApplication(tk.Tk):
         self.controller.stop()
         self.__update_robot()
         self.__update_track()  # Needed to set the circuit of the layer
+        self.__update_gamification_option()
+        self.__update_editor_frame_text()
         self.console_frame.console.config(state=tk.NORMAL)
         self.console_frame.console.insert(tk.END, "Robot cambiado con éxito\n")
         self.console_frame.console.config(state=tk.DISABLED)
@@ -144,6 +146,14 @@ class MainApplication(tk.Tk):
         self.controller.stop()
         self.__update_track()
 
+    def change_gamification_option(self, event):
+        self.controller.stop()
+        self.__update_editor_frame_text()
+        self.__update_gamification_option()
+        self.controller.robot_layer.is_drawing = False
+        self.drawing_frame.key_drawing.deselect()
+        self.controller.delete_elements()
+
     def __update_track(self):
         circuit = self.selector_bar.track_selector.current()
         robot = self.selector_bar.robot_selector.current()
@@ -152,17 +162,57 @@ class MainApplication(tk.Tk):
         self.controller.configure_layer(
             self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
 
+    def __update_editor_frame_text(self):
+        if self.controller.board:
+            challenge = self.selector_bar.gamification_option_selector.current()
+            code = self.controller.robot_layer.drawing.get_robot_challenge(challenge).get_initial_code()
+            self.editor_frame.change_text(code)
+
+    def __update_gamification_option(self):
+        if self.controller.board:
+            challenge = self.selector_bar.gamification_option_selector.current()
+            self.console_frame.console.config(state=tk.NORMAL)
+            self.console_frame.console.delete("1.0", "end")
+            self.show_buttons_gamification(True)
+            if challenge == 0:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(0).get_challenge())
+            if challenge == 1:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(1).get_challenge())
+            if challenge == 2:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(2).get_challenge())
+            self.console_frame.console.config(state=tk.DISABLED)
+            self.controller.configure_layer(
+                self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
+
     def show_circuit_selector(self, showing):
         if showing:
             self.selector_bar.recover_circuit_selector()
         else:
             self.selector_bar.hide_circuit_selector()
 
+    def show_gamification_option_selector(self, showing):
+        if showing:
+            self.selector_bar.recover_gamification_option_selector()
+        else:
+            self.selector_bar.hide_gamification_option_selector()
+
     def show_joystick(self, showing):
         if showing:
             self.drawing_frame.show_joystick()
         else:
             self.drawing_frame.hide_joystick()
+
+    def show_buttons_gamification(self, showing):
+        if showing:
+            self.drawing_frame.show_buttons_gamification()
+        else:
+            self.drawing_frame.hide_buttons_gamification()
 
     def show_hud(self, showing):
         if showing:
@@ -636,6 +686,8 @@ class DrawingFrame(tk.Frame):
                                 relief=tk.SOLID, highlightthickness=0)
         self.joystick_frame = JoystickFrame(self.canvas_frame, application, bg=DARK_BLUE, highlightthickness=1,
                                             highlightbackground="black")
+        self.buttons_gamification = ButtonsGamification(self.canvas_frame, application, bg=DARK_BLUE,
+                                                        highlightthickness=1, highlightbackground="black")
 
         self.bottom_frame = tk.Frame(self, bg=BLUE)
         self.key_movement = tk.Checkbutton(self.bottom_frame, text="Movimiento con el teclado", fg="white",
@@ -643,9 +695,9 @@ class DrawingFrame(tk.Frame):
                                            bg=BLUE, activebackground=BLUE, selectcolor="black",
                                            command=application.toggle_keys, underline=0)
         self.key_drawing = tk.Checkbutton(self.bottom_frame, text="Dibujar", fg="white",
-                                           font=("Consolas", 12),
-                                           bg=BLUE, activebackground=BLUE, selectcolor="black",
-                                           command=application.set_drawing, underline=0)
+                                          font=("Consolas", 12),
+                                          bg=BLUE, activebackground=BLUE, selectcolor="black",
+                                          command=application.set_drawing, underline=0)
         self.zoom_frame = tk.Frame(self.bottom_frame, bg=BLUE)
         self.zoom_in_button = ImageButton(
             self.zoom_frame,
@@ -738,6 +790,12 @@ class DrawingFrame(tk.Frame):
     def hide_joystick(self):
         self.joystick_frame.pack_forget()
 
+    def show_buttons_gamification(self):
+        self.buttons_gamification.pack(anchor="center", fill=tk.X)
+
+    def hide_buttons_gamification(self):
+        self.buttons_gamification.pack_forget()
+
     def __load_images(self):
         self.zoom_img = tk.PhotoImage(file="buttons/zoom.png")
         self.zoom_whi_img = tk.PhotoImage(file="buttons/zoom_w.png")
@@ -745,6 +803,47 @@ class DrawingFrame(tk.Frame):
         self.dezoom_img = tk.PhotoImage(file="buttons/dezoom.png")
         self.dezoom_whi_img = tk.PhotoImage(file="buttons/dezoom_w.png")
         self.dezoom_yel_img = tk.PhotoImage(file="buttons/dezoom_y.png")
+
+
+class ButtonsGamification(tk.Frame):
+
+    def __init__(self, parent, application: MainApplication = None, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.application = application
+
+        self.button_tutorial = tk.Button(self, text="TUTORIAL", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
+        self.button_hints = tk.Button(self, text="PISTAS", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
+        self.button_delete = tk.Button(self, text="ELIMINAR", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+
+        self.button_tutorial.grid(row=1, column=0, padx=(0, 20))
+        self.button_hints.grid(row=1, column=1, padx=(0, 20))
+        self.button_delete.grid(row=1, column=2, padx=(0, 20))
+
+        self.button_tutorial.bind("<ButtonPress>", self.show_tutorial)
+        self.button_hints.bind("<ButtonPress>", self.show_help)
+        self.button_delete.bind("<ButtonPress>", self.delete_elements)
+
+    def show_tutorial(self, event):
+        self.application.controller.show_tutorial(self.application.selector_bar.gamification_option_selector.current())
+        self.application.controller.console.logger.write_log('info', "El usuario ha consultado el tutorial del desafío: "
+                                                             + str(self.application.selector_bar.
+                                                                   gamification_option_selector.current()))
+
+    def show_help(self, event):
+        self.application.controller.show_help(self.application.selector_bar.gamification_option_selector.current())
+        self.application.controller.console.logger.write_log('info', "El usuario ha consultado una pista del desafío: "
+                                                             + str(self.application.selector_bar.
+                                                                   gamification_option_selector.current()))
+
+    def delete_elements(self, event):
+        self.application.controller.delete_elements()
+        self.application.controller.console.logger.write_log('info', "El usuario ha borrado el progreso del desafío: "
+                                                             + str(self.application.selector_bar.
+                                                                   gamification_option_selector.current()))
 
 
 class JoystickFrame(tk.Frame):
@@ -839,6 +938,10 @@ class EditorFrame(tk.Frame):
         self.text.insert(tk.END, "}\n\n")
         self.text.insert(tk.END, "void loop(){\n")
         self.text.insert(tk.END, "}")
+
+    def change_text(self, text):
+        self.text.delete("1.0", tk.END)
+        self.text.insert(tk.END, text)
 
     def _on_change(self, event):
         self.line_bar.show_lines()
@@ -1311,7 +1414,10 @@ class SelectorBar(tk.Frame):
         self.robot_selector = ttk.Combobox(self, state="readonly")
         self.lb_track = tk.Label(self, text="Circuito:", bg=DARK_BLUE, fg="white", font=(
             "Consolas", 13), underline=1)
+        self.lb_gamification_option = tk.Label(self, text="Opción:", bg=DARK_BLUE, fg="white", font=(
+            "Consolas", 13), underline=1)
         self.track_selector = ttk.Combobox(self, state="readonly")
+        self.gamification_option_selector = ttk.Combobox(self, state="readonly")
 
         self.robot_selector['values'] = ["Robot móvil (2 infrarrojos)",
                                          "Robot móvil (3 infrarrojos)",
@@ -1324,13 +1430,19 @@ class SelectorBar(tk.Frame):
             "Obstáculo", "Recta y obstáculo",
             "Circuito con nodos"]
         self.track_selector.current(0)
+        self.gamification_option_selector['values'] = [
+            "Desafío 1", "Desafío 2", "Desafío 3"]
+        self.gamification_option_selector.current(0)
 
         self.robot_selector.bind(
             "<<ComboboxSelected>>", application.change_robot)
         self.track_selector.bind(
             "<<ComboboxSelected>>", application.change_track)
+        self.gamification_option_selector.bind(
+            "<<ComboboxSelected>>", application.change_gamification_option)
         application.bind("<Alt-r>", lambda event: self.robot_selector.focus())
         application.bind("<Alt-i>", lambda event: self.track_selector.focus())
+        application.bind("<Alt-o>", lambda event: self.gamification_option_selector.focus())
 
         self.lb_robot.grid(row=0, column=0)
         self.robot_selector.grid(row=0, column=1, padx=(5, 15))
@@ -1348,3 +1460,15 @@ class SelectorBar(tk.Frame):
             self.lb_track.grid(row=0, column=2)
         if not self.track_selector.winfo_ismapped():
             self.track_selector.grid(row=0, column=3, padx=(5, 10))
+
+    def hide_gamification_option_selector(self):
+        if self.lb_gamification_option.winfo_ismapped():
+            self.lb_gamification_option.grid_forget()
+        if self.gamification_option_selector.winfo_ismapped():
+            self.gamification_option_selector.grid_forget()
+
+    def recover_gamification_option_selector(self):
+        if not self.lb_gamification_option.winfo_ismapped():
+            self.lb_gamification_option.grid(row=0, column=2)
+        if not self.gamification_option_selector.winfo_ismapped():
+            self.gamification_option_selector.grid(row=0, column=3, padx=(5, 10))

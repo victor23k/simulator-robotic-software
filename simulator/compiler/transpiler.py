@@ -19,6 +19,7 @@ import libraries.libs as libraries
 def transpile(code):
     errors = []
     warns = []
+    ast = None
     input = InputStream(code)
 
     lexer = ArduinoLexer(input)
@@ -52,14 +53,14 @@ def transpile(code):
                 warning_analysis.visit_program(ast, None)
                 warns = warning_analysis.warnings
 
-    return warns, errors
+    return warns, errors, ast
 
 
 def test():
     test_code = open('tests/grammar-tests/ejemPeque.txt', 'r').read()
     arbol = transpile(test_code)
     visitor = ast_builder_visitor.ASTBuilderVisitor()
-    ast =  visitor.visitProgram(arbol)
+    ast = visitor.visitProgram(arbol)
     lib_manager = libraries.LibraryManager()
     warning_analysis = warnings.WarningAnalyzer()
     sem_analysis = semantical_analysis.Semantic(lib_manager)

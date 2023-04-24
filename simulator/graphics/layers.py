@@ -107,6 +107,12 @@ class Layer:
         """
         self.drawing.empty_drawing()
 
+    def delete_elements(self):
+        self.drawing.components.clear()
+        self.drawing.empty_drawing()
+        self.robot.reset()
+        self.robot_drawing.draw()
+
 
 class MobileRobotLayer(Layer):
 
@@ -379,6 +385,8 @@ class ArduinoBoardLayer(Layer):
         """
         super().__init__()
         self.is_board = True
+        self.prev_x = 0
+        self.prev_y = 0
         self.hud = huds.ArduinoBoardHUD()
         self.robot = robots.ArduinoBoard(self)
         self.robot_drawing = robot_drawings.ArduinoBoardDrawing(
@@ -408,26 +416,31 @@ class ArduinoBoardLayer(Layer):
         """
         Stops all the executing code and clears the canvas
         """
-        self.hud.reboot()
         self.is_drawing = False
 
     def draw_component(self, x, y):
         if self.hud.drawing is not None:
-            self.drawing.draw_component(self.hud.drawing, x, y)
-            self.robot.add_component(self.hud.drawing)
+            element = self.robot.add_component(self.hud.drawing)
+            self.drawing.draw_component(element, x, y)
             self.hud.drawing = None
-        else:
-            self.abrir_selector(x, y)
 
     def _draw_before_robot(self):
         """Draw the components on the canvas"""
         self.drawing.draw_all_components()
+        self.drawing.draw_all_buttons()
 
-    def abrir_selector(self, x, y):
-        # TODO -> si se pulsa un componente se guarda para unir con el siguiente que se pulse (cables)
-        print(x)
-        print(y)
+    def probe(self, option_gamification, user_code, robot_code):
+        self.drawing.probe(option_gamification, user_code, robot_code,
+                           self.robot, self.get_robot_challenge(option_gamification))
 
+    def show_tutorial(self, option_gamification):
+        self.drawing.show_tutorial(option_gamification)
+
+    def show_help(self, option_gamification):
+        self.drawing.show_help(option_gamification)
+
+    def get_robot_challenge(self, option_gamification):
+        return self.drawing.get_robot_challenge(option_gamification)
 
 class LinearActuatorLayer(Layer):
 

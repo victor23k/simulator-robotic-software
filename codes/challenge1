@@ -1,0 +1,60 @@
+int led_rojo1 = 12;
+int led_amarillo1 = 11;
+int led_verde1 = 10;
+int led_rojo2 = 9;
+int led_amarillo2 = 8;
+int led_verde2 = 7;
+int tiempo1 = 8000;
+int tiempo2 = 3000;
+
+void setup(){
+    pinMode(led_rojo1, OUTPUT);
+    pinMode(led_amarillo1, OUTPUT);
+    pinMode(led_verde1, OUTPUT);
+    pinMode(led_rojo2, OUTPUT);
+    pinMode(led_amarillo2, OUTPUT);
+    pinMode(led_verde2, OUTPUT);
+}
+
+void loop(){
+    digitalWrite(led_rojo1, HIGH);
+    digitalWrite(led_amarillo1, LOW);
+    digitalWrite(led_verde1, LOW);
+
+    digitalWrite(led_rojo2, LOW);
+    digitalWrite(led_amarillo2, LOW);
+    digitalWrite(led_verde2, HIGH);
+
+    delay(tiempo1);
+
+    digitalWrite(led_rojo1, HIGH);
+    digitalWrite(led_amarillo1, LOW);
+    digitalWrite(led_verde1, LOW);
+
+    digitalWrite(led_rojo2, LOW);
+    digitalWrite(led_amarillo2, HIGH);
+    digitalWrite(led_verde2, LOW);
+
+    delay(tiempo2);
+
+    digitalWrite(led_rojo1, LOW);
+    digitalWrite(led_amarillo1, LOW);
+    digitalWrite(led_verde1, HIGH);
+
+    digitalWrite(led_rojo2, HIGH);
+    digitalWrite(led_amarillo2, LOW);
+    digitalWrite(led_verde2, LOW);
+
+    delay(tiempo1);
+
+    digitalWrite(led_rojo1, LOW);
+    digitalWrite(led_amarillo1, HIGH);
+    digitalWrite(led_verde1, LOW);
+
+    digitalWrite(led_rojo2, HIGH);
+    digitalWrite(led_amarillo2, LOW);
+    digitalWrite(led_verde2, LOW);
+
+    delay(tiempo2);
+
+}

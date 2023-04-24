@@ -12,6 +12,7 @@ class Robot:
 
     def __init__(self, board):
         self.board = board
+        self.robot_elements = []
 
     def get_data(self):
         pass
@@ -25,6 +26,12 @@ class Robot:
         return int(pin)
 
     def add_component(self, component):
+        pass
+
+    def get_code(self):
+        pass
+
+    def reset(self):
         pass
 
 
@@ -437,61 +444,78 @@ class ArduinoBoard(Robot):
         Constructor for arduino board
         """
         super().__init__(boards.ArduinoUno())
-        self.robot_elements = []
+
+    def reset(self):
+        self.robot_elements.clear()
 
     def add_component(self, component):
         if component == "resistance":
             resistance = elements.ResistanceArduino()
             self.robot_elements.append(resistance)
+            return resistance
         elif component == "button":
             button = elements.ButtonArduino()
             self.robot_elements.append(button)
+            return button
         elif component == "potentiometer":
             potentiometer = elements.PotentiometerArduino()
             self.robot_elements.append(potentiometer)
+            return potentiometer
         elif component == "led":
             led = elements.LedArduino()
             led.set_color(1)
             self.robot_elements.append(led)
+            return led
         elif component == "ledYellow":
             led = elements.LedArduino()
             led.set_color(2)
             self.robot_elements.append(led)
+            return led
         elif component == "ledGreen":
             led = elements.LedArduino()
             led.set_color(3)
             self.robot_elements.append(led)
+            return led
         elif component == "buzzer":
             buzzer = elements.BuzzerArduino()
             self.robot_elements.append(buzzer)
+            return buzzer
         elif component == "ledRGB":
             led_rgb = elements.RGBArduino()
             self.robot_elements.append(led_rgb)
+            return led_rgb
         elif component == "lightSensor":
             light_sensor = elements.LightSensorArduino()
             self.robot_elements.append(light_sensor)
+            return light_sensor
         elif component == "PIRSensor":
             pir_sensor = elements.PIRSensorArduino()
             self.robot_elements.append(pir_sensor)
+            return pir_sensor
         elif component == "vibrationSensor":
             vibration_sensor = elements.VibrationSensorArduino()
             self.robot_elements.append(vibration_sensor)
+            return vibration_sensor
         elif component == "infraredSensor":
             infrared_sensor = elements.InfraredSensorArduino()
             self.robot_elements.append(infrared_sensor)
+            return infrared_sensor
         elif component == "ultrasonicSensor":
             ultrasonic_sensor = elements.UltrasoundSensorArduino()
             self.robot_elements.append(ultrasonic_sensor)
+            return ultrasonic_sensor
         elif component == "keyboard":
             keyboard = elements.KeyBoardArduino()
             self.robot_elements.append(keyboard)
+            return keyboard
         elif component == "screen":
             screen = elements.ScreenArduino()
             self.robot_elements.append(screen)
+            return screen
         elif component == "servomotor180":
             servomotor = elements.ServomotorArduino()
             self.robot_elements.append(servomotor)
-        print(self.robot_elements)
+            return servomotor
 
     def assign_pins(self, pins):
         """
@@ -1141,3 +1165,215 @@ class ArduinoBoard(Robot):
         if self.board.check_type(pin, servomotor.get_pin3_type()):
             if self.board.attach_pin(pin, servomotor):
                 servomotor.pin3 = pin
+
+
+class Challenge1Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.add_components()
+        self.help = ""
+        self.times_help = 0
+
+    def add_components(self):
+        """The robot of challenge 1 has two red LEDs, two yellow LEDs and two green LEDs"""
+        led1 = elements.LedArduino()
+        led1.set_color(1)
+        self.robot_elements.append(led1)
+        led2 = elements.LedArduino()
+        led2.set_color(1)
+        self.robot_elements.append(led2)
+        led3 = elements.LedArduino()
+        led3.set_color(2)
+        self.robot_elements.append(led3)
+        led4 = elements.LedArduino()
+        led4.set_color(2)
+        self.robot_elements.append(led4)
+        led5 = elements.LedArduino()
+        led5.set_color(3)
+        self.robot_elements.append(led5)
+        led6 = elements.LedArduino()
+        led6.set_color(3)
+        self.robot_elements.append(led6)
+
+    def assign_pins(self):
+        #TODO --> asignar todos los pins correctamente para crear el circuito
+        pass
+
+    def get_code(self):
+        code_file = open("codes/challenge1", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 2 LEDs rojos\n- 2 LEDs verdes\n- 2 LEDs " \
+                                    "amarillos\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario llamar 4 veces al método delay(...)\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. Antes de cada llamada al método delay(...) se debe cambiar el valor " \
+                         "de todos los componentes\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_tutorial(self):
+        return "tutorials/Tutorial.pdf"
+
+    def get_challenge(self):
+        return "Desafío 1\n\nDeberá implementarse un cruce de semáforos.\nPara ello, cuando un semáforo esté en " \
+               "verde, el otro estará en rojo.\nDespués de un tiempo, el semáforo que está en verde tendrá que " \
+               "pasar a amarillo, y, tras unos segundos, a rojo.\nTras una breve pausa, el otro deberá de " \
+               "ponerse en verde y repetir el mismo proceso.\n"
+
+    def get_initial_code(self):
+        return "int led_rojo1 = 12;\nint led_amarillo1 = 11;\nint led_verde1 = 10;\nint led_rojo2 = 9;\n" \
+               "int led_amarillo2 = 8;\nint led_verde2 = 7;\nint tiempo1 = 8000;\nint tiempo2 = 3000;" \
+               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+
+
+class Challenge2Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge2
+        """
+        super().__init__(boards.ArduinoUno())
+        self.add_components()
+        self.help = ""
+        self.times_help = 0
+
+    def add_components(self):
+        """The robot of challenge 2 has one red LED, one green LED, a resistance and a keyboard"""
+        led1 = elements.LedArduino()
+        led1.set_color(1)
+        self.robot_elements.append(led1)
+        led2 = elements.LedArduino()
+        led2.set_color(3)
+        self.robot_elements.append(led2)
+        resistance1 = elements.ResistanceArduino()
+        self.robot_elements.append(resistance1)
+        resistance2 = elements.ResistanceArduino()
+        self.robot_elements.append(resistance2)
+        keyboard = elements.KeyBoardArduino()
+        self.robot_elements.append(keyboard)
+
+    def assign_pins(self):
+        #TODO --> asignar todos los pins correctamente para crear el circuito
+        pass
+
+    def get_code(self):
+        code_file = open("codes/challenge2", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED rojo\n- 1 LED verde\n- 2 resistencias\n- 1 " \
+                         "teclado\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario usar una operación condicional\n\n"
+
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. el tiempo de espera para apagar el led será de 5000\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_tutorial(self):
+        return "tutorials/Tutorial.pdf"
+
+    def get_challenge(self):
+        return "Desafío 2\n\nDeberá implementarse la apertura de una puerta.\nLa puerta se abre cuando " \
+               "el usuario pulsa el botón A del teclado y permanece abierta durante 5 segundos,\nhaciendo " \
+               "que un LED de color rojo esté encendido. Pasado ese tiempo se cierra.\nEn otros casos, " \
+               "el LED verde estará iluminando para indicar que se puede pasar.\nSi el usuario vuelve a " \
+               "pulsar el botón A mientras la puerta está abierta esa pulsación se ignora.\n" \
+               "Si el usuario pulsa cualquier otra tecla, no debe realizar ninguna otra acción.\n"
+
+    def get_initial_code(self):
+        return "int led_verde = 3;\nint led_rojo = 2;\n\n#include <Keypad.h>\n\nconst byte ROWS = 4;\n" \
+               "const byte COLUMNS = 4;\n\nchar matriz[ROWS][COLUMNS] =\n{\n  {'1','2','3', 'A'},\n" \
+               "  {'4','5','6', 'B'},\n  {'7','8','9', 'C'},\n  {'*','0','#', 'D'}\n};\n\n" \
+               "byte pin_rows[ROWS] = {7, 6, 5, 4};\n\nbyte pin_columns[COLUMNS] = {A3, A2, A1, A0};\n\n" \
+               "Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, ROWS, COLUMNS);" \
+               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+
+class Challenge3Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge3
+        """
+        super().__init__(boards.ArduinoUno())
+        self.add_components()
+        self.help = ""
+        self.times_help = 0
+
+    def add_components(self):
+        """The robot of challenge 3 has three red LEDs and a potentiometer"""
+        led1 = elements.LedArduino()
+        led1.set_color(1)
+        self.robot_elements.append(led1)
+        led2 = elements.LedArduino()
+        led2.set_color(1)
+        self.robot_elements.append(led2)
+        led3 = elements.LedArduino()
+        led3.set_color(1)
+        self.robot_elements.append(led3)
+        potentiometer = elements.PotentiometerArduino()
+        self.robot_elements.append(potentiometer)
+
+    def assign_pins(self):
+        #TODO --> asignar todos los pins correctamente para crear el circuito
+        pass
+
+    def get_code(self):
+        code_file = open("codes/challenge3", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs rojos\n- 1 potenciómetro\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario tener una operación condicional\ncon 8 bloques\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. La intensidad del potenciómetro está entre 0 y 1023,\n" \
+                         "por lo que las particiones serán:\n" \
+                         "0-127\n128-255\n256-383\n384-511\n512-639\n640-767\n768-895\n896-1023\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_tutorial(self):
+        return "tutorials/Tutorial.pdf"
+
+    def get_challenge(self):
+        return "Desafío 3\n\nControl y regulador de luz\nConectar 3 LEDs rojos y un potenciómetro. " \
+               "En función del valor de entrada del potenciómetro Conectar 3 LEDs y un potenciómetro.\n" \
+               "En función del valor de entrada del potenciómetro se tendrán que encender 0, 1, 2 o los 3 LEDs " \
+               "de forma secuencial,\nempezando por el 0 y siguiendo el orden. En este caso, todos los LEDs " \
+               "deben encenderse siempre con la misma intensidad,\nes decir, estarán apagados o encendidos.\n" \
+               "La secuencia de encendido es: se encienda primero el A, después el B, después el C, " \
+               "después A y B, después B y C,\ndespués A y C, y cuando esté en el máximo valor los 3.\n"
+
+    def get_initial_code(self):
+        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nint potent = 0;" \
+               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"

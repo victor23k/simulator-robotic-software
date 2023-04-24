@@ -1,0 +1,41 @@
+int led_verde = 3;
+int led_rojo = 2;
+
+#include <Keypad.h>
+
+const byte ROWS = 4;
+const byte COLUMNS = 4;
+
+char matriz[ROWS][COLUMNS] =
+{
+  {'1','2','3', 'A'},
+  {'4','5','6', 'B'},
+  {'7','8','9', 'C'},
+  {'*','0','#', 'D'}
+};
+
+byte pin_rows[ROWS] = {7, 6, 5, 4};
+
+byte pin_columns[COLUMNS] = {A3, A2, A1, A0};
+
+Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, ROWS, COLUMNS);
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(led_verde, OUTPUT);
+  pinMode(led_rojo, OUTPUT);
+
+  digitalWrite(v,HIGH);
+}
+void loop() {
+  char key_press = keyboard.getKey();
+
+  if (key_press == 'A'){
+    digitalWrite(led_rojo,HIGH);
+    digitalWrite(led_verde,LOW);
+    delay(5000);
+  }
+  digitalWrite(led_rojo,LOW);
+  digitalWrite(led_verde,HIGH);
+}
