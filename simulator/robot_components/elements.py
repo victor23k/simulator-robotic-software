@@ -253,15 +253,11 @@ class ResistanceArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -350,25 +346,17 @@ class ButtonArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
         if pin == 4:
-            self.pin4 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin4['element'] = component_to_attach
+            self.pin4['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -383,13 +371,13 @@ class ButtonArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x + 25,
+            "x": x - 25,
             "y": y - 60
         }
         button2 = {
             "n_pin": 2,
             "x": x + 25,
-            "y": y + 60
+            "y": y - 60
         }
         button3 = {
             "n_pin": 3,
@@ -398,8 +386,8 @@ class ButtonArduino(Element):
         }
         button4 = {
             "n_pin": 4,
-            "x": x - 25,
-            "y": y - 60
+            "x": x + 25,
+            "y": y + 60
         }
         return [button1, button2, button3, button4]
 
@@ -454,20 +442,14 @@ class PotentiometerArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -482,17 +464,17 @@ class PotentiometerArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x,
-            "y": y + 64
+            "x": x - 31,
+            "y": y + 56
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 30,
-            "y": y + 56
+            "x": x,
+            "y": y + 64
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 31,
+            "x": x + 30,
             "y": y + 56
         }
         return [button1, button2, button3]
@@ -556,15 +538,11 @@ class LedArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         if self.color == 1:
@@ -649,20 +627,14 @@ class BuzzerArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -677,17 +649,17 @@ class BuzzerArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x,
+            "x": x - 20,
             "y": y + 90
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 20,
+            "x": x,
             "y": y + 90
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 20,
+            "x": x + 20,
             "y": y + 90
         }
         return [button1, button2, button3]
@@ -752,25 +724,17 @@ class RGBArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
         if pin == 4:
-            self.pin4 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin4['element'] = component_to_attach
+            self.pin4['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -785,23 +749,23 @@ class RGBArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x + 5,
-            "y": y + 60
+            "x": x - 20,
+            "y": y + 50
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 17,
-            "y": y + 48
-        }
-        button3 = {
-            "n_pin": 3,
             "x": x - 8,
             "y": y + 70
         }
+        button3 = {
+            "n_pin": 3,
+            "x": x + 5,
+            "y": y + 60
+        }
         button4 = {
             "n_pin": 4,
-            "x": x - 20,
-            "y": y + 50
+            "x": x + 17,
+            "y": y + 48
         }
         return [button1, button2, button3, button4]
 
@@ -859,20 +823,14 @@ class LightSensorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -887,17 +845,17 @@ class LightSensorArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x - 2,
+            "x": x - 22,
             "y": y + 60
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 17,
+            "x": x - 2,
             "y": y + 60
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 22,
+            "x": x + 17,
             "y": y + 60
         }
         return [button1, button2, button3]
@@ -956,20 +914,14 @@ class PIRSensorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -984,17 +936,17 @@ class PIRSensorArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x,
+            "x": x-25,
             "y": y + 60
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 25,
+            "x": x,
             "y": y + 60
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 25,
+            "x": x + 25,
             "y": y + 60
         }
         return [button1, button2, button3]
@@ -1053,20 +1005,14 @@ class VibrationSensorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1081,17 +1027,17 @@ class VibrationSensorArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x,
+            "x": x - 17,
             "y": y + 110
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 17,
+            "x": x,
             "y": y + 110
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 17,
+            "x": x + 17,
             "y": y + 110
         }
         return [button1, button2, button3]
@@ -1150,20 +1096,14 @@ class InfraredSensorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1177,15 +1117,15 @@ class InfraredSensorArduino(Element):
 
     def draw_buttons(self, x, y):
         button1 = {
-            "x": x,
+            "x": x - 20,
             "y": y + 110
         }
         button2 = {
-            "x": x + 20,
+            "x": x,
             "y": y + 110
         }
         button3 = {
-            "x": x - 20,
+            "x": x + 20,
             "y": y + 110
         }
         return [button1, button2, button3]
@@ -1254,25 +1194,17 @@ class UltrasoundSensorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
         if pin == 4:
-            self.pin4 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin4['element'] = component_to_attach
+            self.pin4['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1287,22 +1219,22 @@ class UltrasoundSensorArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x + 6,
+            "x": x - 22,
             "y": y + 50
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 20,
+            "x": x - 8,
             "y": y + 50
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 8,
+            "x": x + 6,
             "y": y + 50
         }
         button4 = {
             "n_pin": 4,
-            "x": x - 22,
+            "x": x + 20,
             "y": y + 50
         }
         return [button1, button2, button3, button4]
@@ -1402,45 +1334,29 @@ class KeyBoardArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
         if pin == 4:
-            self.pin4 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin4['element'] = component_to_attach
+            self.pin4['pin'] = pin_component
         if pin == 5:
-            self.pin5 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin5['element'] = component_to_attach
+            self.pin5['pin'] = pin_component
         if pin == 6:
-            self.pin6 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin6['element'] = component_to_attach
+            self.pin6['pin'] = pin_component
         if pin == 7:
-            self.pin7 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin7['element'] = component_to_attach
+            self.pin7['pin'] = pin_component
         if pin == 8:
-            self.pin8 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin8['element'] = component_to_attach
+            self.pin8['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1455,12 +1371,12 @@ class KeyBoardArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x - 20,
+            "x": x - 130,
             "y": y + 185
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 20,
+            "x": x - 90,
             "y": y + 185
         }
         button3 = {
@@ -1470,22 +1386,22 @@ class KeyBoardArduino(Element):
         }
         button4 = {
             "n_pin": 4,
-            "x": x + 60,
+            "x": x - 20,
             "y": y + 185
         }
         button5 = {
             "n_pin": 5,
-            "x": x - 90,
+            "x": x + 20,
             "y": y + 185
         }
         button6 = {
             "n_pin": 6,
-            "x": x + 95,
+            "x": x + 60,
             "y": y + 185
         }
         button7 = {
             "n_pin": 7,
-            "x": x - 130,
+            "x": x + 95,
             "y": y + 185
         }
         button8 = {
@@ -1550,25 +1466,17 @@ class ScreenArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
         if pin == 4:
-            self.pin4 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin4['element'] = component_to_attach
+            self.pin4['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1584,22 +1492,22 @@ class ScreenArduino(Element):
         button1 = {
             "n_pin": 1,
             "x": x - 170,
-            "y": y + 8
+            "y": y - 27
         }
         button2 = {
             "n_pin": 2,
             "x": x - 170,
-            "y": y + 25
+            "y": y - 10
         }
         button3 = {
             "n_pin": 3,
             "x": x - 170,
-            "y": y - 10
+            "y": y + 8
         }
         button4 = {
             "n_pin": 4,
             "x": x - 170,
-            "y": y - 27
+            "y": y + 25
         }
         return [button1, button2, button3, button4]
 
@@ -1657,20 +1565,14 @@ class ServomotorArduino(Element):
 
     def attach_element(self, pin, component_to_attach, pin_component):
         if pin == 1:
-            self.pin1 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin1['element'] = component_to_attach
+            self.pin1['pin'] = pin_component
         if pin == 2:
-            self.pin2 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin2['element'] = component_to_attach
+            self.pin2['pin'] = pin_component
         if pin == 3:
-            self.pin3 = {
-                "element": component_to_attach,
-                "pin": pin_component
-            }
+            self.pin3['element'] = component_to_attach
+            self.pin3['pin'] = pin_component
 
     def draw_self(self, x, y, number):
         image = {
@@ -1685,17 +1587,17 @@ class ServomotorArduino(Element):
     def draw_buttons(self, x, y):
         button1 = {
             "n_pin": 1,
-            "x": x,
+            "x": x - 20,
             "y": y + 91
         }
         button2 = {
             "n_pin": 2,
-            "x": x + 20,
+            "x": x,
             "y": y + 91
         }
         button3 = {
             "n_pin": 3,
-            "x": x - 20,
+            "x": x + 20,
             "y": y + 91
         }
         return [button1, button2, button3]

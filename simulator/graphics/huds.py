@@ -12,7 +12,6 @@ class HUD:
         self.canvas: tk.Canvas = None
         self.drawing = None
         self.draw_wire = False
-        self.component_to_attach = None
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -295,29 +294,24 @@ class ArduinoBoardHUD(HUD):
         self.drawing = "resistance"
         self.selector_resistance.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_resistance2(self):
         self.drawing = "resistance"
         self.selector_resistance.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_resistance3(self):
         self.drawing = "resistance"
         self.selector_resistance.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_button(self):
         self.drawing = "button"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_potentiometer(self):
         self.drawing = "potentiometer"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def open_led_selector(self):
         self.selector_led = tk.Toplevel()
@@ -349,69 +343,56 @@ class ArduinoBoardHUD(HUD):
         self.drawing = "led"
         self.selector_led.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_led_yellow(self):
         self.drawing = "ledYellow"
         self.selector_led.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_led_green(self):
         self.drawing = "ledGreen"
         self.selector_led.destroy()
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_buzzer(self):
         self.drawing = "buzzer"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_led_rgb(self):
         self.drawing = "ledRGB"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_light_sensor(self):
         self.drawing = "lightSensor"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_pir_sensor(self):
         self.drawing = "PIRSensor"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_vibration_sensor(self):
         self.drawing = "vibrationSensor"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_infrared_sensor(self):
         self.drawing = "infraredSensor"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_ultrasonic_sensor(self):
         self.drawing = "ultrasonicSensor"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_keyboard(self):
         self.drawing = "keyboard"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_screen(self):
         self.drawing = "screen"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_servomotor(self):
         self.drawing = "servomotor180"
         self.draw_wire = False
-        self.component_to_attach = None
 
     def put_wire(self):
         self.drawing = None
@@ -544,6 +525,7 @@ class ArduinoBoardHUD(HUD):
         self.canvas.create_window(687, 50, window=self.button_servomotor)
 
     def create_wire(self):
+        #TODO --> Quitar esto???
         self.wire = self.img_wire.resize((20, 50), Image.ANTIALIAS)
         self.photo_wire = ImageTk.PhotoImage(self.wire)
         self.button_wire = tk.Button(self.canvas, width=22, height=90,

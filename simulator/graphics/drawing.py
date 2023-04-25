@@ -28,6 +28,8 @@ class Drawing:
         self.wires = []
         self.buttons = []
         self.button = 0
+        self.component_to_attach = None
+        self.pin_component_to_attach = 0
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -319,6 +321,7 @@ class Drawing:
             return self.robots[2]
 
     def probe_robot(self, user_robot, robot):
+        #TODO --> comprobar que  el robot que tiene el usuario es correcto (queda comprobar pines)
         if not len(user_robot.robot_elements) == len(robot.robot_elements):
             return False
         for i in range(len(robot.robot_elements)):
@@ -326,46 +329,26 @@ class Drawing:
                 return False
         return True
 
-    def find_component(self, x, y):
-        #TODO --> Esto no va a ser necesario cuando se consiga poner los botones en el canvas en los componentes
-        x_total = x / self.scale
-        y_total = y / self.scale
-        distance_total = 1000
-        component_selected = None
-        for component in self.components:
-            distance = ((x_total - component['x'])**2 + (y_total - component['y'])**2)**0.005
-            if round(distance, 4) < 1.053 and round(distance, 4) < round(distance_total, 4):
-                component_selected = component
-                distance_total = distance
-        distance = ((x_total - self.robot.board['x'])**2 + (y_total - self.robot.board['y'])**2)**0.005
-        if round(distance, 4) < 1.057 and round(distance, 4) < round(distance_total, 4):
-            component_selected = self.robot.board
-        print(distance_total)
-        return component_selected
-
-    def attach(self, component1, component2, pin_component1, pin_component2):
-        #TODO --> Cambiar esto cuando se consiga poner los botones en el canvas en los componentes
+    def attach(self, component1, pin_component1, component2, pin_component2):
         #TODO --> si uno de los dos componentes es una placa arduino (no contemplado ahora mismo)
         component1.attach_element(pin_component1+1, component2, pin_component2+1)
         component2.attach_element(pin_component2+1, component1, pin_component1+1)
-        self.attach_window.destroy()
 
-    def attach_component(self, x, y):
-        if self.hud.component_to_attach is None:
+    def attach_component(self, component, pin):
+        #TODO --> Dibujar cable!!!!
+        if self.component_to_attach is None:
             """Si todavía no se ha seleccionado el primer componente, se selecciona"""
-            self.hud.component_to_attach = self.drawing.find_component(x, y)
-            self.prev_x = x
-            self.prev_y = y
-        else:
+            self.component_to_attach = component
+            self.pin_component_to_attach = pin
+        elif component is self.component_to_attach:
+            """Si el segundo componente seleccionado es el mismo que el primero se actualiza el pin seleccionado"""
+            self.component_to_attach = component
+            self.pin_component_to_attach = pin
+        elif component is not None and component is not self.component_to_attach:
             """Si ya se ha seleccionado anteriormente un componente, se unen ambos"""
-            component_to_attach2 = self.drawing.find_component(x, y)
-            self.drawing.draw_wire(x, y, self.prev_x, self.prev_y)
-            self.prev_x = x
-            self.prev_y = y
-            if component_to_attach2 is not None and component_to_attach2 is not self.hud.component_to_attach:
-                self.drawing.attach_components(self.hud.component_to_attach, component_to_attach2, self.robot)
-                self.hud.component_to_attach = None
-                self.hud.draw_wire = False
+            self.attach(self.component_to_attach, self.pin_component_to_attach, component, pin)
+            self.component_to_attach = None
+            self.pin_component_to_attach = 0
 
     def draw_buttons(self, element, x, y):
         buttons = element.draw_buttons(x, y)
@@ -384,46 +367,54 @@ class Drawing:
             self.buttons.append(button1)
             self.button += 1
             if button['n_pin'] == 1:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin1())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin1(element))
             elif button['n_pin'] == 2:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin2())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin2(element))
             elif button['n_pin'] == 3:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin3())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin3(element))
             elif button['n_pin'] == 4:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin4())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin4(element))
             elif button['n_pin'] == 5:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin5())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin5(element))
             elif button['n_pin'] == 6:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin6())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin6(element))
             elif button['n_pin'] == 7:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin7())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin7(element))
             elif button['n_pin'] == 8:
-                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin8())
+                self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin8(element))
 
     def draw_all_buttons(self):
         for button in self.buttons:
             self.draw_image(button, button["group"])
 
-    def select_pin1(self):
+    def select_pin1(self, element):
         print(1)
+        self.attach_component(element, 1)
 
-    def select_pin2(self):
+    def select_pin2(self, element):
         print(2)
+        self.attach_component(element, 2)
 
-    def select_pin3(self):
+    def select_pin3(self, element):
         print(3)
+        self.attach_component(element, 3)
 
-    def select_pin4(self):
+    def select_pin4(self, element):
         print(4)
+        self.attach_component(element, 4)
 
-    def select_pin5(self):
+    def select_pin5(self, element):
         print(5)
+        self.attach_component(element, 5)
 
-    def select_pin6(self):
+    def select_pin6(self, element):
         print(6)
+        self.attach_component(element, 6)
 
-    def select_pin7(self):
+    def select_pin7(self, element):
         print(7)
+        self.attach_component(element, 7)
 
-    def select_pin8(self):
+    def select_pin8(self, element):
         print(8)
+        self.attach_component(element, 8)
