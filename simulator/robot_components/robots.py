@@ -454,6 +454,17 @@ class ArduinoBoard(Robot):
     def add_component(self, component):
         if component == "resistance":
             resistance = elements.ResistanceArduino()
+            resistance.set_value(56000)
+            self.robot_elements.append(resistance)
+            return resistance
+        if component == "resistance220":
+            resistance = elements.ResistanceArduino()
+            resistance.set_value(220)
+            self.robot_elements.append(resistance)
+            return resistance
+        if component == "resistance10k":
+            resistance = elements.ResistanceArduino()
+            resistance.set_value(10000)
             self.robot_elements.append(resistance)
             return resistance
         elif component == "button":
@@ -1107,7 +1118,7 @@ class Challenge1Robot(Robot):
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
     def probe_robot(self, robot):
-        """ El robot tiene que tener el mismo número de elementos que el robot solución. 
+        """ El robot tiene que tener 6 componentes.
             Todos los elementos deben ser leds.
             Los pines del 7 al 12 deben estar conectados a los leds
             El pin 5v debe tener conectados 6 elementos"""
@@ -1200,7 +1211,44 @@ class Challenge2Robot(Robot):
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
     def probe_robot(self, robot):
+        """ El robot tiene que tener el 5 componentes.
+            Debe tener 2 LEDs, 2 resistencias y un teclado
+            Los pines del 7 al 12 deben estar conectados a los leds
+            El pin 5v debe tener conectados 6 elementos"""
         errors = []
+        if len(robot.robot_elements) != 6:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        elem = True
+        conex = True
+        for component in robot.robot_elements:
+            if not isinstance(component, elements.LedArduino):
+                elem = False
+            if not (isinstance(component.pin2['element'], boards.ArduinoUno) and component.pin2['pin'] == 21):
+                conex = False
+            if not (isinstance(component.pin1['element'], boards.ArduinoUno)):
+                conex = False
+        if not elem:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas no es correcto")
+        pin5v = 0
+        for pin in robot.board.pines:
+            if pin['pin'] == 21 and isinstance(pin['element'], elements.LedArduino):
+                pin5v += 1
+            elif pin['pin'] == 7 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 8 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 9 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 10 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 11 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 12 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+        if pin5v != 6 or not conex:
+            errors.append("Las conexiones realizadas no son correctas")
         return errors
 
 

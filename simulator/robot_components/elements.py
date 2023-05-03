@@ -260,10 +260,16 @@ class ResistanceArduino(Element):
             self.pin2['pin'] = pin_component
 
     def draw_self(self, x, y, number):
+        if self.value == 56000:
+            value = ""
+        elif self.value == 220:
+            value = "220"
+        elif self.value == 10000:
+            value = "10k"
         image = {
             "x": x,
             "y": y,
-            "image": "assets/resistance.png",
+            "image": "assets/resistance" + value + ".png",
             "group": "component" + str(number),
             "element": self
         }

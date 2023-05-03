@@ -220,8 +220,8 @@ class ArduinoBoardHUD(HUD):
         """
         super().__init__()
         self.img_resistance = Image.open('assets/resistance.png')
-        self.img_resistance2 = Image.open('assets/resistance.png')
-        self.img_resistance3 = Image.open('assets/resistance.png')
+        self.img_resistance2 = Image.open('assets/resistance220.png')
+        self.img_resistance3 = Image.open('assets/resistance10k.png')
         self.img_button = Image.open('assets/button.png')
         self.img_potentiometer = Image.open('assets/potentiometer.png')
         self.img_led = Image.open('assets/led.png')
@@ -296,12 +296,12 @@ class ArduinoBoardHUD(HUD):
         self.draw_wire = False
 
     def put_resistance2(self):
-        self.drawing = "resistance"
+        self.drawing = "resistance220"
         self.selector_resistance.destroy()
         self.draw_wire = False
 
     def put_resistance3(self):
-        self.drawing = "resistance"
+        self.drawing = "resistance10k"
         self.selector_resistance.destroy()
         self.draw_wire = False
 
