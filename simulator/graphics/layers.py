@@ -91,8 +91,12 @@ class Layer:
         self.drawing.delete_zoomables()
         self._draw_before_robot()
         self.robot_drawing.draw()
+        self._draw_after_robot()
 
     def _draw_before_robot(self):
+        pass
+
+    def _draw_after_robot(self):
         pass
 
     def _zoom_percentage(self):
@@ -112,6 +116,7 @@ class Layer:
         self.drawing.empty_drawing()
         self.robot.reset()
         self.robot_drawing.draw()
+        self.drawing.draw_buttons(self.robot, 500.0, 500.0)
 
 
 class MobileRobotLayer(Layer):
@@ -391,6 +396,7 @@ class ArduinoBoardLayer(Layer):
         self.robot = robots.ArduinoBoard(self)
         self.robot_drawing = robot_drawings.ArduinoBoardDrawing(
             self.drawing)
+        self.drawing.setBoard(self.robot.board)
 
     def set_canvas(self, canvas, hud_canvas):
         """
@@ -404,6 +410,7 @@ class ArduinoBoardLayer(Layer):
                               self.robot_drawing.drawing_height)
         self.hud.set_canvas(hud_canvas)
         self.robot_drawing.draw()
+        self.drawing.draw_buttons(self.robot, 500.0, 500.0)
 
     def _zoom_config(self):
         """
@@ -423,11 +430,16 @@ class ArduinoBoardLayer(Layer):
             element = self.robot.add_component(self.hud.drawing)
             self.drawing.draw_component(element, x, y)
             self.hud.drawing = None
+        elif self.hud.draw_wire:
+            dibujar = self.drawing.draw_part_wire(x, y)
+            if not dibujar:
+                self.hud.draw_wire = False
 
-    def _draw_before_robot(self):
+    def _draw_after_robot(self):
         """Draw the components on the canvas"""
         self.drawing.draw_all_components()
         self.drawing.draw_all_buttons()
+        self.drawing.redraw_wire()
 
     def probe(self, option_gamification, user_code, robot_code):
         self.drawing.probe(option_gamification, user_code, robot_code,

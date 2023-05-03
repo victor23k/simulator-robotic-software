@@ -214,11 +214,140 @@ class ArduinoUno(Board):
         self.pins["digital"] = list(map(lambda x: x, range(2, 14)))
         self.pins["analog"] = list(map(lambda x: x, range(14, 20)))
         self.pins["txrx"] = [0, 1]
+        self.pines = []
 
-    def get_pines(self):
-        """Returns the pins of the element"""
-        return ["pin0", "pin1", "pin2", "pin3", "pin4", "pin5", "pin6", "pin7", "pin8", "pin9",
-                "pin10", "pin11", "pin12", "pin13", "pinA0", "pinA1", "pinA2", "pinA3", "pinA4", "pinA5"]
+    def attach_pin(self, pin, component):
+        att_pin = {
+            "element": component,
+            "pin": pin
+        }
+        self.pines.append(att_pin)
+        print(self.pines)
+
+    def draw_buttons(self, x, y):
+        button1 = {
+            "n_pin": "pin0",
+            "x": x + 197,
+            "y": y - 150
+        }
+        button2 = {
+            "n_pin": "pin1",
+            "x": x + 181,
+            "y": y - 150
+        }
+        button3 = {
+            "n_pin": "pin2",
+            "x": x + 165,
+            "y": y - 150
+        }
+        button4 = {
+            "n_pin": "pin3",
+            "x": x + 149,
+            "y": y - 150
+        }
+        button5 = {
+            "n_pin": "pin4",
+            "x": x + 133,
+            "y": y - 150
+        }
+        button6 = {
+            "n_pin": "pin5",
+            "x": x + 117,
+            "y": y - 150
+        }
+        button7 = {
+            "n_pin": "pin6",
+            "x": x + 101,
+            "y": y - 150
+        }
+        button8 = {
+            "n_pin": "pin7",
+            "x": x + 85,
+            "y": y - 150
+        }
+        button9 = {
+            "n_pin": "pin8",
+            "x": x + 62,
+            "y": y - 150
+        }
+        button10 = {
+            "n_pin": "pin9",
+            "x": x + 46,
+            "y": y - 150
+        }
+        button11 = {
+            "n_pin": "pin10",
+            "x": x + 30,
+            "y": y - 150
+        }
+        button12 = {
+            "n_pin": "pin11",
+            "x": x + 14,
+            "y": y - 150
+        }
+        button13 = {
+            "n_pin": "pin12",
+            "x": x - 2,
+            "y": y - 150
+        }
+        button14 = {
+            "n_pin": "pin13",
+            "x": x - 18,
+            "y": y - 150
+        }
+        button15 = {
+            "n_pin": "pinA0",
+            "x": x + 119,
+            "y": y + 150
+        }
+        button16 = {
+            "n_pin": "pinA1",
+            "x": x + 135,
+            "y": y + 150
+        }
+        button17 = {
+            "n_pin": "pinA2",
+            "x": x + 151,
+            "y": y + 150
+        }
+        button18 = {
+            "n_pin": "pinA3",
+            "x": x + 167,
+            "y": y + 150
+        }
+        button19 = {
+            "n_pin": "pinA4",
+            "x": x + 183,
+            "y": y + 150
+        }
+        button20 = {
+            "n_pin": "pinA5",
+            "x": x + 199,
+            "y": y + 150
+        }
+        button21 = {
+            "n_pin": "pin3V",
+            "x": x + 24,
+            "y": y + 150
+        }
+        button22 = {
+            "n_pin": "pin5V",
+            "x": x + 40,
+            "y": y + 150
+        }
+        button23 = {
+            "n_pin": "pinGND1",
+            "x": x + 56,
+            "y": y + 150
+        }
+        button24 = {
+            "n_pin": "pinGND2",
+            "x": x + 72,
+            "y": y + 150
+        }
+        return [button1, button2, button3, button4, button5, button6, button7, button8, button9,
+                button10, button11, button12, button13, button14, button15, button16, button17,
+                button18, button19, button20, button21, button22, button23, button24]
 
 
 class BQzumBT328(Board):

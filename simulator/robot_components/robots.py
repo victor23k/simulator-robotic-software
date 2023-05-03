@@ -448,6 +448,9 @@ class ArduinoBoard(Robot):
     def reset(self):
         self.robot_elements.clear()
 
+    def draw_buttons(self, x, y):
+        return self.board.draw_buttons(x, y)
+
     def add_component(self, component):
         if component == "resistance":
             resistance = elements.ResistanceArduino()
@@ -516,116 +519,6 @@ class ArduinoBoard(Robot):
             servomotor = elements.ServomotorArduino()
             self.robot_elements.append(servomotor)
             return servomotor
-
-    def assign_pins(self, pins):
-        """
-        Assigns the pins to the corresponding element
-        Arguments:
-            pins: a list of tuples with the name of the element,
-            the corresponding pin and the element
-        """
-        for pin in pins:
-            name = pin[0]
-            pin = self.parse_pin(pin[1])
-            element = pin[2]
-            if name == "resistance1":
-                self.set_resistance1(pin, element)
-            elif name == "resistance2":
-                self.set_resistance2(pin, element)
-            elif name == "button1":
-                self.set_button1(pin, element)
-            elif name == "button2":
-                self.set_button2(pin, element)
-            elif name == "button3":
-                self.set_button3(pin, element)
-            elif name == "button4":
-                self.set_button4(pin, element)
-            elif name == "potentiometer1":
-                self.set_potentiometer1(pin, element)
-            elif name == "potentiometer2":
-                self.set_potentiometer2(pin, element)
-            elif name == "potentiometer3":
-                self.set_potentiometer3(pin, element)
-            elif name == "led1":
-                self.set_led1(pin, element)
-            elif name == "led2":
-                self.set_led2(pin, element)
-            elif name == "buzzer1":
-                self.set_buzzer1(pin, element)
-            elif name == "buzzer2":
-                self.set_buzzer2(pin, element)
-            elif name == "buzzer3":
-                self.set_buzzer3(pin, element)
-            elif name == "rgb1":
-                self.set_rgb1(pin, element)
-            elif name == "rgb2":
-                self.set_rgb2(pin, element)
-            elif name == "rgb3":
-                self.set_rgb3(pin, element)
-            elif name == "rgb4":
-                self.set_rgb4(pin, element)
-            elif name == "lightSensor1":
-                self.set_light_sensor1(pin, element)
-            elif name == "lightSensor2":
-                self.set_light_sensor2(pin, element)
-            elif name == "lightSensor3":
-                self.set_light_sensor3(pin, element)
-            elif name == "PIRSensor1":
-                self.set_pir_sensor1(pin, element)
-            elif name == "PIRSensor2":
-                self.set_pir_sensor2(pin, element)
-            elif name == "PIRSensor3":
-                self.set_pir_sensor3(pin, element)
-            elif name == "vibrationSensor1":
-                self.set_vibration_sensor1(pin, element)
-            elif name == "vibrationSensor2":
-                self.set_vibration_sensor2(pin, element)
-            elif name == "vibrationSensor3":
-                self.set_vibration_sensor3(pin, element)
-            elif name == "infraredSensor1":
-                self.set_infrared_sensor1(pin, element)
-            elif name == "infraredSensor2":
-                self.set_infrared_sensor2(pin, element)
-            elif name == "infraredSensor3":
-                self.set_infrared_sensor3(pin, element)
-            elif name == "ultrasonicSensor1":
-                self.set_ultrasonic_sensor1(pin, element)
-            elif name == "ultrasonicSensor2":
-                self.set_ultrasonic_sensor2(pin, element)
-            elif name == "ultrasonicSensor3":
-                self.set_ultrasonic_sensor3(pin, element)
-            elif name == "ultrasonicSensor4":
-                self.set_ultrasonic_sensor4(pin, element)
-            elif name == "keyboard1":
-                self.set_keyboard1(pin, element)
-            elif name == "keyboard2":
-                self.set_keyboard2(pin, element)
-            elif name == "keyboard3":
-                self.set_keyboard3(pin, element)
-            elif name == "keyboard4":
-                self.set_keyboard4(pin, element)
-            elif name == "keyboard5":
-                self.set_keyboard5(pin, element)
-            elif name == "keyboard6":
-                self.set_keyboard6(pin, element)
-            elif name == "keyboard7":
-                self.set_keyboard7(pin, element)
-            elif name == "keyboard8":
-                self.set_keyboard8(pin, element)
-            elif name == "screen1":
-                self.set_screen2(pin, element)
-            elif name == "screen2":
-                self.set_screen3(pin, element)
-            elif name == "screen3":
-                self.set_screen1(pin, element)
-            elif name == "screen4":
-                self.set_screen4(pin, element)
-            elif name == "servomotor1":
-                self.set_servomotor1(pin, element)
-            elif name == "servomotor2":
-                self.set_servomotor2(pin, element)
-            elif name == "servomotor3":
-                self.set_servomotor3(pin, element)
 
     def set_resistance1(self, pin, resistance):
         """
@@ -1173,34 +1066,8 @@ class Challenge1Robot(Robot):
         Constructor for the robot of challenge1
         """
         super().__init__(boards.ArduinoUno())
-        self.add_components()
         self.help = ""
         self.times_help = 0
-
-    def add_components(self):
-        """The robot of challenge 1 has two red LEDs, two yellow LEDs and two green LEDs"""
-        led1 = elements.LedArduino()
-        led1.set_color(1)
-        self.robot_elements.append(led1)
-        led2 = elements.LedArduino()
-        led2.set_color(1)
-        self.robot_elements.append(led2)
-        led3 = elements.LedArduino()
-        led3.set_color(2)
-        self.robot_elements.append(led3)
-        led4 = elements.LedArduino()
-        led4.set_color(2)
-        self.robot_elements.append(led4)
-        led5 = elements.LedArduino()
-        led5.set_color(3)
-        self.robot_elements.append(led5)
-        led6 = elements.LedArduino()
-        led6.set_color(3)
-        self.robot_elements.append(led6)
-
-    def assign_pins(self):
-        #TODO --> asignar todos los pins correctamente para crear el circuito
-        pass
 
     def get_code(self):
         code_file = open("codes/challenge1", "r")
@@ -1211,7 +1078,7 @@ class Challenge1Robot(Robot):
     def increment_help(self):
         if self.times_help == 0:
             self.help += "1. Para este desafío necesitarás usar:\n- 2 LEDs rojos\n- 2 LEDs verdes\n- 2 LEDs " \
-                                    "amarillos\n\n"
+                         "amarillos\n\n"
             self.times_help += 1
         elif self.times_help == 1:
             self.help += "2. En el bucle es necesario llamar 4 veces al método delay(...)\n\n"
@@ -1239,6 +1106,47 @@ class Challenge1Robot(Robot):
                "int led_amarillo2 = 8;\nint led_verde2 = 7;\nint tiempo1 = 8000;\nint tiempo2 = 3000;" \
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
+    def probe_robot(self, robot):
+        """ El robot tiene que tener el mismo número de elementos que el robot solución. 
+            Todos los elementos deben ser leds.
+            Los pines del 7 al 12 deben estar conectados a los leds
+            El pin 5v debe tener conectados 6 elementos"""
+        errors = []
+        if len(robot.robot_elements) != 6:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        elem = True
+        conex = True
+        for component in robot.robot_elements:
+            if not isinstance(component, elements.LedArduino):
+                elem = False
+            if not (isinstance(component.pin2['element'], boards.ArduinoUno) and component.pin2['pin'] == 21):
+                conex = False
+            if not (isinstance(component.pin1['element'], boards.ArduinoUno)):
+                conex = False
+        if not elem:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas no es correcto")
+        pin5v = 0
+        for pin in robot.board.pines:
+            if pin['pin'] == 21 and isinstance(pin['element'], elements.LedArduino):
+                pin5v += 1
+            elif pin['pin'] == 7 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 8 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 9 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 10 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 11 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+            elif pin['pin'] == 12 and not isinstance(pin['element'], elements.LedArduino):
+                conex = False
+        if pin5v != 6 or not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
 
 class Challenge2Robot(Robot):
     def __init__(self, robot):
@@ -1246,28 +1154,8 @@ class Challenge2Robot(Robot):
         Constructor for the robot of challenge2
         """
         super().__init__(boards.ArduinoUno())
-        self.add_components()
         self.help = ""
         self.times_help = 0
-
-    def add_components(self):
-        """The robot of challenge 2 has one red LED, one green LED, a resistance and a keyboard"""
-        led1 = elements.LedArduino()
-        led1.set_color(1)
-        self.robot_elements.append(led1)
-        led2 = elements.LedArduino()
-        led2.set_color(3)
-        self.robot_elements.append(led2)
-        resistance1 = elements.ResistanceArduino()
-        self.robot_elements.append(resistance1)
-        resistance2 = elements.ResistanceArduino()
-        self.robot_elements.append(resistance2)
-        keyboard = elements.KeyBoardArduino()
-        self.robot_elements.append(keyboard)
-
-    def assign_pins(self):
-        #TODO --> asignar todos los pins correctamente para crear el circuito
-        pass
 
     def get_code(self):
         code_file = open("codes/challenge2", "r")
@@ -1311,33 +1199,19 @@ class Challenge2Robot(Robot):
                "Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, ROWS, COLUMNS);" \
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
+    def probe_robot(self, robot):
+        errors = []
+        return errors
+
+
 class Challenge3Robot(Robot):
     def __init__(self, robot):
         """
         Constructor for the robot of challenge3
         """
         super().__init__(boards.ArduinoUno())
-        self.add_components()
         self.help = ""
         self.times_help = 0
-
-    def add_components(self):
-        """The robot of challenge 3 has three red LEDs and a potentiometer"""
-        led1 = elements.LedArduino()
-        led1.set_color(1)
-        self.robot_elements.append(led1)
-        led2 = elements.LedArduino()
-        led2.set_color(1)
-        self.robot_elements.append(led2)
-        led3 = elements.LedArduino()
-        led3.set_color(1)
-        self.robot_elements.append(led3)
-        potentiometer = elements.PotentiometerArduino()
-        self.robot_elements.append(potentiometer)
-
-    def assign_pins(self):
-        #TODO --> asignar todos los pins correctamente para crear el circuito
-        pass
 
     def get_code(self):
         code_file = open("codes/challenge3", "r")
@@ -1377,3 +1251,7 @@ class Challenge3Robot(Robot):
     def get_initial_code(self):
         return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nint potent = 0;" \
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        return errors

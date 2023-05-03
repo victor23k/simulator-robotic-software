@@ -1117,14 +1117,17 @@ class InfraredSensorArduino(Element):
 
     def draw_buttons(self, x, y):
         button1 = {
+            "n_pin": 1,
             "x": x - 20,
             "y": y + 110
         }
         button2 = {
+            "n_pin": 2,
             "x": x,
             "y": y + 110
         }
         button3 = {
+            "n_pin": 3,
             "x": x + 20,
             "y": y + 110
         }

@@ -831,19 +831,19 @@ class ButtonsGamification(tk.Frame):
         self.application.controller.show_tutorial(self.application.selector_bar.gamification_option_selector.current())
         self.application.controller.console.logger.write_log('info', "El usuario ha consultado el tutorial del desafío: "
                                                              + str(self.application.selector_bar.
-                                                                   gamification_option_selector.current()))
+                                                                   gamification_option_selector.current() + 1))
 
     def show_help(self, event):
         self.application.controller.show_help(self.application.selector_bar.gamification_option_selector.current())
         self.application.controller.console.logger.write_log('info', "El usuario ha consultado una pista del desafío: "
                                                              + str(self.application.selector_bar.
-                                                                   gamification_option_selector.current()))
+                                                                   gamification_option_selector.current() + 1))
 
     def delete_elements(self, event):
         self.application.controller.delete_elements()
         self.application.controller.console.logger.write_log('info', "El usuario ha borrado el progreso del desafío: "
                                                              + str(self.application.selector_bar.
-                                                                   gamification_option_selector.current()))
+                                                                   gamification_option_selector.current() + 1))
 
 
 class JoystickFrame(tk.Frame):

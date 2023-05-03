@@ -525,7 +525,6 @@ class ArduinoBoardHUD(HUD):
         self.canvas.create_window(687, 50, window=self.button_servomotor)
 
     def create_wire(self):
-        #TODO --> Quitar esto???
         self.wire = self.img_wire.resize((20, 50), Image.ANTIALIAS)
         self.photo_wire = ImageTk.PhotoImage(self.wire)
         self.button_wire = tk.Button(self.canvas, width=22, height=90,
