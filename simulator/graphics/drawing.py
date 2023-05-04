@@ -467,6 +467,8 @@ class Drawing:
             self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin_gnd1(element, event))
         elif button['n_pin'] == "pinGND2":
             self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin_gnd2(element, event))
+        elif button['n_pin'] == "pinGND3":
+            self.canvas.tag_bind(img, "<Button-1>", lambda event: self.select_pin_gnd3(element, event))
 
     def select_pin1(self, element, event):
         self.attach_component(element, 1, event.x, event.y)
@@ -563,3 +565,6 @@ class Drawing:
 
     def select_pin_gnd2(self, element, event):
         self.attach_component(element, 23, event.x, event.y)
+
+    def select_pin_gnd3(self, element, event):
+        self.attach_component(element, 24, event.x, event.y)
