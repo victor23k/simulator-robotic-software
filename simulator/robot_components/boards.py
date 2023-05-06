@@ -214,7 +214,33 @@ class ArduinoUno(Board):
         self.pins["digital"] = list(map(lambda x: x, range(2, 14)))
         self.pins["analog"] = list(map(lambda x: x, range(14, 20)))
         self.pins["txrx"] = [0, 1]
+        self.pins["v"] = [20, 21]
+        self.pins["gnd"] = [22, 23, 24]
         self.pines = []
+
+    def is_txrx(self, pin):
+        if pin == 0 or pin == 1:
+            return True
+        return False
+    def is_digital(self, pin):
+        if 14 <= pin < 20:
+            return True
+        return False
+
+    def is_analog(self, pin):
+        if 2 <= pin < 14:
+            return True
+        return False
+
+    def is_v(self, pin):
+        if pin == 20 or pin == 21:
+            return True
+        return False
+
+    def is_gnd(self, pin):
+        if 22 <= pin < 25:
+            return True
+        return False
 
     def attach_pin(self, pin, component):
         att_pin = {

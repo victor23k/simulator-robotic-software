@@ -1089,7 +1089,7 @@ class Challenge1Robot(Robot):
     def increment_help(self):
         if self.times_help == 0:
             self.help += "1. Para este desafío necesitarás usar:\n- 2 LEDs rojos\n- 2 LEDs verdes\n- 2 LEDs " \
-                         "amarillos\n\n"
+                         "amarillos\n- 6 resistencias\n\n"
             self.times_help += 1
         elif self.times_help == 1:
             self.help += "2. En el bucle es necesario llamar 4 veces al método delay(...)\n\n"
@@ -1118,43 +1118,41 @@ class Challenge1Robot(Robot):
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
     def probe_robot(self, robot):
-        """ El robot tiene que tener 6 componentes.
-            Todos los elementos deben ser leds.
-            Los pines del 7 al 12 deben estar conectados a los leds
-            El pin 5v debe tener conectados 6 elementos"""
         errors = []
-        if len(robot.robot_elements) != 6:
+        # debe haber 12 elementos (6 leds y 6 resistencias)
+        if len(robot.robot_elements) != 12:
             errors.append("El número de elementos añadidos no coincide con los correctos")
-        elem = True
+        # El número de conexiones a la placa deben ser 12
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
         conex = True
         for component in robot.robot_elements:
-            if not isinstance(component, elements.LedArduino):
-                elem = False
-            if not (isinstance(component.pin2['element'], boards.ArduinoUno) and component.pin2['pin'] == 21):
-                conex = False
-            if not (isinstance(component.pin1['element'], boards.ArduinoUno)):
-                conex = False
-        if not elem:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
+                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    conex = False
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                    conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
+                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
+                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
+                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                        ((isinstance(component.pin2['element'], elements.LedArduino) and
+                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
+                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                    conex = False
+        # comprobamos que hay 6 resistencias y 6 leds
+        if leds != 6 or resistances != 6:
             errors.append("El tipo de los elementos añadidos no coincide con los correctos")
-        if len(robot.board.pines) != 12:
-            errors.append("El número de conexiones realizadas no es correcto")
-        pin5v = 0
-        for pin in robot.board.pines:
-            if pin['pin'] == 21 and isinstance(pin['element'], elements.LedArduino):
-                pin5v += 1
-            elif pin['pin'] == 7 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 8 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 9 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 10 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 11 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 12 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-        if pin5v != 6 or not conex:
+        if not conex:
             errors.append("Las conexiones realizadas no son correctas")
         return errors
 
@@ -1211,43 +1209,70 @@ class Challenge2Robot(Robot):
                "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
     def probe_robot(self, robot):
-        """ El robot tiene que tener el 5 componentes.
-            Debe tener 2 LEDs, 2 resistencias y un teclado
-            Los pines del 7 al 12 deben estar conectados a los leds
-            El pin 5v debe tener conectados 6 elementos"""
         errors = []
-        if len(robot.robot_elements) != 6:
+        # debe haber 5 elementos (2 leds, 2 resistencias y 1 teclado)
+        if len(robot.robot_elements) != 5:
             errors.append("El número de elementos añadidos no coincide con los correctos")
-        elem = True
+        # El número de conexiones a la placa deben ser 12
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        keyboards = 0
         conex = True
         for component in robot.robot_elements:
-            if not isinstance(component, elements.LedArduino):
-                elem = False
-            if not (isinstance(component.pin2['element'], boards.ArduinoUno) and component.pin2['pin'] == 21):
-                conex = False
-            if not (isinstance(component.pin1['element'], boards.ArduinoUno)):
-                conex = False
-        if not elem:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
+                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    conex = False
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                    conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
+                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
+                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
+                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                        ((isinstance(component.pin2['element'], elements.LedArduino) and
+                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
+                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                    conex = False
+            # calculamos el número de teclados añadidos
+            if isinstance(component, elements.LedArduino):
+                keyboards += 1
+                # si es un teclado debe tener unidos los pines 1-4 a un pin digital y los pines 5-8 a un pin analógico
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_digital(component.pin1['pin'])):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_digital(component.pin2['pin'])):
+                    conex = False
+                if not (isinstance(component.pin3['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_digital(component.pin3['pin'])):
+                    conex = False
+                if not (isinstance(component.pin4['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_digital(component.pin4['pin'])):
+                    conex = False
+                if not (isinstance(component.pin5['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_analog(component.pin5['pin'])):
+                    conex = False
+                if not (isinstance(component.pin6['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_analog(component.pin6['pin'])):
+                    conex = False
+                if not (isinstance(component.pin7['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_analog(component.pin7['pin'])):
+                    conex = False
+                if not (isinstance(component.pin8['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_analog(component.pin8['pin'])):
+                    conex = False
+        # comprobamos que hay 2 leds, 2 resistencias y 1 teclado
+        if leds != 6 or resistances != 6 or keyboards != 1:
             errors.append("El tipo de los elementos añadidos no coincide con los correctos")
-        if len(robot.board.pines) != 12:
-            errors.append("El número de conexiones realizadas no es correcto")
-        pin5v = 0
-        for pin in robot.board.pines:
-            if pin['pin'] == 21 and isinstance(pin['element'], elements.LedArduino):
-                pin5v += 1
-            elif pin['pin'] == 7 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 8 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 9 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 10 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 11 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-            elif pin['pin'] == 12 and not isinstance(pin['element'], elements.LedArduino):
-                conex = False
-        if pin5v != 6 or not conex:
+        if not conex:
             errors.append("Las conexiones realizadas no son correctas")
         return errors
 

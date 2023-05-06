@@ -1,7 +1,7 @@
+#include <Keypad.h>
+
 int led_verde = 3;
 int led_rojo = 2;
-
-#include <Keypad.h>
 
 const byte ROWS = 4;
 const byte COLUMNS = 4;
@@ -26,12 +26,12 @@ void setup() {
   pinMode(led_verde, OUTPUT);
   pinMode(led_rojo, OUTPUT);
 
-  digitalWrite(v,HIGH);
+  digitalWrite(led_verde,HIGH);
 }
 void loop() {
   char key_press = keyboard.getKey();
 
-  if (key_press == 'A'){
+  if (key_press != '\0' and key_press == 'A'){
     digitalWrite(led_rojo,HIGH);
     digitalWrite(led_verde,LOW);
     delay(5000);
