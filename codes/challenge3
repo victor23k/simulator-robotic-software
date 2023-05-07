@@ -2,8 +2,6 @@ int led1 = 4;
 int led2 = 5;
 int led3 = 6;
 
-int potent = 0;
-
 void setup() {
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
@@ -11,50 +9,50 @@ void setup() {
 }
 
 void loop() {
-  int leds = analogRead(potent);
+  leds = analogRead(A0);
   if(leds >= 0 && leds <= 127)
   {
     digitalWrite(led1, LOW);
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
   }
-  if(leds >= 128 && leds <= 255)
+  else if(leds >= 128 && leds <= 255)
   {
     digitalWrite(led1, HIGH);
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
   }
-  if(leds >= 256 && leds <= 383)
+  else if(leds >= 256 && leds <= 383)
   {
     digitalWrite(led1, LOW);
     digitalWrite(led2, HIGH);
     digitalWrite(led3, LOW);
   }
-  if(leds >= 384 && leds <= 511)
+  else if(leds >= 384 && leds <= 511)
   {
     digitalWrite(led1, LOW);
     digitalWrite(led2, LOW);
     digitalWrite(led3, HIGH);
   }
-  if(leds >= 512 && leds <= 639)
+  else if(leds >= 512 && leds <= 639)
   {
     digitalWrite(led1, HIGH);
     digitalWrite(led2, HIGH);
     digitalWrite(led3, LOW);
   }
-  if(leds >= 640 && leds <= 767)
+  else if(leds >= 640 && leds <= 767)
   {
     digitalWrite(led1, LOW);
     digitalWrite(led2, HIGH);
     digitalWrite(led3, HIGH);
   }
-  if(leds >= 768 && leds <= 895)
+  else if(leds >= 768 && leds <= 895)
   {
     digitalWrite(led1, HIGH);
     digitalWrite(led2, LOW);
     digitalWrite(led3, HIGH);
   }
-  if(leds >= 896 && leds <= 1023)
+  else if(leds >= 896 && leds <= 1023)
   {
     digitalWrite(led1, HIGH);
     digitalWrite(led2, HIGH);

@@ -1135,8 +1135,8 @@ class Challenge1Robot(Robot):
                 # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
                 if not isinstance(component.pin1['element'], elements.ResistanceArduino):
                     conex = False
-                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
                     conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
@@ -1201,7 +1201,7 @@ class Challenge2Robot(Robot):
                "Si el usuario pulsa cualquier otra tecla, no debe realizar ninguna otra acción.\n"
 
     def get_initial_code(self):
-        return "int led_verde = 3;\nint led_rojo = 2;\n\n#include <Keypad.h>\n\nconst byte ROWS = 4;\n" \
+        return "#include <Keypad.h>\n\nint led_verde = 3;\nint led_rojo = 2;\n\nconst byte ROWS = 4;\n" \
                "const byte COLUMNS = 4;\n\nchar matriz[ROWS][COLUMNS] =\n{\n  {'1','2','3', 'A'},\n" \
                "  {'4','5','6', 'B'},\n  {'7','8','9', 'C'},\n  {'*','0','#', 'D'}\n};\n\n" \
                "byte pin_rows[ROWS] = {7, 6, 5, 4};\n\nbyte pin_columns[COLUMNS] = {A3, A2, A1, A0};\n\n" \
@@ -1227,8 +1227,8 @@ class Challenge2Robot(Robot):
                 # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
                 if not isinstance(component.pin1['element'], elements.ResistanceArduino):
                     conex = False
-                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
                     conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
@@ -1242,7 +1242,7 @@ class Challenge2Robot(Robot):
                             and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
                     conex = False
             # calculamos el número de teclados añadidos
-            if isinstance(component, elements.LedArduino):
+            if isinstance(component, elements.KeyBoardArduino):
                 keyboards += 1
                 # si es un teclado debe tener unidos los pines 1-4 a un pin digital y los pines 5-8 a un pin analógico
                 if not (isinstance(component.pin1['element'], boards.ArduinoUno)
@@ -1327,4 +1327,54 @@ class Challenge3Robot(Robot):
 
     def probe_robot(self, robot):
         errors = []
+        # debe haber 7 elementos (3 leds, 3 resistencias y un potenciómettro)
+        if len(robot.robot_elements) != 7:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 9
+        if len(robot.board.pines) != 9:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        potentiometers = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
+                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
+                    conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
+                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
+                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
+                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                        ((isinstance(component.pin2['element'], elements.LedArduino) and
+                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
+                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                    conex = False
+            # calculamos el número de potenciómetros añadidos
+            if isinstance(component, elements.PotentiometerArduino):
+                potentiometers += 1
+                # si es un potenciómetro debe tener unido el pin 1 a un pin GND, el pin 2 a un pin analógico
+                # y el 3 a la placa a un pin V
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_analog(component.pin2['pin'])):
+                    conex = False
+                if not (isinstance(component.pin3['element'], boards.ArduinoUno)
+                        and self.boards.ArduinoUno.is_v(component.pin3['pin'])):
+                    conex = False
+        # comprobamos que hay 3 resistencias, 3 leds y 1 potenciómetro
+        if leds != 3 or resistances != 3 or potentiometers != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
         return errors
