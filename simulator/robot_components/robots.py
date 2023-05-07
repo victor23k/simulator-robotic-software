@@ -1294,7 +1294,8 @@ class Challenge3Robot(Robot):
 
     def increment_help(self):
         if self.times_help == 0:
-            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs rojos\n- 1 potenciómetro\n\n"
+            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs rojos" \
+                         "\n- 3 resistencias\n- 1 potenciómetro\n\n"
             self.times_help += 1
         elif self.times_help == 1:
             self.help += "2. En el bucle es necesario tener una operación condicional\ncon 8 bloques\n\n"
@@ -1322,8 +1323,8 @@ class Challenge3Robot(Robot):
                "después A y B, después B y C,\ndespués A y C, y cuando esté en el máximo valor los 3.\n"
 
     def get_initial_code(self):
-        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nint potent = 0;" \
-               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nvoid setup(){" \
+               "\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
