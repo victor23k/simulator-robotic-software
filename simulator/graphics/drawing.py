@@ -165,7 +165,7 @@ class Drawing:
             return False
 
     def draw_wire(self, x1, y1, x2, y2):
-        self.canvas.create_line(x1, y1, x2, y2, tags='wire')
+        self.canvas.create_line(x1, y1, x2, y2, tags='wire', fill="blue", width=2)
         wire = {
             "x1": x1 / self.scale,
             "y1": y1 / self.scale,
@@ -180,7 +180,7 @@ class Drawing:
             y1 = wire['y1'] * self.scale
             x2 = wire['x2'] * self.scale
             y2 = wire['y2'] * self.scale
-            self.canvas.create_line(x1, y1, x2, y2, tags='wire')
+            self.canvas.create_line(x1, y1, x2, y2, tags='wire', fill="blue", width=2)
 
     def draw_arc(self, form: dict):
         """
