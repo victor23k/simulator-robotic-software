@@ -2,6 +2,8 @@ int led1 = 4;
 int led2 = 5;
 int led3 = 6;
 
+int leds;
+
 void setup() {
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);

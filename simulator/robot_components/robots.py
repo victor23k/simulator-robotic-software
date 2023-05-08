@@ -1115,7 +1115,7 @@ class Challenge1Robot(Robot):
     def get_initial_code(self):
         return "int led_rojo1 = 12;\nint led_amarillo1 = 11;\nint led_verde1 = 10;\nint led_rojo2 = 9;\n" \
                "int led_amarillo2 = 8;\nint led_verde2 = 7;\nint tiempo1 = 8000;\nint tiempo2 = 3000;" \
-               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+               "\n\nvoid setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
@@ -1201,12 +1201,12 @@ class Challenge2Robot(Robot):
                "Si el usuario pulsa cualquier otra tecla, no debe realizar ninguna otra acción.\n"
 
     def get_initial_code(self):
-        return "#include <Keypad.h>\n\nint led_verde = 3;\nint led_rojo = 2;\n\nconst byte ROWS = 4;\n" \
-               "const byte COLUMNS = 4;\n\nchar matriz[ROWS][COLUMNS] =\n{\n  {'1','2','3', 'A'},\n" \
+        return "#include <Keypad.h>\n\nint led_verde = 3;\nint led_rojo = 2;\n\n" \
+               "char matriz[4][4] =\n{\n  {'1','2','3', 'A'},\n" \
                "  {'4','5','6', 'B'},\n  {'7','8','9', 'C'},\n  {'*','0','#', 'D'}\n};\n\n" \
-               "byte pin_rows[ROWS] = {7, 6, 5, 4};\n\nbyte pin_columns[COLUMNS] = {A3, A2, A1, A0};\n\n" \
-               "Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, ROWS, COLUMNS);" \
-               "\n\nvoid setup(){\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+               "byte pin_rows[4] = {4, 5, 6, 7};\n\nbyte pin_columns[4] = {A0, A1, A2, A3};\n\n" \
+               "Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, 4, 4);" \
+               "\n\nvoid setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
@@ -1323,8 +1323,8 @@ class Challenge3Robot(Robot):
                "después A y B, después B y C,\ndespués A y C, y cuando esté en el máximo valor los 3.\n"
 
     def get_initial_code(self):
-        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nvoid setup(){" \
-               "\n\\\\ Completar aquí\n}\n\nvoid loop(){\n\\\\ Completar aquí\n}"
+        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nint leds;\n\nvoid setup(){" \
+               "\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
