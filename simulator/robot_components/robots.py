@@ -1095,16 +1095,13 @@ class Challenge1Robot(Robot):
             self.help += "2. En el bucle es necesario llamar 4 veces al método delay(...)\n\n"
             self.times_help += 1
         elif self.times_help == 2:
-            self.help += "3. Antes de cada llamada al método delay(...) se debe cambiar el valor " \
+            self.help += "3. Antes de cada llamada al método delay(...)\nse debe cambiar el valor " \
                          "de todos los componentes\n\n"
             self.times_help += 1
 
     def get_help(self):
         self.increment_help()
         return self.help
-
-    def get_tutorial(self):
-        return "tutorials/Tutorial.pdf"
 
     def get_challenge(self):
         return "Desafío 1\n\nDeberá implementarse un cruce de semáforos.\nPara ello, cuando un semáforo esté en " \
@@ -1136,7 +1133,7 @@ class Challenge1Robot(Robot):
                 if not isinstance(component.pin1['element'], elements.ResistanceArduino):
                     conex = False
                 if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
+                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
                     conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
@@ -1144,10 +1141,10 @@ class Challenge1Robot(Robot):
                 # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
                 if not ((isinstance(component.pin1['element'], elements.LedArduino) and
                          ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
                         ((isinstance(component.pin2['element'], elements.LedArduino) and
                           ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
                     conex = False
         # comprobamos que hay 6 resistencias y 6 leds
         if leds != 6 or resistances != 6:
@@ -1189,9 +1186,6 @@ class Challenge2Robot(Robot):
         self.increment_help()
         return self.help
 
-    def get_tutorial(self):
-        return "tutorials/Tutorial.pdf"
-
     def get_challenge(self):
         return "Desafío 2\n\nDeberá implementarse la apertura de una puerta.\nLa puerta se abre cuando " \
                "el usuario pulsa el botón A del teclado y permanece abierta durante 5 segundos,\nhaciendo " \
@@ -1228,7 +1222,7 @@ class Challenge2Robot(Robot):
                 if not isinstance(component.pin1['element'], elements.ResistanceArduino):
                     conex = False
                 if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
+                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
                     conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
@@ -1236,38 +1230,38 @@ class Challenge2Robot(Robot):
                 # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
                 if not ((isinstance(component.pin1['element'], elements.LedArduino) and
                          ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
                         ((isinstance(component.pin2['element'], elements.LedArduino) and
                           ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
                     conex = False
             # calculamos el número de teclados añadidos
             if isinstance(component, elements.KeyBoardArduino):
                 keyboards += 1
                 # si es un teclado debe tener unidos los pines 1-4 a un pin digital y los pines 5-8 a un pin analógico
                 if not (isinstance(component.pin1['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_digital(component.pin1['pin'])):
+                        and boards.ArduinoUno.is_digital(self, component.pin1['pin'])):
                     conex = False
                 if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_digital(component.pin2['pin'])):
+                        and boards.ArduinoUno.is_digital(self, component.pin2['pin'])):
                     conex = False
                 if not (isinstance(component.pin3['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_digital(component.pin3['pin'])):
+                        and boards.ArduinoUno.is_digital(self, component.pin3['pin'])):
                     conex = False
                 if not (isinstance(component.pin4['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_digital(component.pin4['pin'])):
+                        and boards.ArduinoUno.is_digital(self, component.pin4['pin'])):
                     conex = False
                 if not (isinstance(component.pin5['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_analog(component.pin5['pin'])):
+                        and boards.ArduinoUno.is_analog(self, component.pin5['pin'])):
                     conex = False
                 if not (isinstance(component.pin6['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_analog(component.pin6['pin'])):
+                        and boards.ArduinoUno.is_analog(self, component.pin6['pin'])):
                     conex = False
                 if not (isinstance(component.pin7['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_analog(component.pin7['pin'])):
+                        and boards.ArduinoUno.is_analog(self, component.pin7['pin'])):
                     conex = False
                 if not (isinstance(component.pin8['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_analog(component.pin8['pin'])):
+                        and boards.ArduinoUno.is_analog(self, component.pin8['pin'])):
                     conex = False
         # comprobamos que hay 2 leds, 2 resistencias y 1 teclado
         if leds != 6 or resistances != 6 or keyboards != 1:
@@ -1310,9 +1304,6 @@ class Challenge3Robot(Robot):
         self.increment_help()
         return self.help
 
-    def get_tutorial(self):
-        return "tutorials/Tutorial.pdf"
-
     def get_challenge(self):
         return "Desafío 3\n\nControl y regulador de luz\nConectar 3 LEDs rojos y un potenciómetro. " \
                "En función del valor de entrada del potenciómetro Conectar 3 LEDs y un potenciómetro.\n" \
@@ -1346,7 +1337,7 @@ class Challenge3Robot(Robot):
                 if not isinstance(component.pin1['element'], elements.ResistanceArduino):
                     conex = False
                 if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin2['pin'])):
+                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
                     conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
@@ -1354,10 +1345,10 @@ class Challenge3Robot(Robot):
                 # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
                 if not ((isinstance(component.pin1['element'], elements.LedArduino) and
                          ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and self.boards.ArduinoUno.is_digital(component.pin2['pin'])))) or
+                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
                         ((isinstance(component.pin2['element'], elements.LedArduino) and
                           ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and self.boards.ArduinoUno.is_digital(component.pin1['pin'])))))):
+                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
                     conex = False
             # calculamos el número de potenciómetros añadidos
             if isinstance(component, elements.PotentiometerArduino):
@@ -1365,13 +1356,13 @@ class Challenge3Robot(Robot):
                 # si es un potenciómetro debe tener unido el pin 1 a un pin GND, el pin 2 a un pin analógico
                 # y el 3 a la placa a un pin V
                 if not (isinstance(component.pin1['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_gnd(component.pin1['pin'])):
+                        and boards.ArduinoUno.is_gnd(self, component.pin1['pin'])):
                     conex = False
                 if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_analog(component.pin2['pin'])):
+                        and boards.ArduinoUno.is_analog(self, component.pin2['pin'])):
                     conex = False
                 if not (isinstance(component.pin3['element'], boards.ArduinoUno)
-                        and self.boards.ArduinoUno.is_v(component.pin3['pin'])):
+                        and boards.ArduinoUno.is_v(self, component.pin3['pin'])):
                     conex = False
         # comprobamos que hay 3 resistencias, 3 leds y 1 potenciómetro
         if leds != 3 or resistances != 3 or potentiometers != 1:
@@ -1379,3 +1370,168 @@ class Challenge3Robot(Robot):
         if not conex:
             errors.append("Las conexiones realizadas no son correctas")
         return errors
+
+
+class Challenge4Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge4
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge4", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs\n- 3 resistencias\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario llamar 2 veces\nal método delay(...)\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. En el bucle será necesario llamar a la función\ndigitalWrite(...)4 veces\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 4\n\nEn este desafío se pretende crear un sistema con 3LEDs que se enciendan y " \
+               "apaguen de forma ordenada, primero el A, luego el B y finalmente el C. Una vez terminada la " \
+               "secuencia, esta se repetirá de forma indefinida."
+
+    def get_initial_code(self):
+        return "int led1 = 2;\nint led2 = 3;\nint led3 = 4;\n\nvoid setup(){" \
+               "\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 6 elementos (3 leds y 3 resistencias)
+        if len(robot.robot_elements) != 6:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+            # El número de conexiones a la placa deben ser 6
+        if len(robot.board.pines) != 6:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
+                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
+                    conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
+                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
+                         (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_digital(self, component.pin2['pin']))) or
+                        ((isinstance(component.pin2['element'], elements.LedArduino) and
+                          (isinstance(component.pin1['element'], boards.ArduinoUno)
+                            and boards.ArduinoUno.is_digital(self, component.pin1['pin']))))):
+                    conex = False
+        # comprobamos que hay 3 resistencias y 4 leds
+        if leds != 3 or resistances != 3:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge5Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge5", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. ayuda1\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. ayuda2\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. ayuda3\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 5\n"
+
+    def get_initial_code(self):
+        return "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        return errors
+
+
+class Challenge6Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge6", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. ayuda1\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. ayuda2\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. ayuda3\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 6\n"
+
+    def get_initial_code(self):
+        return "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        return errors
+
+
+#TODO --> añadir nuevos desafíos
+#TODO -->  arreglar estos desafíos, meterles qué hacer

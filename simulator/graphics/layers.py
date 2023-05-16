@@ -442,11 +442,14 @@ class ArduinoBoardLayer(Layer):
         self.drawing.redraw_wire()
 
     def probe(self, option_gamification, user_code, robot_code):
-        self.drawing.probe(option_gamification, user_code, robot_code,
+        return self.drawing.probe(option_gamification, user_code, robot_code,
                            self.robot, self.get_robot_challenge(option_gamification))
 
-    def show_tutorial(self, option_gamification):
-        self.drawing.show_tutorial(option_gamification)
+    def show_tutorial(self):
+        self.drawing.show_tutorial()
+
+    def show_results(self):
+        self.drawing.show_results()
 
     def show_help(self, option_gamification):
         self.drawing.show_help(option_gamification)

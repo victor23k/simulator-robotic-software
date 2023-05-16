@@ -1,9 +1,10 @@
 import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import Scrollbar, Text
 from PIL import ImageTk, Image
 import robot_components.robots as rbts
 import subprocess
 import os
+import robot_components.robots as robots
 
 
 class Drawing:
@@ -33,6 +34,7 @@ class Drawing:
         self.component_to_attach_x = 0
         self.component_to_attach_y = 0
         self.board = None
+        self.points = 10
 
     def set_canvas(self, canvas: tk.Canvas):
         """
@@ -46,12 +48,19 @@ class Drawing:
         self.board = board
 
     def initialize_robots(self):
+        #TODO --> añadir nuevos desafíos
         robot1 = rbts.Challenge1Robot(self)
         self.robots.append(robot1)
         robot2 = rbts.Challenge2Robot(self)
         self.robots.append(robot2)
         robot3 = rbts.Challenge3Robot(self)
         self.robots.append(robot3)
+        robot4 = rbts.Challenge4Robot(self)
+        self.robots.append(robot4)
+        robot5 = rbts.Challenge5Robot(self)
+        self.robots.append(robot5)
+        robot6 = rbts.Challenge6Robot(self)
+        self.robots.append(robot6)
 
     def set_robot(self, robot):
         self.robot = robot
@@ -299,17 +308,24 @@ class Drawing:
         for component in self.components:
             self.draw_image(component, component["group"])
 
+    def initialize_points(self):
+        self.points = 10
+
     def probe(self, option_gamification, user_code, robot_code, user_robot, robot):
         self.probe_window = tk.Toplevel()
         self.probe_window.geometry("800x450")
         self.probe_window.title("Resultado desafío " + str(option_gamification))
         self.probe_window.configure(background="#006468")
+        code = False
+        circuit = False
 
         if not user_code.replace(" ", "").replace("\n", "").replace("\t", "") == \
                robot_code.replace(" ", "").replace("\n", "").replace("\t", ""):
             sol_code = tk.Label(self.probe_window, text="El código no es correcto",
                                 font=("Arial", 15), background="#006468")
+            self.decrement_points(1)
         else:
+            code = True
             sol_code = tk.Label(self.probe_window, text="Código OK", font=("Arial", 15), background="#006468")
         sol_code.pack(padx=10, pady=20)
 
@@ -317,17 +333,48 @@ class Drawing:
         if len(errors) == 0:
             sol_robot = tk.Label(self.probe_window, text="Robot OK", font=("Arial", 15), background="#006468")
             sol_robot.pack(padx=10, pady=20)
+            circuit = True
         else:
             sol_robot = tk.Label(self.probe_window, text="El robot no es correcto. ERRORES:",
                                  font=("Arial", 15), background="#006468")
+            self.decrement_points(1)
             sol_robot.pack(padx=10, pady=20)
             for error in errors:
                 sol_robot = tk.Label(self.probe_window, text=error, font=("Arial", 15), background="#006468")
                 sol_robot.pack(padx=10, pady=10)
+        if code and circuit:
+            correct = tk.Label(self.probe_window, text="DESAFÍO CORRECTO. NOTA OBTENIDA: " + self.points,
+                               font=("Arial", 15), background="#006468")
+            correct.pack(padx=10, pady=20)
+        return code, circuit
 
-    def show_tutorial(self, option_gamification):
-        path = self.get_robot_challenge(option_gamification).get_tutorial()
+    def decrement_points(self, quantity):
+        self.points -= quantity
+        if self.points < 0:
+            self.points = 0
+
+
+    def show_tutorial(self):
+        path = "tutorials/Tutorial.pdf"
         subprocess.Popen([os.path.abspath(path)], shell=True)
+
+
+    def show_results(self):
+        path = "gamification_logs/resultados.txt"
+        with open(path, 'r', encoding='utf-8') as log:
+            log = log.read()
+        self.results_window = tk.Toplevel()
+        self.results_window.geometry("950x600")
+        self.results_window.title("Resultados")
+        self.results_window.configure(background="#006468")
+        scrollbar = Scrollbar(self.results_window)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text = Text(self.results_window, font=("Arial", 15), background="#006468", yscrollcommand=scrollbar.set)
+        text.pack(padx=10, pady=20, fill=tk.BOTH)
+        scrollbar.config(command=text.yview)
+        text.insert(tk.END, log)
+        text.config(state=tk.DISABLED)
+        self.results_window.mainloop()
 
     def show_help(self, option_gamification):
         self.help_window = tk.Toplevel()
@@ -339,18 +386,25 @@ class Drawing:
         ayuda.pack(padx=10, pady=20)
 
     def get_robot_challenge(self, option_gamification):
+        #TODO --> añadir nuevos desafíos
         if option_gamification == 0:
             return self.robots[0]
         if option_gamification == 1:
             return self.robots[1]
         if option_gamification == 2:
             return self.robots[2]
+        if option_gamification == 3:
+            return self.robots[3]
+        if option_gamification == 4:
+            return self.robots[4]
+        if option_gamification == 5:
+            return self.robots[5]
 
     def attach(self, component1, pin_component1, component2, pin_component2):
-        if isinstance(component1, Drawing):
+        if isinstance(component1, Drawing) or isinstance(component1, robots.ArduinoBoard):
             self.board.attach_pin(pin_component1, component2)
             component2.attach_element(pin_component2, self.board, pin_component1)
-        elif isinstance(component2, Drawing):
+        elif isinstance(component2, Drawing) or isinstance(component2, robots.ArduinoBoard):
             self.board.attach_pin(pin_component2, component1)
             component1.attach_element(pin_component1, self.board, pin_component2)
         else:

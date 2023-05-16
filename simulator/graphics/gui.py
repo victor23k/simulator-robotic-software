@@ -65,6 +65,7 @@ class MainApplication(tk.Tk):
         self.bind("<KeyPress>", self.key_press)
         self.bind("<KeyRelease>", self.key_release)
         self.protocol("WM_DELETE_WINDOW", self.close)
+        self.challenge = 0
 
     def prepare_controller(self):
         self.__update_robot()  # call first so the robot_layer is created
@@ -147,6 +148,8 @@ class MainApplication(tk.Tk):
         self.__update_track()
 
     def change_gamification_option(self, event):
+        self.controller.record_results(False, self.challenge)
+        self.challenge = self.selector_bar.gamification_option_selector.current()
         self.controller.stop()
         self.__update_editor_frame_text()
         self.__update_gamification_option()
@@ -169,11 +172,13 @@ class MainApplication(tk.Tk):
             self.editor_frame.change_text(code)
 
     def __update_gamification_option(self):
+        #TODO --> añadir nuevos desafíos
         if self.controller.board:
             challenge = self.selector_bar.gamification_option_selector.current()
             self.console_frame.console.config(state=tk.NORMAL)
             self.console_frame.console.delete("1.0", "end")
             self.show_buttons_gamification(True)
+            text = "Nuevo intento. Puntuación inicial: 10\n\n"
             if challenge == 0:
                 self.console_frame.console.insert(tk.END,
                                                   self.controller.robot_layer.drawing.
@@ -186,9 +191,24 @@ class MainApplication(tk.Tk):
                 self.console_frame.console.insert(tk.END,
                                                   self.controller.robot_layer.drawing.
                                                   get_robot_challenge(2).get_challenge())
+            if challenge == 3:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(3).get_challenge())
+            if challenge == 4:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(4).get_challenge())
+            if challenge == 5:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(5).get_challenge())
+            self.controller.consoleGamification.write_encrypted(text, challenge + 1)
             self.console_frame.console.config(state=tk.DISABLED)
             self.controller.configure_layer(
                 self.drawing_frame.canvas, self.drawing_frame.hud_canvas)
+            self.controller.robot_layer.drawing.initialize_points()
+            self.controller.new = True
 
     def show_circuit_selector(self, showing):
         if showing:
@@ -260,6 +280,7 @@ class MainApplication(tk.Tk):
 
     def close(self):
         self.controller.exit()
+        self.controller.record_results(False, self.challenge)
         self.stop()
         self.destroy()
 
@@ -814,24 +835,32 @@ class ButtonsGamification(tk.Frame):
         self.button_tutorial = tk.Button(self, text="TUTORIAL", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
         self.button_hints = tk.Button(self, text="PISTAS", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
         self.button_delete = tk.Button(self, text="ELIMINAR", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
+        self.button_results = tk.Button(self, text="RESULTADOS", bg=BLUE, bd=0, fg=DARK_BLUE, font=("Consolas", 13))
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
+        self.columnconfigure(3, weight=1)
 
         self.button_tutorial.grid(row=1, column=0, padx=(0, 20))
         self.button_hints.grid(row=1, column=1, padx=(0, 20))
         self.button_delete.grid(row=1, column=2, padx=(0, 20))
+        self.button_results.grid(row=1, column=3, padx=(0, 20))
 
         self.button_tutorial.bind("<ButtonPress>", self.show_tutorial)
         self.button_hints.bind("<ButtonPress>", self.show_help)
         self.button_delete.bind("<ButtonPress>", self.delete_elements)
+        self.button_results.bind("<ButtonPress>", self.show_results)
 
     def show_tutorial(self, event):
-        self.application.controller.show_tutorial(self.application.selector_bar.gamification_option_selector.current())
+        self.application.controller.show_tutorial()
         self.application.controller.console.logger.write_log('info', "El usuario ha consultado el tutorial del desafío: "
                                                              + str(self.application.selector_bar.
                                                                    gamification_option_selector.current() + 1))
+
+    def show_results(self, event):
+        self.application.controller.show_results()
+
 
     def show_help(self, event):
         self.application.controller.show_help(self.application.selector_bar.gamification_option_selector.current())
@@ -1431,7 +1460,7 @@ class SelectorBar(tk.Frame):
             "Circuito con nodos"]
         self.track_selector.current(0)
         self.gamification_option_selector['values'] = [
-            "Desafío 1", "Desafío 2", "Desafío 3"]
+            "Desafío 1", "Desafío 2", "Desafío 3", "Desafío 4", "Desafío 5", "Desafío 6"]
         self.gamification_option_selector.current(0)
 
         self.robot_selector.bind(
