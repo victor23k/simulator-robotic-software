@@ -331,9 +331,9 @@ class Drawing:
 
         errors = robot.probe_robot(user_robot)
         if len(errors) == 0:
+            circuit = True
             sol_robot = tk.Label(self.probe_window, text="Robot OK", font=("Arial", 15), background="#006468")
             sol_robot.pack(padx=10, pady=20)
-            circuit = True
         else:
             sol_robot = tk.Label(self.probe_window, text="El robot no es correcto. ERRORES:",
                                  font=("Arial", 15), background="#006468")
@@ -343,7 +343,7 @@ class Drawing:
                 sol_robot = tk.Label(self.probe_window, text=error, font=("Arial", 15), background="#006468")
                 sol_robot.pack(padx=10, pady=10)
         if code and circuit:
-            correct = tk.Label(self.probe_window, text="DESAFÍO CORRECTO. NOTA OBTENIDA: " + self.points,
+            correct = tk.Label(self.probe_window, text="DESAFÍO CORRECTO. NOTA OBTENIDA: " + str(self.points),
                                font=("Arial", 15), background="#006468")
             correct.pack(padx=10, pady=20)
         return code, circuit

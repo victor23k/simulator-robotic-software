@@ -222,12 +222,13 @@ class ArduinoUno(Board):
         if pin == 0 or pin == 1:
             return True
         return False
-    def is_digital(self, pin):
+
+    def is_analog(self, pin):
         if 14 <= pin < 20:
             return True
         return False
 
-    def is_analog(self, pin):
+    def is_digital(self, pin):
         if 2 <= pin < 14:
             return True
         return False

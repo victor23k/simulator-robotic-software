@@ -28,7 +28,7 @@ void setup() {
 void loop() {
   char key_press = keyboard.getKey();
 
-  if (key_press != '\0' && key_press == 'A'){
+  if (key_press == 'A'){
     digitalWrite(led_rojo, HIGH);
     digitalWrite(led_verde, LOW);
     delay(5000);

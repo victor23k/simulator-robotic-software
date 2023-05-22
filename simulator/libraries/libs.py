@@ -5,10 +5,12 @@ Those libraries are:
     - The standard ones of Arduino
     - Serial
     - Servo
+    - Keyboard
 """
 import libraries.standard as std
 import libraries.serial as serial
 import libraries.servo as servo
+import libraries.keyboard as keyboard
 import libraries.string as string
 
 
@@ -30,7 +32,8 @@ class LibraryManager:
             std.get_name(): (std, std.get_not_implemented()),
             serial.get_name(): (serial, serial.get_not_implemented()),
             string.get_name(): (string.get_methods(), string.get_not_implemented()),
-            servo.get_name(): (servo.get_methods(), string.get_not_implemented())
+            servo.get_name(): (servo.get_methods(), string.get_not_implemented()),
+            keyboard.get_name(): (keyboard.get_methods(), string.get_not_implemented())
         }
         self.library_not_impl = {
             std.get_name(): std.get_not_implemented(),

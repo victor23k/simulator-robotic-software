@@ -1129,23 +1129,30 @@ class Challenge1Robot(Robot):
             # calculamos el número de leds añadidos
             if isinstance(component, elements.LedArduino):
                 leds += 1
-                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
-                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    #no hay resistencia
                     conex = False
-                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
-                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
                 resistances += 1
-                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
-                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
-                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
-                        ((isinstance(component.pin2['element'], elements.LedArduino) and
-                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
-                    conex = False
         # comprobamos que hay 6 resistencias y 6 leds
         if leds != 6 or resistances != 6:
             errors.append("El tipo de los elementos añadidos no coincide con los correctos")
@@ -1179,7 +1186,7 @@ class Challenge2Robot(Robot):
 
             self.times_help += 1
         elif self.times_help == 2:
-            self.help += "3. el tiempo de espera para apagar el led será de 5000\n\n"
+            self.help += "3. El tiempo de espera para apagar el led será de 5000\n\n"
             self.times_help += 1
 
     def get_help(self):
@@ -1218,23 +1225,30 @@ class Challenge2Robot(Robot):
             # calculamos el número de leds añadidos
             if isinstance(component, elements.LedArduino):
                 leds += 1
-                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
-                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
                     conex = False
-                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
-                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
                 resistances += 1
-                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
-                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
-                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
-                        ((isinstance(component.pin2['element'], elements.LedArduino) and
-                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
-                    conex = False
             # calculamos el número de teclados añadidos
             if isinstance(component, elements.KeyBoardArduino):
                 keyboards += 1
@@ -1292,7 +1306,7 @@ class Challenge3Robot(Robot):
                          "\n- 3 resistencias\n- 1 potenciómetro\n\n"
             self.times_help += 1
         elif self.times_help == 1:
-            self.help += "2. En el bucle es necesario tener una operación condicional\ncon 8 bloques\n\n"
+            self.help += "2. En el bucle es necesario tener una operación\ncondicional con 8 bloques\n\n"
             self.times_help += 1
         elif self.times_help == 2:
             self.help += "3. La intensidad del potenciómetro está entre 0 y 1023,\n" \
@@ -1333,28 +1347,35 @@ class Challenge3Robot(Robot):
             # calculamos el número de leds añadidos
             if isinstance(component, elements.LedArduino):
                 leds += 1
-                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
-                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
                     conex = False
-                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
-                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
                 resistances += 1
-                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
-                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
-                         ((isinstance(component.pin2['element'], boards.ArduinoUno)
-                           and boards.ArduinoUno.is_digital(self, component.pin2['pin'])))) or
-                        ((isinstance(component.pin2['element'], elements.LedArduino) and
-                          ((isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and boards.ArduinoUno.is_digital(self, component.pin1['pin'])))))):
-                    conex = False
             # calculamos el número de potenciómetros añadidos
             if isinstance(component, elements.PotentiometerArduino):
                 potentiometers += 1
                 # si es un potenciómetro debe tener unido el pin 1 a un pin GND, el pin 2 a un pin analógico
-                # y el 3 a la placa a un pin V
+                # y el 3 a un pin v de la placa
                 if not (isinstance(component.pin1['element'], boards.ArduinoUno)
                         and boards.ArduinoUno.is_gnd(self, component.pin1['pin'])):
                     conex = False
@@ -1395,7 +1416,7 @@ class Challenge4Robot(Robot):
             self.help += "2. En el bucle es necesario llamar 2 veces\nal método delay(...)\n\n"
             self.times_help += 1
         elif self.times_help == 2:
-            self.help += "3. En el bucle será necesario llamar a la función\ndigitalWrite(...)4 veces\n\n"
+            self.help += "3. En el bucle será necesario llamar a la función\ndigitalWrite(...) 4 veces\n\n"
             self.times_help += 1
 
     def get_help(self):
@@ -1426,24 +1447,31 @@ class Challenge4Robot(Robot):
             # calculamos el número de leds añadidos
             if isinstance(component, elements.LedArduino):
                 leds += 1
-                # si es un led debe tener unido el pin 1 a una resistencia y el 2 a la placa a un pin GND
-                if not isinstance(component.pin1['element'], elements.ResistanceArduino):
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
                     conex = False
-                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and boards.ArduinoUno.is_gnd(self, component.pin2['pin'])):
-                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
             # calculamos el número de resistencias añadidas
             if isinstance(component, elements.ResistanceArduino):
                 resistances += 1
-                # si es una resistencia debe tener un pin unido al led y el otro a la placa a un pin digital
-                if not ((isinstance(component.pin1['element'], elements.LedArduino) and
-                         (isinstance(component.pin2['element'], boards.ArduinoUno)
-                        and boards.ArduinoUno.is_digital(self, component.pin2['pin']))) or
-                        ((isinstance(component.pin2['element'], elements.LedArduino) and
-                          (isinstance(component.pin1['element'], boards.ArduinoUno)
-                            and boards.ArduinoUno.is_digital(self, component.pin1['pin']))))):
-                    conex = False
-        # comprobamos que hay 3 resistencias y 4 leds
+        # comprobamos que hay 3 resistencias y 3 leds
         if leds != 3 or resistances != 3:
             errors.append("El tipo de los elementos añadidos no coincide con los correctos")
         if not conex:
@@ -1468,13 +1496,13 @@ class Challenge5Robot(Robot):
 
     def increment_help(self):
         if self.times_help == 0:
-            self.help += "1. ayuda1\n\n"
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED\n- 1 resistencia\n- 1 sensor PIR\n\n"
             self.times_help += 1
         elif self.times_help == 1:
-            self.help += "2. ayuda2\n\n"
+            self.help += "2. Se deberá guardar el valor leído del sensor\nen una variable\n\n"
             self.times_help += 1
         elif self.times_help == 2:
-            self.help += "3. ayuda3\n\n"
+            self.help += "3. Se pondrá un tiempo de espera\nde 50 para separar las mediciones\n\n"
             self.times_help += 1
 
     def get_help(self):
@@ -1482,13 +1510,72 @@ class Challenge5Robot(Robot):
         return self.help
 
     def get_challenge(self):
-        return "Desafío 5\n"
+        return "Desafío 5\n\nSe debe crear un sistema que detecte movimientos.\nCuando sea así, se encenderá un " \
+               "indicador LED, en caso contrario, este permanecerá apagado."
 
     def get_initial_code(self):
-        return "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+        return "int pinSensor = 2;\nint led = 4;\n\nvoid setup(){\n// Completar aquí\n}\n\n" \
+               "void loop(){\n// Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
+        # debe haber 3 elementos (1 led, 1 sensor PIR y 1 resistencia)
+        if len(robot.robot_elements) != 3:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 5
+        if len(robot.board.pines) != 5:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        sensors = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de sensores añadidos
+            if isinstance(component, elements.PIRSensorArduino):
+                sensors += 1
+                # si es un sensor PIR debe tener el pin 1 unido a un pin GND de la placa, el pin 2 unido a un pin
+                #   digital y el pin 3 a un pin v
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin2['pin']):
+                        conex = False
+                if isinstance(component.pin3['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_v(self, component.pin3['pin']):
+                        conex = False
+        # comprobamos que hay 1 resistencia, 1 led y un sensor PIR
+        if leds != 1 or resistances != 1 or sensors != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
         return errors
 
 
@@ -1509,13 +1596,16 @@ class Challenge6Robot(Robot):
 
     def increment_help(self):
         if self.times_help == 0:
-            self.help += "1. ayuda1\n\n"
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED\n- 1 resistencia\n" \
+                         "- 1 sensor de ultrasonidos\n\n"
             self.times_help += 1
         elif self.times_help == 1:
-            self.help += "2. ayuda2\n\n"
+            self.help += "2. Se deberá llamar al método\ndelayMicroseconds(...) 2 veces\n" \
+                         "y al método delay(...) una\n\n"
             self.times_help += 1
         elif self.times_help == 2:
-            self.help += "3. ayuda3\n\n"
+            self.help += "3. Para convertir el tiempo de espera a distancia\nse debe usar la " \
+                         "siguiente conversión:\nint(0.01716*responseTime)\n\n"
             self.times_help += 1
 
     def get_help(self):
@@ -1523,15 +1613,76 @@ class Challenge6Robot(Robot):
         return self.help
 
     def get_challenge(self):
-        return "Desafío 6\n"
+        return "Desafío 6\n\nSe debe crear un sistema que reconozca la distancia a la que se encuentra\n" \
+               "un objeto. Si esta distancia es menor de 30, se encenderá un indicador LED.\nEn caso contrario, " \
+               "este permanecerá apagado."
 
     def get_initial_code(self):
-        return "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+        return "long distance;\nlong responseTime;\nint pinTrig = 9;\nint pinEcho = 8;\nint led = 2;\n\n" \
+               "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
 
     def probe_robot(self, robot):
         errors = []
+        # debe haber 3 elementos (1 led, 1 sensor de ultrasonidos y 1 resistencia)
+        if len(robot.robot_elements) != 3:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 5
+        if len(robot.board.pines) != 5:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        sensors = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de sensores añadidos
+            if isinstance(component, elements.UltrasoundSensorArduino):
+                sensors += 1
+                # si es un sensor de ultrasonidos, debe tener el pin 1 unido a un pin v de la placa,
+                # el pin 2 unido a un pin GND y los pines 3 y 4 a pines digitales
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_v(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+                if isinstance(component.pin3['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin3['pin']):
+                        conex = False
+                if isinstance(component.pin4['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin4['pin']):
+                        conex = False
+        # comprobamos que hay 1 resistencia, 1 led y un sensor de ultrasonidos
+        if leds != 1 or resistances != 1 or sensors != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
         return errors
 
-
-#TODO --> añadir nuevos desafíos
-#TODO -->  arreglar estos desafíos, meterles qué hacer
+# TODO --> añadir nuevos desafíos

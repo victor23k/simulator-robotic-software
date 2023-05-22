@@ -117,6 +117,7 @@ class Layer:
         self.robot.reset()
         self.robot_drawing.draw()
         self.drawing.draw_buttons(self.robot, 500.0, 500.0)
+        self.robot.board.pines = []
 
 
 class MobileRobotLayer(Layer):
