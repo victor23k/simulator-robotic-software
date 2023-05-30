@@ -1278,7 +1278,7 @@ class Challenge2Robot(Robot):
                         and boards.ArduinoUno.is_analog(self, component.pin8['pin'])):
                     conex = False
         # comprobamos que hay 2 leds, 2 resistencias y 1 teclado
-        if leds != 6 or resistances != 6 or keyboards != 1:
+        if leds != 2 or resistances != 2 or keyboards != 1:
             errors.append("El tipo de los elementos añadidos no coincide con los correctos")
         if not conex:
             errors.append("Las conexiones realizadas no son correctas")
@@ -1615,7 +1615,7 @@ class Challenge6Robot(Robot):
     def get_challenge(self):
         return "Desafío 6\n\nSe debe crear un sistema que reconozca la distancia a la que se encuentra\n" \
                "un objeto. Si esta distancia es menor de 30, se encenderá un indicador LED.\nEn caso contrario, " \
-               "este permanecerá apagado."
+               "este permanecerá apagado.\n"
 
     def get_initial_code(self):
         return "long distance;\nlong responseTime;\nint pinTrig = 9;\nint pinEcho = 8;\nint led = 2;\n\n" \
@@ -1626,8 +1626,8 @@ class Challenge6Robot(Robot):
         # debe haber 3 elementos (1 led, 1 sensor de ultrasonidos y 1 resistencia)
         if len(robot.robot_elements) != 3:
             errors.append("El número de elementos añadidos no coincide con los correctos")
-        # El número de conexiones a la placa deben ser 5
-        if len(robot.board.pines) != 5:
+        # El número de conexiones a la placa deben ser 6
+        if len(robot.board.pines) != 6:
             errors.append("El número de conexiones realizadas con la placa no es correcto")
         resistances = 0
         leds = 0
