@@ -1685,4 +1685,3 @@ class Challenge6Robot(Robot):
             errors.append("Las conexiones realizadas no son correctas")
         return errors
 
-# TODO --> añadir nuevos desafíos

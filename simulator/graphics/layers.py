@@ -130,7 +130,7 @@ class MobileRobotLayer(Layer):
         """
         super().__init__()
         self.hud = huds.MobileHUD()
-        self.robot_data = self.rdr.parse_robot(n_light_sens-2)
+        self.robot_data = self.rdr.parse_robot(n_light_sens - 2)
         self.robot = robots.MobileRobot(n_light_sens, self.robot_data)
         self.robot_drawing = robot_drawings.MobileRobotDrawing(
             self.drawing, n_light_sens)
@@ -155,12 +155,12 @@ class MobileRobotLayer(Layer):
 
         future_p = self.robot_drawing.predict_movement(v)
         if (
-            v == 0
-            or future_p[0] <= self.robot_drawing.width / 2
-            or future_p[0] >= self.robot_drawing.drawing_width - self.robot_drawing.width / 2
-            or future_p[1] <= self.robot_drawing.height / 2
-            or future_p[1] >= self.robot_drawing.drawing_height - self.robot_drawing.height / 2
-            or self.__check_obstacle_collision(future_p[0], future_p[1])
+                v == 0
+                or future_p[0] <= self.robot_drawing.width / 2
+                or future_p[0] >= self.robot_drawing.drawing_width - self.robot_drawing.width / 2
+                or future_p[1] <= self.robot_drawing.height / 2
+                or future_p[1] >= self.robot_drawing.drawing_height - self.robot_drawing.height / 2
+                or self.__check_obstacle_collision(future_p[0], future_p[1])
         ):
             v = 0
             self.is_moving = False
@@ -350,11 +350,11 @@ class MobileRobotLayer(Layer):
         if self.obstacle is None:
             return False
         return (
-            x + self.robot_drawing.width / 2 >= self.obstacle.x
-            and y + self.robot_drawing.height / 2 >= self.obstacle.y
-            and x <= self.obstacle.x + (self.obstacle.width + self.robot_drawing.width / 2)
-            and y <= self.obstacle.y
-            + (self.obstacle.height + self.robot_drawing.height / 2)
+                x + self.robot_drawing.width / 2 >= self.obstacle.x
+                and y + self.robot_drawing.height / 2 >= self.obstacle.y
+                and x <= self.obstacle.x + (self.obstacle.width + self.robot_drawing.width / 2)
+                and y <= self.obstacle.y
+                + (self.obstacle.height + self.robot_drawing.height / 2)
         )
 
     def __detect_obstacle(self):
@@ -444,7 +444,7 @@ class ArduinoBoardLayer(Layer):
 
     def probe(self, option_gamification, user_code, robot_code):
         return self.drawing.probe(option_gamification, user_code, robot_code,
-                           self.robot, self.get_robot_challenge(option_gamification))
+                                  self.robot, self.get_robot_challenge(option_gamification))
 
     def show_tutorial(self):
         self.drawing.show_tutorial()
@@ -457,6 +457,7 @@ class ArduinoBoardLayer(Layer):
 
     def get_robot_challenge(self, option_gamification):
         return self.drawing.get_robot_challenge(option_gamification)
+
 
 class LinearActuatorLayer(Layer):
 

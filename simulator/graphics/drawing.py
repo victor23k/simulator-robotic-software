@@ -48,7 +48,6 @@ class Drawing:
         self.board = board
 
     def initialize_robots(self):
-        #TODO --> añadir nuevos desafíos
         robot1 = rbts.Challenge1Robot(self)
         self.robots.append(robot1)
         robot2 = rbts.Challenge2Robot(self)
@@ -386,7 +385,6 @@ class Drawing:
         ayuda.pack(padx=10, pady=20)
 
     def get_robot_challenge(self, option_gamification):
-        #TODO --> añadir nuevos desafíos
         if option_gamification == 0:
             return self.robots[0]
         if option_gamification == 1:

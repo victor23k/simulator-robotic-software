@@ -172,7 +172,6 @@ class MainApplication(tk.Tk):
             self.editor_frame.change_text(code)
 
     def __update_gamification_option(self):
-        #TODO --> añadir nuevos desafíos
         if self.controller.board:
             challenge = self.selector_bar.gamification_option_selector.current()
             self.console_frame.console.config(state=tk.NORMAL)
