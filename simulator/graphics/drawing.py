@@ -190,7 +190,7 @@ class Drawing:
         """
         width = int(image.width * self.scale)
         height = int(image.height * self.scale)
-        res_img = image.resize((width, height), Image.ANTIALIAS)
+        res_img = image.resize((width, height), Image.LANCZOS)
         scale_x = x * self.scale
         scale_y = y * self.scale + self.hud_h
         self.canvas_images[group] = {

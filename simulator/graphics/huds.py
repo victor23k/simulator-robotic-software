@@ -82,9 +82,9 @@ class MobileHUD(HUD):
         """
         w = int(self.img_ff.width * 0.5)
         h = int(self.img_ff.height * 0.5)
-        self.ff = self.img_ff.resize((w, h), Image.ANTIALIAS)
-        self.mf = self.img_mf.resize((w, h), Image.ANTIALIAS)
-        self.sf = self.img_sf.resize((w, h), Image.ANTIALIAS)
+        self.ff = self.img_ff.resize((w, h), Image.LANCZOS)
+        self.mf = self.img_mf.resize((w, h), Image.LANCZOS)
+        self.sf = self.img_sf.resize((w, h), Image.LANCZOS)
         if abs(vel) < 100:
             if vel < 0:
                 self.sf = self.sf.rotate(180, expand=True)
@@ -185,9 +185,9 @@ class ActuatorHUD(HUD):
         self.canvas.delete('arr_img')
         w = int(self.img_ff.width * 0.5)
         h = int(self.img_ff.height * 0.5)
-        self.ff = self.img_ff.resize((w, h), Image.ANTIALIAS)
-        self.mf = self.img_mf.resize((w, h), Image.ANTIALIAS)
-        self.sf = self.img_sf.resize((w, h), Image.ANTIALIAS)
+        self.ff = self.img_ff.resize((w, h), Image.LANCZOS)
+        self.mf = self.img_mf.resize((w, h), Image.LANCZOS)
+        self.sf = self.img_sf.resize((w, h), Image.LANCZOS)
         if abs(vel) < 100:
             if vel < 0:
                 self.sf = self.sf.rotate(90, expand=True)
