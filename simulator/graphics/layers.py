@@ -212,18 +212,18 @@ class MobileRobotLayer(Layer):
         v = 0
         da = 0
         if not self.is_rotating:
-            if movement["w"]:
+            if movement["w"] or movement["W"]:
                 v = -20
-            if movement["s"]:
+            if movement["s"] or movement["S"]:
                 v = 20
             if v != 0:
                 self.is_moving = True
             else:
                 self.is_moving = False
         if not self.is_moving:
-            if movement["a"]:
+            if movement["a"] or movement["A"]:
                 da = 5
-            if movement["d"]:
+            if movement["d"] or movement["D"]:
                 da = -5
             if da != 0:
                 self.is_rotating = True
@@ -420,11 +420,11 @@ class LinearActuatorLayer(Layer):
             of the keys
         """
         v = 0
-        if movement["a"]:
+        if movement["a"] or movement["A"]:
             if self.robot_drawing.block.x > 508:
                 v -= 15
             self.__hit_left(v == 0)
-        elif movement["d"]:
+        elif movement["d"] or movement["D"]:
             if self.robot_drawing.block.x < 1912:
                 v += 15
             self.__hit_right(v == 0)

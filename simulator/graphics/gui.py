@@ -45,7 +45,12 @@ class MainApplication(tk.Tk):
         self.config(menu=self.menu_bar)
         self.button_bar.pack(fill=tk.X, side="left")
         self.selector_bar.pack(fill=tk.X, side="right")
+        # These keys are the accepted ones for move the application. If you need more keys, added them here
         self.move_WASD = {
+            "W": False,
+            "A": False,
+            "S": False,
+            "D": False,
             "w": False,
             "a": False,
             "s": False,
