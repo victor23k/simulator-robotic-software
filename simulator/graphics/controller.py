@@ -1,7 +1,9 @@
 import graphics.layers as layers
 import output.console as console
+import output.console_gamification as console_gamification
 import compiler.commands as commands
 import graphics.screen_updater as screen_updater
+from datetime import datetime
 
 
 class RobotsController:
@@ -10,21 +12,29 @@ class RobotsController:
         self.view = view
         self.console: console.Console = None
         self.robot_layer: layers.Layer = None
+        self.consoleGamification = console_gamification.ConsoleGamification()
         self.compile_command = commands.Compile(self)
         self.setup_command = commands.Setup(self)
         self.loop_command = commands.Loop(self)
         self.executing = False
+        self.board = False
+        self.new = True
 
-    def execute(self):
-        screen_updater.layer = self.robot_layer
-        screen_updater.view = self.view
-        self.view.abort_after()
-        self.robot_layer.execute()
-        self.console.clear()
-        if self.compile_command.execute():
-            if self.setup_command.execute():
-                self.executing = True
-                self.drawing_loop()
+    def execute(self, option_gamification):
+        if not self.board:
+            screen_updater.layer = self.robot_layer
+            screen_updater.view = self.view
+            self.view.abort_after()
+            self.robot_layer.execute()
+            self.console.clear()
+            if self.compile_command.execute():
+                if self.setup_command.execute():
+                    self.executing = True
+                    self.drawing_loop()
+        else:
+            user_ast = self.compile_command.compile(self.get_code())
+            if user_ast is not None:
+                self.probe_robot(option_gamification)
 
     def drawing_loop(self):
         screen_updater.refresh()
@@ -56,24 +66,63 @@ class RobotsController:
         self.console = console.Console(text_component)
 
     def change_robot(self, option):
+        """
+        Here you write the parts of the GUI that you want to show when a robot is chosen
+        :param option: Selected robot (mobile: 0, 1, 2, linear, 3, Arduino: 4)
+        :return: None
+        """
         if self.robot_layer is not None:
             self.stop()
+        # Mobile Robot, 2 infrared
         if option == 0:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_button_keys_movement(True)
+            self.view.show_buttons_gamification(False)
+            self.view.show_key_drawing(False)
             self.robot_layer = layers.MobileRobotLayer(2)
+            self.board = False
+        # Mobile Robot, 3 infrared
         elif option == 1:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_button_keys_movement(True)
+            self.view.show_buttons_gamification(False)
+            self.view.show_key_drawing(False)
             self.robot_layer = layers.MobileRobotLayer(3)
+            self.board = False
+        # Mobile Robot,  4 infrared
         elif option == 2:
             self.view.show_circuit_selector(True)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(False)
+            self.view.show_button_keys_movement(True)
+            self.view.show_buttons_gamification(False)
+            self.view.show_key_drawing(False)
             self.robot_layer = layers.MobileRobotLayer(4)
+            self.board = False
+        # Linear Actuator
         elif option == 3:
             self.view.show_circuit_selector(False)
+            self.view.show_gamification_option_selector(False)
             self.view.show_joystick(True)
+            self.view.show_button_keys_movement(True)
+            self.view.show_buttons_gamification(False)
+            self.view.show_key_drawing(False)
             self.robot_layer = layers.LinearActuatorLayer()
+            self.board = False
+        # Option for the Arduino Board
+        elif option == 4:
+            self.view.show_circuit_selector(False)
+            self.view.show_gamification_option_selector(True)
+            self.view.show_joystick(False)
+            self.view.show_button_keys_movement(False)
+            self.view.show_buttons_gamification(True)
+            self.view.show_key_drawing(True)
+            self.robot_layer = layers.ArduinoBoardLayer()
+            self.board = True
 
     def change_circuit(self, option):
         if self.robot_layer is not None:
@@ -230,3 +279,51 @@ class RobotsController:
 
     def exit(self):
         self.console.logger.close_log()
+
+    def show_tutorial(self):
+        self.robot_layer.show_tutorial()
+
+    def show_results(self):
+        self.robot_layer.show_results()
+
+    def show_help(self, option_gamification):
+        self.robot_layer.show_help(option_gamification)
+
+    def delete_elements(self):
+        self.robot_layer.delete_elements()
+
+    def probe_robot(self, option_gamification):
+        self.new = False
+        code, circuit = self.robot_layer.probe(option_gamification, self.get_code(),
+                               self.robot_layer.get_robot_challenge(option_gamification).get_code())
+        self.console.logger.write_log('info', "El usuario ha comprobado el desafío " + str(option_gamification+1))
+        mensaje = "El usuario tiene los siguientes componentes: "
+        for component in self.robot_layer.drawing.components:
+            mensaje += component['element'].name
+            mensaje += " "
+        self.console.logger.write_log('info', mensaje)
+        if code and circuit:
+            log = "El usuario ha completado el desafío correctamente.\nLa puntuación del usuario es de " \
+                  + str(self.robot_layer.drawing.points) + "\n\n"
+            self.record_results(True, option_gamification)
+        else:
+            log = "El usuario ha comprobado el desafío.\n"
+            if not code:
+                log += "\tEl código introducido no es correcto (-1 punto)\n"
+            if not circuit:
+                log += "\tEl circuito creado no es correcto (-1 punto)\n"
+            log += "\tPuntuación actual: " + str(self.robot_layer.drawing.points) + "\n\n"
+        self.consoleGamification.write_encrypted(log, option_gamification+1)
+
+    def record_results(self, correct, challenge):
+        if not self.new:
+            points = self.robot_layer.drawing.points
+            date = datetime.now().strftime("%d-%m-%Y")
+            if correct:
+                log = date + " - El usuario ha completado el desafío " + str(challenge + 1) + " con una nota de: " \
+                      + str(points) + "\n"
+            else:
+                log = date + " - El usuario ha abandonado el desafío " + str(challenge + 1) + " cuando su nota era: " \
+                      + str(points) + "\n"
+            self.consoleGamification.write(log)
+

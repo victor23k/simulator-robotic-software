@@ -12,11 +12,13 @@ class Layer:
         Constructor for superclass layer
         """
         self.drawing = drawing.Drawing()
+        self.is_drawing = False
         self.hud = None
         self.robot = None
         self.robot_drawing: robot_drawings.RobotDrawing = None
         self._zoom_percentage()
         self.is_drawing = False
+        self.is_board = False
 
         self.rdr = filesr.RobotDataReader()
 
@@ -89,8 +91,12 @@ class Layer:
         self.drawing.delete_zoomables()
         self._draw_before_robot()
         self.robot_drawing.draw()
+        self._draw_after_robot()
 
     def _draw_before_robot(self):
+        pass
+
+    def _draw_after_robot(self):
         pass
 
     def _zoom_percentage(self):
@@ -105,6 +111,14 @@ class Layer:
         """
         self.drawing.empty_drawing()
 
+    def delete_elements(self):
+        self.drawing.components.clear()
+        self.drawing.empty_drawing()
+        self.robot.reset()
+        self.robot_drawing.draw()
+        self.drawing.draw_buttons(self.robot, 500.0, 500.0)
+        self.robot.board.pines = []
+
 
 class MobileRobotLayer(Layer):
 
@@ -116,7 +130,7 @@ class MobileRobotLayer(Layer):
         """
         super().__init__()
         self.hud = huds.MobileHUD()
-        self.robot_data = self.rdr.parse_robot(n_light_sens-2)
+        self.robot_data = self.rdr.parse_robot(n_light_sens - 2)
         self.robot = robots.MobileRobot(n_light_sens, self.robot_data)
         self.robot_drawing = robot_drawings.MobileRobotDrawing(
             self.drawing, n_light_sens)
@@ -141,12 +155,12 @@ class MobileRobotLayer(Layer):
 
         future_p = self.robot_drawing.predict_movement(v)
         if (
-            v == 0
-            or future_p[0] <= self.robot_drawing.width / 2
-            or future_p[0] >= self.robot_drawing.drawing_width - self.robot_drawing.width / 2
-            or future_p[1] <= self.robot_drawing.height / 2
-            or future_p[1] >= self.robot_drawing.drawing_height - self.robot_drawing.height / 2
-            or self.__check_obstacle_collision(future_p[0], future_p[1])
+                v == 0
+                or future_p[0] <= self.robot_drawing.width / 2
+                or future_p[0] >= self.robot_drawing.drawing_width - self.robot_drawing.width / 2
+                or future_p[1] <= self.robot_drawing.height / 2
+                or future_p[1] >= self.robot_drawing.drawing_height - self.robot_drawing.height / 2
+                or self.__check_obstacle_collision(future_p[0], future_p[1])
         ):
             v = 0
             self.is_moving = False
@@ -336,11 +350,11 @@ class MobileRobotLayer(Layer):
         if self.obstacle is None:
             return False
         return (
-            x + self.robot_drawing.width / 2 >= self.obstacle.x
-            and y + self.robot_drawing.height / 2 >= self.obstacle.y
-            and x <= self.obstacle.x + (self.obstacle.width + self.robot_drawing.width / 2)
-            and y <= self.obstacle.y
-            + (self.obstacle.height + self.robot_drawing.height / 2)
+                x + self.robot_drawing.width / 2 >= self.obstacle.x
+                and y + self.robot_drawing.height / 2 >= self.obstacle.y
+                and x <= self.obstacle.x + (self.obstacle.width + self.robot_drawing.width / 2)
+                and y <= self.obstacle.y
+                + (self.obstacle.height + self.robot_drawing.height / 2)
         )
 
     def __detect_obstacle(self):
@@ -378,7 +392,7 @@ class LinearActuatorLayer(Layer):
         """
         super().__init__()
         self.hud = huds.ActuatorHUD()
-        self.robot_data = self.rdr.parse_robot(2)
+        self.robot_data = self.rdr.parse_robot(3)
         self.robot = robots.LinearActuator(self.robot_data)
         self.robot_drawing = robot_drawings.LinearActuatorDrawing(self.drawing)
 
@@ -464,3 +478,78 @@ class LinearActuatorLayer(Layer):
         else:
             self.robot_drawing.hit = False
             self.robot.button_right.value = 1
+
+
+class ArduinoBoardLayer(Layer):
+    def __init__(self):
+        """
+        Constuctor for ArduinoBoard
+        """
+        super().__init__()
+        self.is_board = True
+        self.prev_x = 0
+        self.prev_y = 0
+        self.hud = huds.ArduinoBoardHUD()
+        self.robot = robots.ArduinoBoard(self)
+        self.robot_drawing = robot_drawings.ArduinoBoardDrawing(
+            self.drawing)
+        self.drawing.setBoard(self.robot.board)
+
+    def set_canvas(self, canvas, hud_canvas):
+        """
+        Sets the canvas that the drawing and will use
+        Arguments:
+            canvas: the canvas of the drawing
+            hud_canvas: the canvas of the hud
+        """
+        self.drawing.set_canvas(canvas)
+        self.drawing.set_size(self.robot_drawing.drawing_width,
+                              self.robot_drawing.drawing_height)
+        self.hud.set_canvas(hud_canvas)
+        self.robot_drawing.draw()
+        self.drawing.draw_buttons(self.robot, 500.0, 500.0)
+
+    def _zoom_config(self):
+        """
+        Configures the zoom in case when it changes
+        """
+        self._zoom_percentage()
+        self._zoom_redraw()
+
+    def stop(self):
+        """
+        Stops all the executing code and clears the canvas
+        """
+        self.is_drawing = False
+
+    def draw_component(self, x, y):
+        if self.hud.drawing is not None:
+            element = self.robot.add_component(self.hud.drawing)
+            self.drawing.draw_component(element, x, y)
+            self.hud.drawing = None
+        elif self.hud.draw_wire:
+            dibujar = self.drawing.draw_part_wire(x, y)
+            if not dibujar:
+                self.hud.draw_wire = False
+
+    def _draw_after_robot(self):
+        """Draw the components on the canvas"""
+        self.drawing.draw_all_components()
+        self.drawing.draw_all_buttons()
+        self.drawing.redraw_wire()
+
+    def probe(self, option_gamification, user_code, robot_code):
+        return self.drawing.probe(option_gamification, user_code, robot_code,
+                                  self.robot, self.get_robot_challenge(option_gamification))
+
+    def show_tutorial(self):
+        self.drawing.show_tutorial()
+
+    def show_results(self):
+        self.drawing.show_results()
+
+    def show_help(self, option_gamification):
+        self.drawing.show_help(option_gamification)
+
+    def get_robot_challenge(self, option_gamification):
+        return self.drawing.get_robot_challenge(option_gamification)

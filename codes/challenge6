@@ -1,0 +1,31 @@
+long distance;
+long responseTime;
+int pinTrig = 9;
+int pinEcho = 8;
+int led = 2;
+
+void setup(){
+ Serial.begin(9600);
+ pinMode(pinTrig, OUTPUT);
+ pinMode(pinEcho, INPUT);
+ pinMode(led, OUTPUT);
+}
+
+void loop(){
+ digitalWrite(pinTrig, LOW);
+ delayMicroseconds(5);
+
+ digitalWrite(pinTrig, HIGH);
+ delayMicroseconds(10);
+
+ responseTime = pulseIn(pinEcho, HIGH);
+ distance = int(0.01716*responseTime);
+
+ if(distance < 30){
+    digitalWrite(led, HIGH);
+} else{
+    digitalWrite(led, LOW);
+}
+
+ delay(100);
+}

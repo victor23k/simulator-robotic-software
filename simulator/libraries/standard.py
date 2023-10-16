@@ -131,6 +131,11 @@ def get_methods():
 
     # Others
     methods["exit"] = ('void', "exit", ["int"], -1)
+
+    # Los siguientes métodos deberían encontrarse en una clase externa, sin embargo se ha decidido mantenerlos aquí
+    #       para simplificar el diseño del código.
+    methods["makeKeymap"] = ("int", "make_keymap", ["char"], -1)
+    methods["Keypad"] = ("Keypad", "keypad", ["int", "byte", "byte", "int", "int"], -1)
     return methods
 
 

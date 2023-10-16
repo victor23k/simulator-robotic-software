@@ -7,6 +7,10 @@
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/assets" />
             <path value="file://$PROJECT_DIR$/buttons" />
+            <path value="file://$PROJECT_DIR$/codes" />
+            <path value="file://$PROJECT_DIR$/gamification_logs" />
+            <path value="file://$PROJECT_DIR$/logs" />
+            <path value="file://$PROJECT_DIR$/tutorials" />
           </resourceRoots>
         </entryData>
       </entry>

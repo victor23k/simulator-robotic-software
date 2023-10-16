@@ -45,10 +45,11 @@ class Compile(Command):
 
     def __init__(self, controller):
         super().__init__(controller)
+        self.ast = None
 
     def execute(self):
         try:
-            warns, errors = transpiler.transpile(self.controller.get_code())
+            warns, errors, self.ast = transpiler.transpile(self.controller.get_code())
             if len(errors) > 0:
                 self.print_errors(errors)
                 return False
@@ -56,6 +57,22 @@ class Compile(Command):
                 self.print_warnings(warns)
                 return True
             return True
+        except Exception as e:
+            print(f'la excepción es {e}')
+            traceback.print_exc()
+            self.controller.console.write_error(
+                console.Error("Error de compilación", 0, 0, "El sketch no se ha podido compilar correctamente"))
+
+    def compile(self, code):
+        try:
+            warns, errors, ast = transpiler.transpile(code)
+            if len(errors) > 0:
+                self.print_errors(errors)
+                return None
+            elif len(warns) > 0:
+                self.print_warnings(warns)
+                return ast
+            return ast
         except Exception as e:
             print(f'la excepción es {e}')
             traceback.print_exc()

@@ -5,9 +5,10 @@ if __name__ is not None and "." in __name__:
 else:
     from ArduinoParser import ArduinoParser
 
+
 # This class defines a complete generic visitor for a parse tree produced by ArduinoParser.
 def visitChildren(self, ctx):
-    a =  self.visitChildren(ctx)
+    a = self.visitChildren(ctx)
     return a
 
 

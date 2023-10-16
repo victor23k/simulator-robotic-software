@@ -12,6 +12,7 @@ class Robot:
 
     def __init__(self, board):
         self.board = board
+        self.robot_elements = []
 
     def get_data(self):
         pass
@@ -23,6 +24,15 @@ class Robot:
         if str(pin[0]).lower() == 'a':
             return int(pin[1]) + 14
         return int(pin)
+
+    def add_component(self, component):
+        pass
+
+    def get_code(self):
+        pass
+
+    def reset(self):
+        pass
 
 
 class MobileRobot(Robot):
@@ -425,3 +435,1253 @@ class LinearActuator(Robot):
         """
         self.board.detach_pin(self.joystick.pinb)
         self.joystick.pinb = -1
+
+
+class ArduinoBoard(Robot):
+
+    def __init__(self, pins):
+        """
+        Constructor for arduino board
+        """
+        super().__init__(boards.ArduinoUno())
+
+    def reset(self):
+        self.robot_elements.clear()
+
+    def draw_buttons(self, x, y):
+        return self.board.draw_buttons(x, y)
+
+    def add_component(self, component):
+        if component == "resistance":
+            resistance = elements.ResistanceArduino()
+            resistance.set_value(56000)
+            self.robot_elements.append(resistance)
+            return resistance
+        if component == "resistance220":
+            resistance = elements.ResistanceArduino()
+            resistance.set_value(220)
+            self.robot_elements.append(resistance)
+            return resistance
+        if component == "resistance10k":
+            resistance = elements.ResistanceArduino()
+            resistance.set_value(10000)
+            self.robot_elements.append(resistance)
+            return resistance
+        elif component == "button":
+            button = elements.ButtonArduino()
+            self.robot_elements.append(button)
+            return button
+        elif component == "potentiometer":
+            potentiometer = elements.PotentiometerArduino()
+            self.robot_elements.append(potentiometer)
+            return potentiometer
+        elif component == "led":
+            led = elements.LedArduino()
+            led.set_color(1)
+            self.robot_elements.append(led)
+            return led
+        elif component == "ledYellow":
+            led = elements.LedArduino()
+            led.set_color(2)
+            self.robot_elements.append(led)
+            return led
+        elif component == "ledGreen":
+            led = elements.LedArduino()
+            led.set_color(3)
+            self.robot_elements.append(led)
+            return led
+        elif component == "buzzer":
+            buzzer = elements.BuzzerArduino()
+            self.robot_elements.append(buzzer)
+            return buzzer
+        elif component == "ledRGB":
+            led_rgb = elements.RGBArduino()
+            self.robot_elements.append(led_rgb)
+            return led_rgb
+        elif component == "lightSensor":
+            light_sensor = elements.LightSensorArduino()
+            self.robot_elements.append(light_sensor)
+            return light_sensor
+        elif component == "PIRSensor":
+            pir_sensor = elements.PIRSensorArduino()
+            self.robot_elements.append(pir_sensor)
+            return pir_sensor
+        elif component == "vibrationSensor":
+            vibration_sensor = elements.VibrationSensorArduino()
+            self.robot_elements.append(vibration_sensor)
+            return vibration_sensor
+        elif component == "infraredSensor":
+            infrared_sensor = elements.InfraredSensorArduino()
+            self.robot_elements.append(infrared_sensor)
+            return infrared_sensor
+        elif component == "ultrasonicSensor":
+            ultrasonic_sensor = elements.UltrasoundSensorArduino()
+            self.robot_elements.append(ultrasonic_sensor)
+            return ultrasonic_sensor
+        elif component == "keyboard":
+            keyboard = elements.KeyBoardArduino()
+            self.robot_elements.append(keyboard)
+            return keyboard
+        elif component == "screen":
+            screen = elements.ScreenArduino()
+            self.robot_elements.append(screen)
+            return screen
+        elif component == "servomotor180":
+            servomotor = elements.ServomotorArduino()
+            self.robot_elements.append(servomotor)
+            return servomotor
+
+    def set_resistance1(self, pin, resistance):
+        """
+        Attaches the pin 1 of a resistance to board pin
+        Arguments:
+            pin: the pin of the board
+            resistance: the resistance to attach
+        """
+        if self.board.check_type(pin, resistance.get_pin1_type()):
+            if self.board.attach_pin(pin, resistance):
+                resistance.pin1 = pin
+
+    def set_resistance2(self, pin, resistance):
+        """
+        Attaches the pin 2 of a resistance to board pin
+        Arguments:
+            pin: the pin of the board
+            resistance: the resistance to attach
+        """
+        if self.board.check_type(pin, resistance.get_pin2_type()):
+            if self.board.attach_pin(pin, resistance):
+                resistance.pin2 = pin
+
+    def set_button1(self, pin, button):
+        """
+        Attaches the pin 1 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin1_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin1 = pin
+
+    def set_button2(self, pin, button):
+        """
+        Attaches the pin 2 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin2_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin2 = pin
+
+    def set_button3(self, pin, button):
+        """
+        Attaches the pin 3 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin3_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin3 = pin
+
+    def set_button4(self, pin, button):
+        """
+        Attaches the pin 4 of a button to board pin
+        Arguments:
+            pin: the pin of the board
+            button: the button to attach
+        """
+        if self.board.check_type(pin, button.get_pin4_type()):
+            if self.board.attach_pin(pin, button):
+                button.pin4 = pin
+
+    def set_potentiometer1(self, pin, potentiometer):
+        """
+        Attaches the pin 1 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin1_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin1 = pin
+
+    def set_potentiometer2(self, pin, potentiometer):
+        """
+        Attaches the pin 2 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin2_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin2 = pin
+
+    def set_potentiometer3(self, pin, potentiometer):
+        """
+        Attaches the pin 3 of a potentiometer to board pin
+        Arguments:
+            pin: the pin of the board
+            potentiometer: the potentiometer to attach
+        """
+        if self.board.check_type(pin, potentiometer.get_pin3_type()):
+            if self.board.attach_pin(pin, potentiometer):
+                potentiometer.pin3 = pin
+
+    def set_led1(self, pin, led):
+        """
+        Attaches the pin 1 of a LED to board pin
+        Arguments:
+            pin: the pin of the board
+            led: the LED to attach
+        """
+        if self.board.check_type(pin, led.get_pin1_type()):
+            if self.board.attach_pin(pin, led):
+                led.pin1 = pin
+
+    def set_led2(self, pin, led):
+        """
+        Attaches the pin 2 of a LED to board pin
+        Arguments:
+            pin: the pin of the board
+            led: the LED to attach
+        """
+        if self.board.check_type(pin, led.get_pin2_type()):
+            if self.board.attach_pin(pin, led):
+                led.pin2 = pin
+
+    def set_buzzer1(self, pin, buzzer):
+        """
+        Attaches the pin 1 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin1_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin1 = pin
+
+    def set_buzzer2(self, pin, buzzer):
+        """
+        Attaches the pin 2 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin2_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin2 = pin
+
+    def set_buzzer3(self, pin, buzzer):
+        """
+        Attaches the pin 3 of a buzzer to board pin
+        Arguments:
+            pin: the pin of the board
+            buzzer: the buzzer to attach
+        """
+        if self.board.check_type(pin, buzzer.get_pin3_type()):
+            if self.board.attach_pin(pin, buzzer):
+                buzzer.pin3 = pin
+
+    def set_rgb1(self, pin, rgb):
+        """
+        Attaches the pin 1 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin1_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin1 = pin
+
+    def set_rgb2(self, pin, rgb):
+        """
+        Attaches the pin 2 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin2_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin2 = pin
+
+    def set_rgb3(self, pin, rgb):
+        """
+        Attaches the pin 3 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin3_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin3 = pin
+
+    def set_rgb4(self, pin, rgb):
+        """
+        Attaches the pin 4 of a LED rgb to board pin
+        Arguments:
+            pin: the pin of the board
+            rgb: the LED rgb to attach
+        """
+        if self.board.check_type(pin, rgb.get_pin4_type()):
+            if self.board.attach_pin(pin, rgb):
+                rgb.pin4 = pin
+
+    def set_light_sensor1(self, pin, light_sensor):
+        """
+        Attaches the pin 1 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light_sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin1 = pin
+
+    def set_light_sensor2(self, pin, light_sensor):
+        """
+        Attaches the pin 2 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light_sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin2 = pin
+
+    def set_light_sensor3(self, pin, light_sensor):
+        """
+        Attaches the pin 3 of a light sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            light_sensor: the light sensor to attach
+        """
+        if self.board.check_type(pin, light_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, light_sensor):
+                light_sensor.pin3 = pin
+
+    def set_pir_sensor1(self, pin, pir_sensor):
+        """
+        Attaches the pin 1 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin1 = pin
+
+    def set_pir_sensor2(self, pin, pir_sensor):
+        """
+        Attaches the pin 2 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin2 = pin
+
+    def set_pir_sensor3(self, pin, pir_sensor):
+        """
+        Attaches the pin 3 of a PIR sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            pir_sensor: the PIR sensor to attach
+        """
+        if self.board.check_type(pin, pir_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, pir_sensor):
+                pir_sensor.pin3 = pin
+
+    def set_vibration_sensor1(self, pin, vibration_sensor):
+        """
+        Attaches the pin 1 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin1 = pin
+
+    def set_vibration_sensor2(self, pin, vibration_sensor):
+        """
+        Attaches the pin 2 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin2 = pin
+
+    def set_vibration_sensor3(self, pin, vibration_sensor):
+        """
+        Attaches the pin 3 of a vibration sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            vibration_sensor: the vibration sensor to attach
+        """
+        if self.board.check_type(pin, vibration_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, vibration_sensor):
+                vibration_sensor.pin3 = pin
+
+    def set_infrared_sensor1(self, pin, infrared_sensor):
+        """
+        Attaches the pin 1 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin1 = pin
+
+    def set_infrared_sensor2(self, pin, infrared_sensor):
+        """
+        Attaches the pin 2 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin2 = pin
+
+    def set_infrared_sensor3(self, pin, infrared_sensor):
+        """
+        Attaches the pin 3 of an infrared sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            infrared_sensor: the infrared sensor to attach
+        """
+        if self.board.check_type(pin, infrared_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, infrared_sensor):
+                infrared_sensor.pin3 = pin
+
+    def set_ultrasonic_sensor1(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 1 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin1_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin1 = pin
+
+    def set_ultrasonic_sensor2(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 2 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin2_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin2 = pin
+
+    def set_ultrasonic_sensor3(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 3 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin3_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin3 = pin
+
+    def set_ultrasonic_sensor4(self, pin, ultrasonic_sensor):
+        """
+        Attaches the pin 4 of an ultrasonic sensor to board pin
+        Arguments:
+            pin: the pin of the board
+            ultrasonic_sensor: the ultrasonic sensor to attach
+        """
+        if self.board.check_type(pin, ultrasonic_sensor.get_pin4_type()):
+            if self.board.attach_pin(pin, ultrasonic_sensor):
+                ultrasonic_sensor.pin4 = pin
+
+    def set_keyboard1(self, pin, keyboard):
+        """
+        Attaches the pin 1 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin1_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin1 = pin
+
+    def set_keyboard2(self, pin, keyboard):
+        """
+        Attaches the pin 2 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin2_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin2 = pin
+
+    def set_keyboard3(self, pin, keyboard):
+        """
+        Attaches the pin 3 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin3_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin3 = pin
+
+    def set_keyboard4(self, pin, keyboard):
+        """
+        Attaches the pin 4 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin4_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin4 = pin
+
+    def set_keyboard5(self, pin, keyboard):
+        """
+        Attaches the pin 5 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin5_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin5 = pin
+
+    def set_keyboard6(self, pin, keyboard):
+        """
+        Attaches the pin 6 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin6_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin6 = pin
+
+    def set_keyboard7(self, pin, keyboard):
+        """
+        Attaches the pin 7 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin7_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin7 = pin
+
+    def set_keyboard8(self, pin, keyboard):
+        """
+        Attaches the pin 8 of a keyboard to board pin
+        Arguments:
+            pin: the pin of the board
+            keyboard: the keyboard to attach
+        """
+        if self.board.check_type(pin, keyboard.get_pin8_type()):
+            if self.board.attach_pin(pin, keyboard):
+                keyboard.pin8 = pin
+
+    def set_screen1(self, pin, screen):
+        """
+        Attaches the pin 1 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin1_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin1 = pin
+
+    def set_screen2(self, pin, screen):
+        """
+        Attaches the pin 2 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin2_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin2 = pin
+
+    def set_screen3(self, pin, screen):
+        """
+        Attaches the pin 3 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin3_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin3 = pin
+
+    def set_screen4(self, pin, screen):
+        """
+        Attaches the pin 4 of a screen to board pin
+        Arguments:
+            pin: the pin of the board
+            screen: the screen to attach
+        """
+        if self.board.check_type(pin, screen.get_pin4_type()):
+            if self.board.attach_pin(pin, screen):
+                screen.pin4 = pin
+
+    def set_servomotor1(self, pin, servomotor):
+        """
+        Attaches the pin 1 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin1_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin1 = pin
+
+    def set_servomotor2(self, pin, servomotor):
+        """
+        Attaches the pin 2 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin2_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin2 = pin
+
+    def set_servomotor3(self, pin, servomotor):
+        """
+        Attaches the pin 3 of a servomotor to board pin
+        Arguments:
+            pin: the pin of the board
+            servomotor: the servomotor to attach
+        """
+        if self.board.check_type(pin, servomotor.get_pin3_type()):
+            if self.board.attach_pin(pin, servomotor):
+                servomotor.pin3 = pin
+
+
+class Challenge1Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge1", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 2 LEDs rojos\n- 2 LEDs verdes\n- 2 LEDs " \
+                         "amarillos\n- 6 resistencias\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario llamar 4 veces al método delay(...)\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. Antes de cada llamada al método delay(...)\nse debe cambiar el valor " \
+                         "de todos los componentes\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 1\n\nDeberá implementarse un cruce de semáforos.\nPara ello, cuando un semáforo esté en " \
+               "verde, el otro estará en rojo.\nDespués de un tiempo, el semáforo que está en verde tendrá que " \
+               "pasar a amarillo, y, tras unos segundos, a rojo.\nTras una breve pausa, el otro deberá de " \
+               "ponerse en verde y repetir el mismo proceso.\n"
+
+    def get_initial_code(self):
+        return "int led_rojo1 = 12;\nint led_amarillo1 = 11;\nint led_verde1 = 10;\nint led_rojo2 = 9;\n" \
+               "int led_amarillo2 = 8;\nint led_verde2 = 7;\nint tiempo1 = 8000;\nint tiempo2 = 3000;" \
+               "\n\nvoid setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 12 elementos (6 leds y 6 resistencias)
+        if len(robot.robot_elements) != 12:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 12
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    #no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+        # comprobamos que hay 6 resistencias y 6 leds
+        if leds != 6 or resistances != 6:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge2Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge2
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge2", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED rojo\n- 1 LED verde\n- 2 resistencias\n- 1 " \
+                         "teclado\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario usar una operación condicional\n\n"
+
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. El tiempo de espera para apagar el led será de 5000\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 2\n\nDeberá implementarse la apertura de una puerta.\nLa puerta se abre cuando " \
+               "el usuario pulsa el botón A del teclado y permanece abierta durante 5 segundos,\nhaciendo " \
+               "que un LED de color rojo esté encendido. Pasado ese tiempo se cierra.\nEn otros casos, " \
+               "el LED verde estará iluminando para indicar que se puede pasar.\nSi el usuario vuelve a " \
+               "pulsar el botón A mientras la puerta está abierta esa pulsación se ignora.\n" \
+               "Si el usuario pulsa cualquier otra tecla, no debe realizar ninguna otra acción.\n"
+
+    def get_initial_code(self):
+        return "#include <Keypad.h>\n\nint led_verde = 3;\nint led_rojo = 2;\n\n" \
+               "char matriz[4][4] =\n{\n  {'1','2','3', 'A'},\n" \
+               "  {'4','5','6', 'B'},\n  {'7','8','9', 'C'},\n  {'*','0','#', 'D'}\n};\n\n" \
+               "byte pin_rows[4] = {4, 5, 6, 7};\n\nbyte pin_columns[4] = {A0, A1, A2, A3};\n\n" \
+               "Keypad keyboard = Keypad( makeKeymap(matriz), pin_rows, pin_columns, 4, 4);" \
+               "\n\nvoid setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 5 elementos (2 leds, 2 resistencias y 1 teclado)
+        if len(robot.robot_elements) != 5:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 12
+        if len(robot.board.pines) != 12:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        keyboards = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de teclados añadidos
+            if isinstance(component, elements.KeyBoardArduino):
+                keyboards += 1
+                # si es un teclado debe tener unidos los pines 1-4 a un pin digital y los pines 5-8 a un pin analógico
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_digital(self, component.pin1['pin'])):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_digital(self, component.pin2['pin'])):
+                    conex = False
+                if not (isinstance(component.pin3['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_digital(self, component.pin3['pin'])):
+                    conex = False
+                if not (isinstance(component.pin4['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_digital(self, component.pin4['pin'])):
+                    conex = False
+                if not (isinstance(component.pin5['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_analog(self, component.pin5['pin'])):
+                    conex = False
+                if not (isinstance(component.pin6['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_analog(self, component.pin6['pin'])):
+                    conex = False
+                if not (isinstance(component.pin7['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_analog(self, component.pin7['pin'])):
+                    conex = False
+                if not (isinstance(component.pin8['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_analog(self, component.pin8['pin'])):
+                    conex = False
+        # comprobamos que hay 2 leds, 2 resistencias y 1 teclado
+        if leds != 2 or resistances != 2 or keyboards != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge3Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge3
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge3", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs rojos" \
+                         "\n- 3 resistencias\n- 1 potenciómetro\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario tener una operación\ncondicional con 8 bloques\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. La intensidad del potenciómetro está entre 0 y 1023,\n" \
+                         "por lo que las particiones serán:\n" \
+                         "0-127\n128-255\n256-383\n384-511\n512-639\n640-767\n768-895\n896-1023\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 3\n\nControl y regulador de luz\nConectar 3 LEDs rojos y un potenciómetro. " \
+               "En función del valor de entrada del potenciómetro Conectar 3 LEDs y un potenciómetro.\n" \
+               "En función del valor de entrada del potenciómetro se tendrán que encender 0, 1, 2 o los 3 LEDs " \
+               "de forma secuencial,\nempezando por el 0 y siguiendo el orden. En este caso, todos los LEDs " \
+               "deben encenderse siempre con la misma intensidad,\nes decir, estarán apagados o encendidos.\n" \
+               "La secuencia de encendido es: se encienda primero el A, después el B, después el C, " \
+               "después A y B, después B y C,\ndespués A y C, y cuando esté en el máximo valor los 3.\n"
+
+    def get_initial_code(self):
+        return "int led1 = 4;\nint led2 = 5;\nint led3 = 6;\n\nint leds;\n\nvoid setup(){" \
+               "\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 7 elementos (3 leds, 3 resistencias y un potenciómettro)
+        if len(robot.robot_elements) != 7:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 9
+        if len(robot.board.pines) != 9:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        potentiometers = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de potenciómetros añadidos
+            if isinstance(component, elements.PotentiometerArduino):
+                potentiometers += 1
+                # si es un potenciómetro debe tener unido el pin 1 a un pin GND, el pin 2 a un pin analógico
+                # y el 3 a un pin v de la placa
+                if not (isinstance(component.pin1['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_gnd(self, component.pin1['pin'])):
+                    conex = False
+                if not (isinstance(component.pin2['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_analog(self, component.pin2['pin'])):
+                    conex = False
+                if not (isinstance(component.pin3['element'], boards.ArduinoUno)
+                        and boards.ArduinoUno.is_v(self, component.pin3['pin'])):
+                    conex = False
+        # comprobamos que hay 3 resistencias, 3 leds y 1 potenciómetro
+        if leds != 3 or resistances != 3 or potentiometers != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge4Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge4
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge4", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 3 LEDs\n- 3 resistencias\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. En el bucle es necesario llamar 2 veces\nal método delay(...)\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. En el bucle será necesario llamar a la función\ndigitalWrite(...) 4 veces\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 4\n\nEn este desafío se pretende crear un sistema con 3LEDs que se enciendan y " \
+               "apaguen de forma ordenada, primero el A, luego el B y finalmente el C. Una vez terminada la " \
+               "secuencia, esta se repetirá de forma indefinida."
+
+    def get_initial_code(self):
+        return "int led1 = 2;\nint led2 = 3;\nint led3 = 4;\n\nvoid setup(){" \
+               "\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 6 elementos (3 leds y 3 resistencias)
+        if len(robot.robot_elements) != 6:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+            # El número de conexiones a la placa deben ser 6
+        if len(robot.board.pines) != 6:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+        # comprobamos que hay 3 resistencias y 3 leds
+        if leds != 3 or resistances != 3:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge5Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge5", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED\n- 1 resistencia\n- 1 sensor PIR\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. Se deberá guardar el valor leído del sensor\nen una variable\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. Se pondrá un tiempo de espera\nde 50 para separar las mediciones\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 5\n\nSe debe crear un sistema que detecte movimientos.\nCuando sea así, se encenderá un " \
+               "indicador LED, en caso contrario, este permanecerá apagado."
+
+    def get_initial_code(self):
+        return "int pinSensor = 2;\nint led = 4;\n\nvoid setup(){\n// Completar aquí\n}\n\n" \
+               "void loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 3 elementos (1 led, 1 sensor PIR y 1 resistencia)
+        if len(robot.robot_elements) != 3:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 5
+        if len(robot.board.pines) != 5:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        sensors = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de sensores añadidos
+            if isinstance(component, elements.PIRSensorArduino):
+                sensors += 1
+                # si es un sensor PIR debe tener el pin 1 unido a un pin GND de la placa, el pin 2 unido a un pin
+                #   digital y el pin 3 a un pin v
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin2['pin']):
+                        conex = False
+                if isinstance(component.pin3['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_v(self, component.pin3['pin']):
+                        conex = False
+        # comprobamos que hay 1 resistencia, 1 led y un sensor PIR
+        if leds != 1 or resistances != 1 or sensors != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
+
+class Challenge6Robot(Robot):
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        code_file = open("codes/challenge6", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        if self.times_help == 0:
+            self.help += "1. Para este desafío necesitarás usar:\n- 1 LED\n- 1 resistencia\n" \
+                         "- 1 sensor de ultrasonidos\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. Se deberá llamar al método\ndelayMicroseconds(...) 2 veces\n" \
+                         "y al método delay(...) una\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. Para convertir el tiempo de espera a distancia\nse debe usar la " \
+                         "siguiente conversión:\nint(0.01716*responseTime)\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        return "Desafío 6\n\nSe debe crear un sistema que reconozca la distancia a la que se encuentra\n" \
+               "un objeto. Si esta distancia es menor de 30, se encenderá un indicador LED.\nEn caso contrario, " \
+               "este permanecerá apagado.\n"
+
+    def get_initial_code(self):
+        return "long distance;\nlong responseTime;\nint pinTrig = 9;\nint pinEcho = 8;\nint led = 2;\n\n" \
+               "void setup(){\n// Completar aquí\n}\n\nvoid loop(){\n// Completar aquí\n}"
+
+    def probe_robot(self, robot):
+        errors = []
+        # debe haber 3 elementos (1 led, 1 sensor de ultrasonidos y 1 resistencia)
+        if len(robot.robot_elements) != 3:
+            errors.append("El número de elementos añadidos no coincide con los correctos")
+        # El número de conexiones a la placa deben ser 6
+        if len(robot.board.pines) != 6:
+            errors.append("El número de conexiones realizadas con la placa no es correcto")
+        resistances = 0
+        leds = 0
+        sensors = 0
+        conex = True
+        for component in robot.robot_elements:
+            # calculamos el número de leds añadidos
+            if isinstance(component, elements.LedArduino):
+                leds += 1
+                # si es un led debe tener unido uno de sus pines a la resistencia. El pin 1 debe ir a un pin
+                #   digital de la placa y el pin 2 a un pin gnd de esta
+                if isinstance(component.pin1['element'], elements.ResistanceArduino):
+                    # el pin 1 está unido a una resistencia, esta debe estar unida a un pin v de la placa
+                    if not (boards.ArduinoUno.is_digital(self, component.pin1['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_digital(self, component.pin1['element'].pin2['pin'])):
+                        conex = False
+                elif isinstance(component.pin2['element'], elements.ResistanceArduino):
+                    # el pin 2 está unido a una resistencia, esta debe estar unida a un pin gnd de la placa
+                    if not (boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin1['pin'])
+                            or boards.ArduinoUno.is_gnd(self, component.pin2['element'].pin2['pin'])):
+                        conex = False
+                else:
+                    # no hay resistencia
+                    conex = False
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+            # calculamos el número de resistencias añadidas
+            if isinstance(component, elements.ResistanceArduino):
+                resistances += 1
+            # calculamos el número de sensores añadidos
+            if isinstance(component, elements.UltrasoundSensorArduino):
+                sensors += 1
+                # si es un sensor de ultrasonidos, debe tener el pin 1 unido a un pin v de la placa,
+                # el pin 2 unido a un pin GND y los pines 3 y 4 a pines digitales
+                if isinstance(component.pin1['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_v(self, component.pin1['pin']):
+                        conex = False
+                if isinstance(component.pin2['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_gnd(self, component.pin2['pin']):
+                        conex = False
+                if isinstance(component.pin3['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin3['pin']):
+                        conex = False
+                if isinstance(component.pin4['element'], boards.ArduinoUno):
+                    if not boards.ArduinoUno.is_digital(self, component.pin4['pin']):
+                        conex = False
+        # comprobamos que hay 1 resistencia, 1 led y un sensor de ultrasonidos
+        if leds != 1 or resistances != 1 or sensors != 1:
+            errors.append("El tipo de los elementos añadidos no coincide con los correctos")
+        if not conex:
+            errors.append("Las conexiones realizadas no son correctas")
+        return errors
+
