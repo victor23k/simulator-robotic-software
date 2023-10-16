@@ -750,8 +750,8 @@ class DrawingFrame(tk.Frame):
                                            command=application.toggle_keys, underline=0)
         self.key_drawing = tk.Checkbutton(self.bottom_frame, text="Dibujar", fg="white",
                                           font=("Consolas", 12),
-                                          bg=BLUE, activebackground=BLUE, selectcolor="black",
-                                          command=application.set_drawing, underline=0)
+                                         bg=BLUE, activebackground=BLUE, selectcolor="black",
+                                         command=application.set_drawing, underline=0)
         self.zoom_frame = tk.Frame(self.bottom_frame, bg=BLUE)
         self.zoom_in_button = ImageButton(
             self.zoom_frame,

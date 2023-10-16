@@ -120,7 +120,7 @@ class RobotsController:
             self.view.show_joystick(False)
             self.view.show_button_keys_movement(False)
             self.view.show_buttons_gamification(True)
-            self.view.show_key_drawing(True)
+            self.view.show_key_drawing(False)
             self.robot_layer = layers.ArduinoBoardLayer()
             self.board = True
 

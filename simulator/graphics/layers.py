@@ -529,6 +529,7 @@ class ArduinoBoardLayer(Layer):
             self.hud.drawing = None
         elif self.hud.draw_wire:
             dibujar = self.drawing.draw_part_wire(x, y)
+            # It is needed to the correct work of the wire
             if not dibujar:
                 self.hud.draw_wire = False
 
