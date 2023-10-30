@@ -208,6 +208,10 @@ class MainApplication(tk.Tk):
                 self.console_frame.console.insert(tk.END,
                                                   self.controller.robot_layer.drawing.
                                                   get_robot_challenge(5).get_challenge())
+            if challenge == 6:
+                self.console_frame.console.insert(tk.END,
+                                                  self.controller.robot_layer.drawing.
+                                                  get_robot_challenge(6).get_challenge())
             self.controller.consoleGamification.write_encrypted(text, challenge + 1)
             self.console_frame.console.config(state=tk.DISABLED)
             self.controller.configure_layer(
@@ -1499,7 +1503,7 @@ class SelectorBar(tk.Frame):
             "Circuito con nodos"]
         self.track_selector.current(0)
         self.gamification_option_selector['values'] = [
-            "Desafío 1", "Desafío 2", "Desafío 3", "Desafío 4", "Desafío 5", "Desafío 6"]
+            "Libre", "Desafío 1", "Desafío 2", "Desafío 3", "Desafío 4", "Desafío 5", "Desafío 6"]
         self.gamification_option_selector.current(0)
 
         self.robot_selector.bind(

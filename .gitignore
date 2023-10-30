@@ -1,4 +1,6 @@
 __pycache__/
+.idea/
+.vscode/
 logs/
 notas.txt
 diagrama_ast.txt
@@ -9,6 +11,8 @@ examples/
 build/
 dist/
 doc/
+codes/
+gamification_logs/
 .VSCodeCounter/
 stats.dump
 

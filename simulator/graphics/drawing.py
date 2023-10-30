@@ -50,6 +50,12 @@ class Drawing:
         self.board = board
 
     def initialize_robots(self):
+        """
+        Initialise the combobox of Arduino challenges
+        :return:
+        """
+        robot0 = rbts.Challenge0Robot(self)
+        self.robots.append(robot0)
         robot1 = rbts.Challenge1Robot(self)
         self.robots.append(robot1)
         robot2 = rbts.Challenge2Robot(self)
@@ -212,9 +218,11 @@ class Drawing:
         self.canvas.create_arc(x, y, x + width, y + height, width=track_width, style="arc", start=starting_angle,
                                extent=angle, tags=group)
 
+
     def zoom_in(self):
         """
         Zooms in the scale and updates the drawing
+        It contains the Max zoom in (1)
         """
         if self.scale < 1:
             self.scale += 0.1
@@ -224,6 +232,7 @@ class Drawing:
     def zoom_out(self):
         """
         Zooms out the scale and updates the drawing
+        It contains the Max zoom in (0.1)
         """
         if self.scale > 0.1:
             self.scale -= 0.1
@@ -232,7 +241,7 @@ class Drawing:
 
     def zoom_percentage(self):
         """
-        Returns the zoom percentage
+        Returns the zoom percentage to be shown in the GUI
         """
         return self.scale * 100
 
@@ -250,7 +259,7 @@ class Drawing:
     def __update_size(self):
         """
         Updates the size of the canvas according
-        with the scale and the size of it
+        to the scale and the size of it
         """
         w = self.width * self.scale
         h = self.height * self.scale
@@ -258,7 +267,7 @@ class Drawing:
 
     def __add_to_canvas(self, x, y, image: Image, group):
         """
-        Adds a image to the canvas
+        Adds an image to the canvas
         Arguments:
             x: the x coordinate of the image
             y: the y coordinate of the image
@@ -407,6 +416,8 @@ class Drawing:
             return self.robots[4]
         if option_gamification == 5:
             return self.robots[5]
+        if option_gamification == 5:
+            return self.robots[6]
 
     def attach(self, component1, pin_component1, component2, pin_component2):
         if isinstance(component1, Drawing) or isinstance(component1, robots.ArduinoBoard):

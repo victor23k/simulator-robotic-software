@@ -1070,6 +1070,68 @@ class ArduinoBoard(Robot):
             if self.board.attach_pin(pin, servomotor):
                 servomotor.pin3 = pin
 
+class Challenge0Robot(Robot):
+    """
+    Class for the Arduino free use: no challenge
+    """
+    def __init__(self, robot):
+        """
+        Constructor for the robot of challenge1
+        """
+        super().__init__(boards.ArduinoUno())
+        self.help = ""
+        self.times_help = 0
+
+    def get_code(self):
+        """
+        Charge the source code. This is the solution to compare with the student's code
+        :return:
+        """
+        code_file = open("codes/challenge0", "r")
+        code = code_file.read()
+        code_file.close()
+        return code
+
+    def increment_help(self):
+        """
+        It contains all the clues that you would like to show in the different clicks of help button
+        :return:
+        """
+        if self.times_help == 0:
+            self.help += "1. En este desafío no necesitas ayuda, \nes totalmente libre para que pruebes la interfaz.\n\n"
+            self.times_help += 1
+        elif self.times_help == 1:
+            self.help += "2. Prueba los componentes, la conexión con el cable, el zoom, etc.\n\n"
+            self.times_help += 1
+        elif self.times_help == 2:
+            self.help += "3. Trabaja y deja de jugar con la ayuda.\n\n"
+            self.times_help += 1
+
+    def get_help(self):
+        self.increment_help()
+        return self.help
+
+    def get_challenge(self):
+        """
+        Show the title and the description of the exercise
+        :return: String: Text composed by title and description
+        """
+        return "Prueba libre\n\nEn este desafío no necesitas ayuda, es totalmente libre para que pruebes la interfaz.\n"
+
+    def get_initial_code(self):
+        """
+        This is the initial code when the suer starts the callenge
+        :return: String Initial code of the challenge
+        """
+        return "\n\nvoid setup(){\n\n}\n\nvoid loop(){\n\n}"
+
+    def probe_robot(self, robot):
+        """
+        It checks the challenge: correct number of elements, code, etc.
+        :param robot:
+        :return:
+        """
+        return []
 
 class Challenge1Robot(Robot):
     def __init__(self, robot):
@@ -1116,7 +1178,7 @@ class Challenge1Robot(Robot):
 
     def probe_robot(self, robot):
         errors = []
-        # debe haber 12 elementos (6 leds y 6 resistencias)
+        # Debe haber 12 elementos (6 leds y 6 resistencias)
         if len(robot.robot_elements) != 12:
             errors.append("El número de elementos añadidos no coincide con los correctos")
         # El número de conexiones a la placa deben ser 12

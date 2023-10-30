@@ -319,11 +319,14 @@ class RobotsController:
         if not self.new:
             points = self.robot_layer.drawing.points
             date = datetime.now().strftime("%d-%m-%Y")
+            if challenge == 0:
+                return
+
             if correct:
-                log = date + " - El usuario ha completado el desafío " + str(challenge + 1) + " con una nota de: " \
+                log = date + " - El usuario ha completado el desafío " + str(challenge) + " con una nota de: " \
                       + str(points) + "\n"
             else:
-                log = date + " - El usuario ha abandonado el desafío " + str(challenge + 1) + " cuando su nota era: " \
+                log = date + " - El usuario ha abandonado el desafío " + str(challenge) + " cuando su nota era: " \
                       + str(points) + "\n"
             self.consoleGamification.write(log)
 
