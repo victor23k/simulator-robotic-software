@@ -14,6 +14,38 @@ keywords = {
     "while": TokenType.WHILE,
 }
 
+def is_bin(c: str) -> bool:
+    """Checks if a character is a valid hexadecimal binary character"""
+
+    return 48 <= ord(c) <= 49
+
+def is_hex(c: str) -> bool:
+    """Checks if a character is a valid hexadecimal ASCII character"""
+
+    codepoint = ord(c)
+    return ((48 <= codepoint <= 57) or
+            (97 <= codepoint <= 102) or
+            (65 <= codepoint <= 70))
+
+def is_decimal(c: str) -> bool:
+    """
+    Checks if a character is an ASCII decimal.
+
+    str.isdecimal() is not valid for this scanner because it returns True for
+    unicode decimal characters.
+    """
+
+    codepoint = ord(c)
+    return ((48 <= codepoint <= 57) or
+            (97 <= codepoint <= 102) or
+            (65 <= codepoint <= 70))
+
+def is_octal(c: str) -> bool:
+    """
+    Checks if a character is a valid octal ASCII character.
+    """
+
+    return 48 <= ord(c) <= 55
 
 class Scanner:
     """
@@ -100,10 +132,25 @@ class Scanner:
                     next_token = self._produce_empty_token(TokenType.PERCENTAGE_EQUAL)
                 else:
                     next_token = self._produce_empty_token(TokenType.PERCENTAGE)
-            case x:
-                if x.isdigit():
+            case "0":
+                match self._peek():
+                    case "b":
+                        self._advance()
+                        next_token = self._binary()
+                    case "x":
+                        self._advance()
+                        next_token = self._hex()
+                    case char:
+                        if is_octal(char):
+                            self._advance()
+                            next_token = self._octal()
+                        else:
+                            # can be 0 or float with leading 0.
+                            next_token = self._number()
+            case char:
+                if is_decimal(char):
                     next_token = self._number()
-                elif x.isalpha():
+                elif char.isalpha():
                     next_token = self._identifier()
                 else:
                     # error: unexpected character
@@ -126,6 +173,39 @@ class Scanner:
         else:
             number = int(self.source[self.start : self.current])
 
+        return self._produce_token(TokenType.NUMBER, number)
+
+    def _binary(self) -> Token:
+        if is_bin(self._peek()):
+            self._advance()
+        else:
+            # error. expected 0 or 1 in binary constant
+            pass
+
+        while is_bin(self._peek()):
+            self._advance()
+            number = int(self.source[self.start:self.current], 2)
+
+        return self._produce_token(TokenType.NUMBER, number)
+
+    def _hex(self) -> Token:
+        if is_hex(self._peek()):
+            self._advance()
+        else:
+            # error. expected 0-9, A-F or a-f in hex constant
+            pass
+
+        while is_hex(self._peek()):
+            self._advance()
+
+        number = int(self.source[self.start:self.current], 16)
+        return self._produce_token(TokenType.NUMBER, number)
+
+    def _octal(self) -> Token:
+        while is_octal(self._peek()):
+            self._advance()
+
+        number = int(self.source[self.start:self.current], 8)
         return self._produce_token(TokenType.NUMBER, number)
 
     def _identifier(self) -> Token:
@@ -172,3 +252,5 @@ class Scanner:
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
         return Token(token_type, text, literal, self.line)
+
+
