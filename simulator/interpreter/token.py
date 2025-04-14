@@ -98,6 +98,9 @@ class TokenType(Enum):
     RIGHT_BRACKET = 94
     DOT = 95
     NUMBER = 96
+    IDENTIFIER = 97
+
+    EOF = 100
 
 @dataclass
 class Token:
