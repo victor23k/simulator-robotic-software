@@ -80,15 +80,46 @@ class TestScanner(unittest.TestCase):
         self.assertEqual(tokens[0].token, TokenType.NUMBER)
         self.assertEqual(tokens[2].token, TokenType.NUMBER)
 
-    def test_scans_scientific_notation_float(self):
+    def test_scans_positive_scientific_notation_upper_float(self):
         scanner = Scanner("2.34E5")
         token = next(scanner)
-        self.assertEqual(token[0].literal, 234000)
+        self.assertEqual(token.literal, 234000)
 
-    def test_scans_negative_scientific_notation_float(self):
+    def test_scans_positive_scientific_notation_lower_float(self):
+        scanner = Scanner("5.344e5")
+        token = next(scanner)
+        self.assertEqual(token.literal, 534400)
+
+    def test_scans_positive_scientific_notation_upper(self):
+        scanner = Scanner("2E7")
+        token = next(scanner)
+        self.assertEqual(token.literal, 20000000)
+
+    def test_scans_positive_scientific_notation_lower(self):
+        scanner = Scanner("5e5")
+        token = next(scanner)
+        self.assertEqual(token.literal, 500000)
+
+    def test_scans_negative_scientific_notation_upper(self):
+        scanner = Scanner("67E-3")
+        token = next(scanner)
+        self.assertEqual(token.literal, 0.067)
+
+    def test_scans_negative_scientific_notation_lower(self):
         scanner = Scanner("67e-3")
         token = next(scanner)
-        self.assertEqual(token[0].literal, 0.067)
+        self.assertEqual(token.literal, 0.067)
+
+    def test_scans_negative_scientific_notation_lower_float(self):
+        scanner = Scanner("4.7e-3")
+        token = next(scanner)
+        self.assertEqual(token.literal, 0.0047)
+
+    def test_scans_negative_scientific_notation_upper_float(self):
+        scanner = Scanner("4.7E-3")
+        token = next(scanner)
+        self.assertEqual(token.literal, 0.0047)
+
 
 if __name__ == '__main__':
     unittest.main()

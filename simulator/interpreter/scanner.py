@@ -36,9 +36,7 @@ def is_decimal(c: str) -> bool:
     """
 
     codepoint = ord(c)
-    return ((48 <= codepoint <= 57) or
-            (97 <= codepoint <= 102) or
-            (65 <= codepoint <= 70))
+    return 48 <= codepoint <= 57
 
 def is_octal(c: str) -> bool:
     """
@@ -163,15 +161,37 @@ class Scanner:
         return self.current >= len(self.source)
 
     def _number(self) -> Token:
-        while self._peek().isdigit():
+        while is_decimal(self._peek()):
             self._advance()
-        if self._peek() == "." and self._peek_next().isdigit():
+
+        # scientific notation
+        if self._peek() == "e" or self._peek() == "E":
+            self._advance()
+            if self._peek() == "-":
+                self._advance()
+
+            while is_decimal(self._peek()):
+                self._advance()
+
+            number = float(self.source[self.start:self.current])
+
+        # float scientific notation
+        elif self._peek() == "." and self._peek_next().isdigit():
             self._advance()
             while self._peek().isdigit():
                 self._advance()
+
+            if self._peek() == "e" or self._peek() == "E":
+                self._advance()
+                if self._peek() == "-":
+                    self._advance()
+
+                while is_decimal(self._peek()):
+                    self._advance()
+
             number = float(self.source[self.start:self.current])
         else:
-            number = int(self.source[self.start : self.current])
+            number = int(self.source[self.start:self.current])
 
         return self._produce_token(TokenType.NUMBER, number)
 
