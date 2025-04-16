@@ -120,6 +120,15 @@ class TestScanner(unittest.TestCase):
         token = next(scanner)
         self.assertEqual(token.literal, 0.0047)
 
+    def test_adds_diagnostic_for_malformed_binary_constant(self):
+        scanner = Scanner("1 + 0b * 2")
+        [token for token in scanner]
+        self.assertNotEqual(scanner.diagnostics, [])
+
+    def test_adds_diagnostic_for_malformed_hex_constant(self):
+        scanner = Scanner("1 + 0xZ89 * 2")
+        [token for token in scanner]
+        self.assertNotEqual(scanner.diagnostics, [])
 
 if __name__ == '__main__':
     unittest.main()

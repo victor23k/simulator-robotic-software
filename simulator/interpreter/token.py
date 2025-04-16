@@ -101,6 +101,7 @@ class TokenType(Enum):
     IDENTIFIER = 97
 
     EOF = 100
+    ERROR = 101
 
 @dataclass
 class Token:
@@ -109,3 +110,4 @@ class Token:
     lexeme: str
     literal: object
     line: int
+    column: int

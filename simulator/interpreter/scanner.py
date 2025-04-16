@@ -1,4 +1,5 @@
 from simulator.interpreter.token import Token, TokenType
+from dataclasses import dataclass
 
 keywords = {
     "break": TokenType.BREAK,
@@ -14,18 +15,21 @@ keywords = {
     "while": TokenType.WHILE,
 }
 
+
 def is_bin(c: str) -> bool:
     """Checks if a character is a valid hexadecimal binary character"""
 
     return 48 <= ord(c) <= 49
 
+
 def is_hex(c: str) -> bool:
     """Checks if a character is a valid hexadecimal ASCII character"""
 
     codepoint = ord(c)
-    return ((48 <= codepoint <= 57) or
-            (97 <= codepoint <= 102) or
-            (65 <= codepoint <= 70))
+    return (
+        (48 <= codepoint <= 57) or (97 <= codepoint <= 102) or (65 <= codepoint <= 70)
+    )
+
 
 def is_decimal(c: str) -> bool:
     """
@@ -38,12 +42,26 @@ def is_decimal(c: str) -> bool:
     codepoint = ord(c)
     return 48 <= codepoint <= 57
 
+
 def is_octal(c: str) -> bool:
     """
     Checks if a character is a valid octal ASCII character.
     """
 
     return 48 <= ord(c) <= 55
+
+
+@dataclass
+class Diagnostic:
+    """
+    Diagnostics about lexing errors with line and column information.
+    """
+
+    message: str
+    line: int
+    col_start: int
+    col_end: int
+
 
 class Scanner:
     """
@@ -54,20 +72,25 @@ class Scanner:
     start: int
     current: int
     line: int
+    column: int
     tokens: [Token]
+    diagnostics: [Diagnostic]
+    source_consumed: bool
 
     def __init__(self, source: str):
         self.source = source
         self.start = 0
         self.current = 0
         self.line = 1
+        self.column = 1
         self.tokens = []
+        self.diagnostics = []
         self.source_consumed = False
 
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> Token:
         if self.source_consumed:
             raise StopIteration
 
@@ -173,7 +196,7 @@ class Scanner:
             while is_decimal(self._peek()):
                 self._advance()
 
-            number = float(self.source[self.start:self.current])
+            number = float(self.source[self.start : self.current])
 
         # float scientific notation
         elif self._peek() == "." and self._peek_next().isdigit():
@@ -189,9 +212,9 @@ class Scanner:
                 while is_decimal(self._peek()):
                     self._advance()
 
-            number = float(self.source[self.start:self.current])
+            number = float(self.source[self.start : self.current])
         else:
-            number = int(self.source[self.start:self.current])
+            number = int(self.source[self.start : self.current])
 
         return self._produce_token(TokenType.NUMBER, number)
 
@@ -199,12 +222,22 @@ class Scanner:
         if is_bin(self._peek()):
             self._advance()
         else:
-            # error. expected 0 or 1 in binary constant
-            pass
+            # panic mode until whitespace
+            while not self._peek().isspace():
+                self._advance()
+
+            diag = Diagnostic(
+                message="Expected 0 or 1 in binary constant",
+                line=self.line,
+                col_start=self.column - (self.current - self.start),
+                col_end=self.column,
+            )
+            self.diagnostics.append(diag)
+            return self._produce_empty_token(TokenType.ERROR)
 
         while is_bin(self._peek()):
             self._advance()
-            number = int(self.source[self.start:self.current], 2)
+            number = int(self.source[self.start : self.current], 2)
 
         return self._produce_token(TokenType.NUMBER, number)
 
@@ -212,20 +245,31 @@ class Scanner:
         if is_hex(self._peek()):
             self._advance()
         else:
-            # error. expected 0-9, A-F or a-f in hex constant
-            pass
+            # panic mode until whitespace
+            while not self._peek().isspace():
+                self._advance()
+
+            diag = Diagnostic(
+                message="Expected 0-9, A-F or a-f in hex constant",
+                line=self.line,
+                col_start=self.start,
+                col_end=self.current,
+            )
+            self.diagnostics.append(diag)
+            print(self.source[self.start : self.current])
+            return self._produce_empty_token(TokenType.ERROR)
 
         while is_hex(self._peek()):
             self._advance()
 
-        number = int(self.source[self.start:self.current], 16)
+        number = int(self.source[self.start : self.current], 16)
         return self._produce_token(TokenType.NUMBER, number)
 
     def _octal(self) -> Token:
         while is_octal(self._peek()):
             self._advance()
 
-        number = int(self.source[self.start:self.current], 8)
+        number = int(self.source[self.start : self.current], 8)
         return self._produce_token(TokenType.NUMBER, number)
 
     def _identifier(self) -> Token:
@@ -240,6 +284,7 @@ class Scanner:
         if self._is_at_end():
             return False
         self.current += 1
+        self.column += 1
         return self.source[self.current - 1]
 
     def _match(self, expected: str) -> bool:
@@ -262,8 +307,20 @@ class Scanner:
         return self.source[self.current + 1]
 
     def _skip_whitespace(self):
+        peek_chr = self._peek()
+        if peek_chr == "\n" or peek_chr == "\r":
+            self.line += 1
+            self._advance()
+            self.column = 0
+        elif peek_chr == "\r" and self._peek_next() == "\n":
+            self.line += 1
+            self._advance()
+            self._advance()
+            self.column = 0
+
         while self._peek().isspace():
             self._advance()
+
         self.start = self.current
 
     def _produce_empty_token(self, token_type: TokenType) -> Token:
@@ -271,6 +328,4 @@ class Scanner:
 
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
-        return Token(token_type, text, literal, self.line)
-
-
+        return Token(token_type, text, literal, self.line, self.column)
