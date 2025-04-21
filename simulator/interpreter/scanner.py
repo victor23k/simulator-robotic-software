@@ -256,7 +256,6 @@ class Scanner:
                 col_end=self.current,
             )
             self.diagnostics.append(diag)
-            print(self.source[self.start : self.current])
             return self._produce_empty_token(TokenType.ERROR)
 
         while is_hex(self._peek()):

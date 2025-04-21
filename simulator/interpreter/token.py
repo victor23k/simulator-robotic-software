@@ -7,7 +7,7 @@ class TokenType(Enum):
     SLASH = 3
     STAR = 4
     PERCENTAGE = 5
-    DASH = 6
+    MINUS = 6
     AMPERSAND = 7
     EQUAL_EQUAL = 8
     GREATER_THAN = 9
@@ -42,7 +42,7 @@ class TokenType(Enum):
     SLASH_EQUAL = 34
     STAR_EQUAL = 35
     PERCENTAGE_EQUAL = 36
-    DASH_EQUAL = 37
+    MINUS_EQUAL = 37
     DECREMENT = 38
     INCREMENT = 39
 
@@ -111,3 +111,12 @@ class Token:
     literal: object
     line: int
     column: int
+
+    def is_binary(self) -> bool:
+        return self.token in [
+            TokenType.PLUS,
+            TokenType.MINUS,
+            TokenType.STAR,
+            TokenType.SLASH,
+            TokenType.PERCENTAGE,
+        ]
