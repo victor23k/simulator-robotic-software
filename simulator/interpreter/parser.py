@@ -4,6 +4,7 @@ from simulator.interpreter.token import Token, TokenType
 from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr
 from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
+from simulator.interpreter.stmt import ExpressionStmt
 
 
 class ParseError(Exception):
@@ -59,11 +60,26 @@ class Parser:
 
     def parse(self) -> [Expr]:
         """
-        Parses the source string into an AST.
+        Parses the source string into an AST that takes the form of a list of
+        statements.
         """
 
-        expr = self._parse_binary_expr(PrecLevel.MINIMAL)
-        return [expr]
+        statements = []
+
+        while not self._is_at_end():
+            statements.append(self._expression_statement())
+
+        return statements
+
+
+    def _expression_statement(self) -> ExpressionStmt:
+        expr = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        stmt = ExpressionStmt(expr)
+        return stmt
+
+    def _expression(self):
+        return self._parse_binary_expr(PrecLevel.MINIMAL)
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
@@ -100,7 +116,8 @@ class Parser:
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if self._check(token_type):
             return self._advance()
-        raise ParseError(message)
+        raise ParseError(message, self.current.line, self.current.column,
+                         self.source)
 
     def _match(self, *token_types: TokenType) -> bool:
         for token_type in token_types:

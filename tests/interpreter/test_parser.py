@@ -6,9 +6,9 @@ from simulator.interpreter.expr import BinaryExpr, LiteralExpr
 
 class TestParser(unittest.TestCase):
     def test_parses_complex_arithmetic_expression(self):
-        parser = Parser("1 * (5 - 4 % (10 - 3)) / 10")
-        [expr] = parser.parse()
-        match expr:
+        parser = Parser("1 * (5 - 4 % (10 - 3)) / 10;")
+        statements = parser.parse()
+        match statements[0].expr:
             case BinaryExpr(
                 op=Token(token=TokenType.STAR),
                 lhs=LiteralExpr(value=1),
