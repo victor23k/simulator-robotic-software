@@ -4,7 +4,7 @@ from simulator.interpreter.token import Token, TokenType
 from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr
 from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
-from simulator.interpreter.stmt import ExpressionStmt
+from simulator.interpreter.stmt import ExpressionStmt, Stmt, VariableStmt
 
 
 class ParseError(Exception):
@@ -67,9 +67,45 @@ class Parser:
         statements = []
 
         while not self._is_at_end():
-            statements.append(self._expression_statement())
+            statements.append(self._statement())
 
         return statements
+
+    def _statement(self) -> Stmt:
+        next_token = self._advance()
+        match next_token.token:
+            # var type, must be a declaration
+            case TokenType.BOOL | TokenType.BOOLEAN | TokenType.BYTE | \
+                TokenType.CHAR | TokenType.DOUBLE | TokenType.FLOAT | \
+                TokenType.INT | TokenType.LONG | TokenType.SHORT | \
+                TokenType.SIZE_T | TokenType.UNSIGNED_INT | TokenType.WORD | \
+                TokenType.UNSIGNED_CHAR | TokenType.UNSIGNED_LONG:
+                return self._declaration()
+            case _:
+                return self._expression_statement()
+
+    def _declaration(self) -> VariableStmt:
+        var_type = self.previous
+        identifier = self._consume(TokenType.IDENTIFIER,
+                                   "Expect identifier in variable declaration.")
+        initializer = None
+
+        # if left square bracket, this is an array
+        if self._check(TokenType.LEFT_BRACKET):
+            self._advance()
+            _number = self._check(TokenType.NUMBER,
+                                 "Expect number constant in array declaration.")
+            self._check(TokenType.RIGHT_BRACKET,
+                        "Expect closing ']' in array declaration.")
+            # don't know what to do with this yet
+
+        # if equals, we are initializing the variable
+        if self._check(TokenType.EQUAL):
+            self._advance()
+            initializer = self._expression()
+
+        self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+        return VariableStmt(var_type, identifier, initializer)
 
 
     def _expression_statement(self) -> ExpressionStmt:
@@ -139,6 +175,7 @@ class Parser:
     def _advance(self):
         self.previous = self.current
         self.current = next(self.scanner)
+        return self.previous
 
     def _error(self, token: Token, message: str):
         # This should generate a Diagnostic, report it to the interpreter and

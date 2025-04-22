@@ -68,11 +68,10 @@ class TokenType(Enum):
     CHAR = 43
     DOUBLE = 64
     FLOAT = 65
-    INT = 65
-    LONG = 66
-    SHORT = 67
-    SIZE_T = 68
-    # STRING = 69 creo que esto es una clase que tengo que implementar
+    INT = 66
+    LONG = 67
+    SHORT = 68
+    SIZE_T = 69
     UNSIGNED_INT = 70
     UNSIGNED_CHAR = 71
     UNSIGNED_LONG = 72

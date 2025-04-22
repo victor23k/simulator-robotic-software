@@ -1,6 +1,6 @@
 import unittest
 from simulator.interpreter.scanner import Scanner 
-from simulator.interpreter.token import TokenType 
+from simulator.interpreter.token import TokenType, Token
 
 class TestScanner(unittest.TestCase):
 
@@ -129,6 +129,25 @@ class TestScanner(unittest.TestCase):
         scanner = Scanner("1 + 0xZ89 * 2")
         [token for token in scanner]
         self.assertNotEqual(scanner.diagnostics, [])
+
+    def test_scans_simple_declaration(self):
+        scanner = Scanner("int num;")
+        self.assertIs(TokenType.INT, next(scanner).token)
+        ident = next(scanner)
+        self.assertIs(TokenType.IDENTIFIER, ident.token)
+        self.assertEqual("num", ident.literal)
+        self.assertIs(TokenType.SEMICOLON, next(scanner).token)
+
+    def test_scans_declaration_with_assignment(self):
+        scanner = Scanner("int a = 2;")
+        self.assertIs(TokenType.INT, next(scanner).token)
+        ident = next(scanner)
+        self.assertIs(TokenType.IDENTIFIER, ident.token)
+        self.assertEqual("a", ident.literal)
+        self.assertIs(TokenType.EQUAL, next(scanner).token)
+        num = next(scanner)
+        self.assertIs(TokenType.NUMBER, num.token)
+        self.assertIs(2, num.literal)
 
 if __name__ == '__main__':
     unittest.main()

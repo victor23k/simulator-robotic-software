@@ -2,6 +2,7 @@ import unittest
 from simulator.interpreter.parser import Parser
 from simulator.interpreter.token import Token, TokenType
 from simulator.interpreter.expr import BinaryExpr, LiteralExpr
+from simulator.interpreter.stmt import Stmt, VariableStmt
 
 
 class TestParser(unittest.TestCase):
@@ -34,6 +35,23 @@ class TestParser(unittest.TestCase):
             case _:
                 self.assertTrue(False)
 
+
+    def test_parses_declaration(self):
+        parser = Parser("int num;")
+        statements = parser.parse()
+        self.assertIsInstance(statements[0], VariableStmt)
+        self.assertEqual(statements[0].var_type.token, TokenType.INT)
+        self.assertEqual(statements[0].name.literal, "num")
+        self.assertIsNone(statements[0].initializer)
+
+    def test_parses_declaration_with_initialization(self):
+        parser = Parser("int num = 4;")
+        statements = parser.parse()
+        self.assertIsInstance(statements[0], VariableStmt)
+        self.assertEqual(statements[0].var_type.token, TokenType.INT)
+        self.assertEqual(statements[0].name.literal, "num")
+        self.assertIsInstance(statements[0].initializer, LiteralExpr)
+        self.assertEqual(statements[0].initializer.value, 4)
 
 if __name__ == "__main__":
     unittest.main()

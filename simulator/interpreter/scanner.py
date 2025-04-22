@@ -15,6 +15,20 @@ keywords = {
     "while": TokenType.WHILE,
 }
 
+types = {
+    "bool": TokenType.BOOL,
+    "boolean": TokenType.BOOLEAN,
+    "byte": TokenType.BYTE,
+    "char": TokenType.CHAR,
+    "double": TokenType.DOUBLE,
+    "float": TokenType.FLOAT,
+    "int": TokenType.INT,
+    "long": TokenType.LONG,
+    "short": TokenType.SHORT,
+    "size_t": TokenType.SIZE_T,
+    "word": TokenType.WORD,
+}
+
 
 def is_bin(c: str) -> bool:
     """Checks if a character is a valid hexadecimal binary character"""
@@ -105,6 +119,10 @@ class Scanner:
                 next_token = self._produce_empty_token(TokenType.LEFT_PAREN)
             case ")":
                 next_token = self._produce_empty_token(TokenType.RIGHT_PAREN)
+            case "[":
+                next_token = self._produce_empty_token(TokenType.LEFT_BRACKET)
+            case "]":
+                next_token = self._produce_empty_token(TokenType.RIGHT_BRACKET)
             case ".":
                 next_token = self._produce_empty_token(TokenType.DOT)
             case ";":
@@ -277,7 +295,45 @@ class Scanner:
 
         identifier = self.source[self.start : self.current]
 
-        return self._produce_token(keywords.get(identifier, TokenType.IDENTIFIER))
+        if identifier == "unsigned":
+            self._skip_whitespace()
+            second_word_start = self.current
+            while self._peek().isalnum():
+                self._advance()
+
+            second_word = self.source[second_word_start : self.current]
+            match second_word:
+                case "char":
+                    return self._produce_token(
+                        TokenType.UNSIGNED_CHAR,
+                        self.source[self.start:self.current]
+                    )
+                case "int":
+                    return self._produce_token(
+                        TokenType.UNSIGNED_INT,
+                        self.source[self.start:self.current]
+                    )
+                case "long":
+                    return self._produce_token(
+                        TokenType.UNSIGNED_LONG,
+                        self.source[self.start:self.current]
+                    )
+                case _:
+                    diag = Diagnostic(
+                        message="Only the following types allow an 'unsigned'" \
+                            "modifier: 'char', 'int', and 'long'",
+                        line=self.line,
+                        col_start=self.column - (self.current - self.start),
+                        col_end=self.column,
+                    )
+                    self.diagnostics.append(diag)
+                    return self._produce_empty_token(TokenType.ERROR)
+        else:
+            token_type = keywords.get(
+                            identifier,
+                            types.get(identifier, TokenType.IDENTIFIER))
+
+            return self._produce_token(token_type, identifier)
 
     def _advance(self) -> str:
         if self._is_at_end():
