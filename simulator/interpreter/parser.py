@@ -75,28 +75,42 @@ class Parser:
         next_token = self._advance()
         match next_token.token:
             # var type, must be a declaration
-            case TokenType.BOOL | TokenType.BOOLEAN | TokenType.BYTE | \
-                TokenType.CHAR | TokenType.DOUBLE | TokenType.FLOAT | \
-                TokenType.INT | TokenType.LONG | TokenType.SHORT | \
-                TokenType.SIZE_T | TokenType.UNSIGNED_INT | TokenType.WORD | \
-                TokenType.UNSIGNED_CHAR | TokenType.UNSIGNED_LONG:
+            case (
+                TokenType.BOOL
+                | TokenType.BOOLEAN
+                | TokenType.BYTE
+                | TokenType.CHAR
+                | TokenType.DOUBLE
+                | TokenType.FLOAT
+                | TokenType.INT
+                | TokenType.LONG
+                | TokenType.SHORT
+                | TokenType.SIZE_T
+                | TokenType.UNSIGNED_INT
+                | TokenType.WORD
+                | TokenType.UNSIGNED_CHAR
+                | TokenType.UNSIGNED_LONG
+            ):
                 return self._declaration()
             case _:
                 return self._expression_statement()
 
     def _declaration(self) -> VariableStmt:
         var_type = self.previous
-        identifier = self._consume(TokenType.IDENTIFIER,
-                                   "Expect identifier in variable declaration.")
+        identifier = self._consume(
+            TokenType.IDENTIFIER, "Expect identifier in variable declaration."
+        )
         initializer = None
 
         # if left square bracket, this is an array
         if self._check(TokenType.LEFT_BRACKET):
             self._advance()
-            _number = self._check(TokenType.NUMBER,
-                                 "Expect number constant in array declaration.")
-            self._check(TokenType.RIGHT_BRACKET,
-                        "Expect closing ']' in array declaration.")
+            _number = self._check(
+                TokenType.NUMBER, "Expect number constant in array declaration."
+            )
+            self._check(
+                TokenType.RIGHT_BRACKET, "Expect closing ']' in array declaration."
+            )
             # don't know what to do with this yet
 
         # if equals, we are initializing the variable
@@ -106,7 +120,6 @@ class Parser:
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
         return VariableStmt(var_type, identifier, initializer)
-
 
     def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()
@@ -152,8 +165,7 @@ class Parser:
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if self._check(token_type):
             return self._advance()
-        raise ParseError(message, self.current.line, self.current.column,
-                         self.source)
+        raise ParseError(message, self.current.line, self.current.column, self.source)
 
     def _match(self, *token_types: TokenType) -> bool:
         for token_type in token_types:

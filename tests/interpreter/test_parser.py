@@ -35,7 +35,6 @@ class TestParser(unittest.TestCase):
             case _:
                 self.assertTrue(False)
 
-
     def test_parses_declaration(self):
         parser = Parser("int num;")
         statements = parser.parse()
@@ -52,6 +51,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(statements[0].name.literal, "num")
         self.assertIsInstance(statements[0].initializer, LiteralExpr)
         self.assertEqual(statements[0].initializer.value, 4)
+
 
 if __name__ == "__main__":
     unittest.main()
