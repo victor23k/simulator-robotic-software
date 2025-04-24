@@ -1,5 +1,5 @@
 from simulator.interpreter.token import Token, TokenType
-from dataclasses import dataclass
+from simulator.interpreter.diagnostic import Diagnostic
 
 keywords = {
     "break": TokenType.BREAK,
@@ -65,18 +65,6 @@ def is_octal(c: str) -> bool:
     return 48 <= ord(c) <= 55
 
 
-@dataclass
-class Diagnostic:
-    """
-    Diagnostics about lexing errors with line and column information.
-    """
-
-    message: str
-    line: int
-    col_start: int
-    col_end: int
-
-
 class Scanner:
     """
     Iterator that produces tokens from source program.
@@ -87,8 +75,8 @@ class Scanner:
     current: int
     line: int
     column: int
-    tokens: [Token]
-    diagnostics: [Diagnostic]
+    tokens: list[Token]
+    diagnostics: list[Diagnostic]
     source_consumed: bool
 
     def __init__(self, source: str):
@@ -113,6 +101,8 @@ class Scanner:
             return self._produce_empty_token(TokenType.EOF)
 
         self._skip_whitespace()
+
+        next_token = self._produce_empty_token(TokenType.EOF)
 
         match self._advance():
             case "(":
@@ -240,7 +230,7 @@ class Scanner:
         if is_bin(self._peek()):
             self._advance()
         else:
-            # panic mode until whitespace
+            # eat characters until whitespace
             while not self._peek().isspace():
                 self._advance()
 
@@ -255,7 +245,8 @@ class Scanner:
 
         while is_bin(self._peek()):
             self._advance()
-            number = int(self.source[self.start : self.current], 2)
+
+        number = int(self.source[self.start : self.current], 2)
 
         return self._produce_token(TokenType.NUMBER, number)
 
@@ -320,7 +311,7 @@ class Scanner:
                     )
                 case _:
                     diag = Diagnostic(
-                        message="Only the following types allow an 'unsigned'" \
+                        message="Only the following types allow an 'unsigned'" +
                             "modifier: 'char', 'int', and 'long'",
                         line=self.line,
                         col_start=self.column - (self.current - self.start),
@@ -337,7 +328,7 @@ class Scanner:
 
     def _advance(self) -> str:
         if self._is_at_end():
-            return False
+            return "\0"
         self.current += 1
         self.column += 1
         return self.source[self.current - 1]

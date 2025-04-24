@@ -1,20 +1,26 @@
-import sys
-from simulator.interpreter.scanner import Scanner
-from simulator.interpreter.token import Token, TokenType
-from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr
-from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
+from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr
+from simulator.interpreter.diagnostic import Diagnostic
+from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
+from simulator.interpreter.scanner import Scanner
 from simulator.interpreter.stmt import ExpressionStmt, Stmt, VariableStmt
+from simulator.interpreter.token import Token, TokenType
 
 
 class ParseError(Exception):
     """Base class for exceptions raised by the parser."""
+    msg: str
+    line: int
+    col: int
+    text: str
+    diagnostics: [Diagnostic]
 
     def __init__(self, msg: str, line: int, col: int, text: str):
         self.msg = msg
         self.line = line
         self.col = col
         self.text = text
+        self.diagnostics = []
 
     # This formatting could be fancier, including the source line and signaling
     # the error part. This is a example from the rust docs:
@@ -191,5 +197,8 @@ class Parser:
 
     def _error(self, token: Token, message: str):
         # This should generate a Diagnostic, report it to the interpreter and
-        # return an exception to be raised
-        print(message, file=sys.stderr)
+        # return it        
+        
+        diag = Diagnostic(message, token.line, token.column, token.column +
+            len(token.lexeme))
+        self.diagnostics.append(diag)
