@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from simulator.interpreter.environment import Value
 from simulator.interpreter.token import Token
 
 class Expr:
@@ -18,6 +19,12 @@ class BinaryExpr(Expr):
     rhs={repr(self.rhs).replace('\n', '\n    ')}
 )"""
 
-@dataclass
 class LiteralExpr(Expr):
-    value: object
+    value: Value
+
+    def __init__(self, token: Token):
+        self.value = Value(token.token, token.literal)
+
+@dataclass
+class VariableExpr(Expr):
+    name: Token

@@ -161,7 +161,7 @@ class Parser:
                 return expr
             case Token(token=TokenType.NUMBER) as token:
                 self._advance()
-                return LiteralExpr(token.literal)
+                return LiteralExpr(token)
             case unexpected_token:
                 self._advance()
                 self._error(
