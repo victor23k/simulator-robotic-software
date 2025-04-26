@@ -6,21 +6,20 @@ from simulator.interpreter.scanner import Scanner
 from simulator.interpreter.stmt import ExpressionStmt, Stmt, VariableStmt
 from simulator.interpreter.token import Token, TokenType
 
+from typing import override
 
-class ParseError(Exception):
+class ParseError():
     """Base class for exceptions raised by the parser."""
     msg: str
     line: int
     col: int
     text: str
-    diagnostics: [Diagnostic]
 
     def __init__(self, msg: str, line: int, col: int, text: str):
         self.msg = msg
         self.line = line
         self.col = col
         self.text = text
-        self.diagnostics = []
 
     # This formatting could be fancier, including the source line and signaling
     # the error part. This is a example from the rust docs:
@@ -35,6 +34,7 @@ class ParseError(Exception):
     #    |
     #    = note: note without a `Span`, created with `.note`
 
+    @override
     def __str__(self):
         return f"""{self.__class__.__name__}: {self.msg}.
                 Ocurred at pos ({self.line}, {self.col}) in:
@@ -56,15 +56,15 @@ class Parser:
     scanner: Scanner
     current: Token
     previous: Token
+    diagnostics: list[Diagnostic]
 
     def __init__(self, source: str):
         self.source = source
         self.scanner = Scanner(source)
-        self.current = None
-        self.previous = None
+        self.diagnostics = []
         self._advance()
 
-    def parse(self) -> [Expr]:
+    def parse(self) -> list[Expr]:
         """
         Parses the source string into an AST that takes the form of a list of
         statements.
@@ -111,10 +111,10 @@ class Parser:
         # if left square bracket, this is an array
         if self._check(TokenType.LEFT_BRACKET):
             self._advance()
-            _number = self._check(
+            _number = self._consume(
                 TokenType.NUMBER, "Expect number constant in array declaration."
             )
-            self._check(
+            self._consume(
                 TokenType.RIGHT_BRACKET, "Expect closing ']' in array declaration."
             )
             # don't know what to do with this yet
@@ -143,7 +143,7 @@ class Parser:
 
         while self._peek().is_binary() and curr_token_prec >= min_prec:
             op = self.current
-            assoc = get_binary_op_assoc(op)
+            assoc = get_binary_op_assoc(op.token)
             next_min_prec = min_prec + 1 if assoc is Assoc.LEFT else min_prec
 
             self._advance()
@@ -159,19 +159,24 @@ class Parser:
                 expr = self._parse_binary_expr(PrecLevel.MINIMAL)
                 self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
                 return expr
-            case Token(token=TokenType.NUMBER):
+            case Token(token=TokenType.NUMBER) as token:
                 self._advance()
-                return LiteralExpr(self.previous.literal)
-            case Token(token=tt) if tt in [TokenType.STAR]:
+                return LiteralExpr(token.literal)
+            case unexpected_token:
                 self._advance()
                 self._error(
-                    self.previous, "Expected number or expression inside parens."
+                    unexpected_token, "Expected number or expression inside parens."
                 )
+                return Expr()
 
     def _consume(self, token_type: TokenType, message: str) -> Token:
-        if self._check(token_type):
-            return self._advance()
-        raise ParseError(message, self.current.line, self.current.column, self.source)
+        if not self._check(token_type):
+
+            diag = Diagnostic(message, self.current.line, self.current.column,
+                        len(self.current.lexeme) + self.current.column)
+            self.diagnostics.append(diag)
+
+        return self._advance()
 
     def _match(self, *token_types: TokenType) -> bool:
         for token_type in token_types:
