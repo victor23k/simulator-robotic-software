@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.expr import Expr
 from simulator.interpreter.token import Token
 
@@ -35,3 +36,6 @@ class VariableStmt(Stmt):
     var_type: Token
     name: Token
     initializer: Expr | None
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.name)

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from simulator.interpreter.environment import Value
+from typing import override
+
+from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.token import Token
 
 class Expr:
@@ -12,6 +14,7 @@ class BinaryExpr(Expr):
     op: Token
     rhs: Expr
 
+    @override
     def __repr__(self):
         return f"""{self.__class__.__name__}(
     op={self.op},
@@ -19,12 +22,19 @@ class BinaryExpr(Expr):
     rhs={repr(self.rhs).replace('\n', '\n    ')}
 )"""
 
-class LiteralExpr(Expr):
-    value: Value
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return Diagnostic(message, self.op.line, self.op.column, self.op.column)
 
-    def __init__(self, token: Token):
-        self.value = Value(token.token, token.literal)
+@dataclass()
+class LiteralExpr(Expr):
+    value: Token
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.value)
 
 @dataclass
 class VariableExpr(Expr):
     name: Token
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.name)
