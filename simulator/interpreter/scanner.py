@@ -205,6 +205,7 @@ class Scanner:
                 self._advance()
 
             number = float(self.source[self.start : self.current])
+            token_type = TokenType.FLOAT_LITERAL
 
         # float scientific notation
         elif self._peek() == "." and self._peek_next().isdigit():
@@ -221,10 +222,13 @@ class Scanner:
                     self._advance()
 
             number = float(self.source[self.start : self.current])
+            token_type = TokenType.FLOAT_LITERAL
+        # regular integer
         else:
             number = int(self.source[self.start : self.current])
+            token_type = TokenType.INT_LITERAL
 
-        return self._produce_token(TokenType.NUMBER, number)
+        return self._produce_token(token_type, number)
 
     def _binary(self) -> Token:
         if is_bin(self._peek()):
@@ -248,7 +252,7 @@ class Scanner:
 
         number = int(self.source[self.start : self.current], 2)
 
-        return self._produce_token(TokenType.NUMBER, number)
+        return self._produce_token(TokenType.INT_LITERAL, number)
 
     def _hex(self) -> Token:
         if is_hex(self._peek()):
@@ -271,14 +275,14 @@ class Scanner:
             self._advance()
 
         number = int(self.source[self.start : self.current], 16)
-        return self._produce_token(TokenType.NUMBER, number)
+        return self._produce_token(TokenType.INT_LITERAL, number)
 
     def _octal(self) -> Token:
         while is_octal(self._peek()):
             self._advance()
 
         number = int(self.source[self.start : self.current], 8)
-        return self._produce_token(TokenType.NUMBER, number)
+        return self._produce_token(TokenType.INT_LITERAL, number)
 
     def _identifier(self) -> Token:
         while self._peek().isalnum() or self._peek == "_":

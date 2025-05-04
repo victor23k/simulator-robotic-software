@@ -102,6 +102,10 @@ class TokenType(Enum):
     EOF = 100
     ERROR = 101
 
+    # numeric literals
+    FLOAT_LITERAL = 110
+    INT_LITERAL = 111
+
 @dataclass
 class Token:
     """Arduino Language token."""
