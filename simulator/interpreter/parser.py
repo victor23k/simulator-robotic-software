@@ -1,5 +1,5 @@
 from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
-from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr
+from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr, VariableExpr
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.scanner import Scanner
@@ -62,9 +62,10 @@ class Parser:
         self.source = source
         self.scanner = Scanner(source)
         self.diagnostics = []
+        self.current = Token(TokenType.EOF, "", None, 0, 0)
         self._advance()
 
-    def parse(self) -> list[Expr]:
+    def parse(self) -> list[Stmt]:
         """
         Parses the source string into an AST that takes the form of a list of
         statements.
@@ -73,7 +74,8 @@ class Parser:
         statements = []
 
         while not self._is_at_end():
-            statements.append(self._statement())
+            stmt = self._statement()
+            statements.append(stmt)
 
         return statements
 
@@ -109,8 +111,7 @@ class Parser:
         initializer = None
 
         # if left square bracket, this is an array
-        if self._check(TokenType.LEFT_BRACKET):
-            self._advance()
+        if self._match(TokenType.LEFT_BRACKET):
             _number = self._consume(
                 TokenType.NUMBER, "Expect number constant in array declaration."
             )
@@ -120,11 +121,11 @@ class Parser:
             # don't know what to do with this yet
 
         # if equals, we are initializing the variable
-        if self._check(TokenType.EQUAL):
-            self._advance()
+        if self._match(TokenType.EQUAL):
             initializer = self._expression()
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+
         return VariableStmt(var_type, identifier, initializer)
 
     def _expression_statement(self) -> ExpressionStmt:
@@ -133,8 +134,16 @@ class Parser:
         stmt = ExpressionStmt(expr)
         return stmt
 
-    def _expression(self):
-        return self._parse_binary_expr(PrecLevel.MINIMAL)
+    def _expression(self) -> Expr:
+        match self._peek():
+            # case Token(token=TokenType.IDENTIFIER) as name:
+            #     self._advance()
+            #     return VariableExpr(name)
+            case Token(token=TokenType.NUMBER) as num:
+                self._advance()
+                return LiteralExpr(num)
+            case _:
+                return self._parse_binary_expr(PrecLevel.MINIMAL)
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
@@ -162,6 +171,9 @@ class Parser:
             case Token(token=TokenType.NUMBER) as token:
                 self._advance()
                 return LiteralExpr(token)
+            case Token(token=TokenType.IDENTIFIER) as token:
+                self._advance()
+                return VariableExpr(token)
             case unexpected_token:
                 self._advance()
                 self._error(
