@@ -1,6 +1,6 @@
 import unittest
 from simulator.interpreter.scanner import Scanner 
-from simulator.interpreter.token import TokenType, Token
+from simulator.interpreter.token import TokenType
 
 class TestScanner(unittest.TestCase):
 
@@ -12,21 +12,21 @@ class TestScanner(unittest.TestCase):
     def test_scans_integer(self):
         scanner = Scanner("123456")
         token = next(scanner)
-        self.assertIs(token.token, TokenType.NUMBER)
+        self.assertIs(token.token, TokenType.INT_LITERAL)
 
     def test_scans_simple_arithmetic(self):
         scanner = Scanner("1 * 2 + 3")
         tokens = [token.token for token in scanner]
-        test_tokens = [TokenType.NUMBER, TokenType.STAR, TokenType.NUMBER,
-                       TokenType.PLUS, TokenType.NUMBER, TokenType.EOF]
+        test_tokens = [TokenType.INT_LITERAL, TokenType.STAR, TokenType.INT_LITERAL,
+                       TokenType.PLUS, TokenType.INT_LITERAL, TokenType.EOF]
         self.assertEqual(tokens, test_tokens)
 
     def test_scans_arithmetic_with_parens(self):
         scanner = Scanner("(1 * 2) + 3")
         tokens = [token.token for token in scanner]
-        test_tokens = [TokenType.LEFT_PAREN, TokenType.NUMBER, TokenType.STAR,
-                       TokenType.NUMBER, TokenType.RIGHT_PAREN,
-                       TokenType.PLUS, TokenType.NUMBER, TokenType.EOF]
+        test_tokens = [TokenType.LEFT_PAREN, TokenType.INT_LITERAL, TokenType.STAR,
+                       TokenType.INT_LITERAL, TokenType.RIGHT_PAREN,
+                       TokenType.PLUS, TokenType.INT_LITERAL, TokenType.EOF]
         self.assertEqual(tokens, test_tokens)
 
     def test_scans_integer_numbers(self):
@@ -53,32 +53,32 @@ class TestScanner(unittest.TestCase):
         tokens = [token for token in scanner]
         self.assertEqual(tokens[0].literal, int("0xB2B", 16))
         self.assertEqual(tokens[2].literal, int("0xC1", 16))
-        self.assertEqual(tokens[0].token, TokenType.NUMBER)
-        self.assertEqual(tokens[2].token, TokenType.NUMBER)
+        self.assertEqual(tokens[0].token, TokenType.INT_LITERAL)
+        self.assertEqual(tokens[2].token, TokenType.INT_LITERAL)
 
     def test_scans_lower_hex_constants(self):
         scanner = Scanner("0xb2b + 0xc1")
         tokens = [token for token in scanner]
         self.assertEqual(tokens[0].literal, int("0xb2b", 16))
         self.assertEqual(tokens[2].literal, int("0xc1", 16))
-        self.assertEqual(tokens[0].token, TokenType.NUMBER)
-        self.assertEqual(tokens[2].token, TokenType.NUMBER)
+        self.assertEqual(tokens[0].token, TokenType.INT_LITERAL)
+        self.assertEqual(tokens[2].token, TokenType.INT_LITERAL)
 
     def test_scans_octal_constants(self):
         scanner = Scanner("0173 + 032")
         tokens = [token for token in scanner]
         self.assertEqual(tokens[0].literal, int("0173", 8))
         self.assertEqual(tokens[2].literal, int("032", 8))
-        self.assertEqual(tokens[0].token, TokenType.NUMBER)
-        self.assertEqual(tokens[2].token, TokenType.NUMBER)
+        self.assertEqual(tokens[0].token, TokenType.INT_LITERAL)
+        self.assertEqual(tokens[2].token, TokenType.INT_LITERAL)
 
     def test_scans_binary_constants(self):
         scanner = Scanner("0b101 + 0b1100")
         tokens = [token for token in scanner]
         self.assertEqual(tokens[0].literal, 5)
         self.assertEqual(tokens[2].literal, 12)
-        self.assertEqual(tokens[0].token, TokenType.NUMBER)
-        self.assertEqual(tokens[2].token, TokenType.NUMBER)
+        self.assertEqual(tokens[0].token, TokenType.INT_LITERAL)
+        self.assertEqual(tokens[2].token, TokenType.INT_LITERAL)
 
     def test_scans_positive_scientific_notation_upper_float(self):
         scanner = Scanner("2.34E5")
@@ -146,7 +146,7 @@ class TestScanner(unittest.TestCase):
         self.assertEqual("a", ident.literal)
         self.assertIs(TokenType.EQUAL, next(scanner).token)
         num = next(scanner)
-        self.assertIs(TokenType.NUMBER, num.token)
+        self.assertIs(TokenType.INT_LITERAL, num.token)
         self.assertIs(2, num.literal)
 
 if __name__ == '__main__':
