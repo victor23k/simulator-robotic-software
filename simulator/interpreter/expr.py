@@ -1,8 +1,11 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:  # Only imports the below statements during type checking
+    from simulator.interpreter.scope import ScopeChain
 
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment
-from simulator.interpreter.scope import ScopeChain
 from simulator.interpreter.token import Token
 from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, token_to_arduino_type
 
@@ -26,7 +29,6 @@ class BinaryExpr:
         self.op = op
         self.rhs = rhs
         self.ttype = None
-
 
     def to_string(self, ntab: int = 0) -> str:
         result: str = " "*ntab + str(self.op)
@@ -80,10 +82,12 @@ class LiteralExpr:
 class VariableExpr:
     name: Token
     ttype: ArduinoType | None
+    scope_depth: int
 
     def __init__(self, token: Token):
         self.name = token
         self.ttype = None
+        self.scope_depth = 0
 
     def evaluate(self, env: Environment) -> object:
         return env.get(self.name)

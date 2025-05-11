@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 
+import simulator.interpreter.scope as scope
+import simulator.interpreter.expr as expr
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
-from simulator.interpreter.expr import Expr
-from simulator.interpreter.scope import ScopeChain
 from simulator.interpreter.token import Token
 
 type Stmt = ExpressionStmt | VariableStmt
 
 @dataclass
 class ExpressionStmt:
-    expr: Expr
+    expr: expr.Expr
 
     def execute(self, env: Environment):
         self.expr.evaluate(env)
@@ -39,7 +39,7 @@ class ExpressionStmt:
 class VariableStmt:
     var_type: Token
     name: Token
-    initializer: Expr | None
+    initializer: expr.Expr | None
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
@@ -53,7 +53,7 @@ class VariableStmt:
         else:
             environment.define(self.name, None)
 
-    def compute_type(self, scope_chain: ScopeChain):
+    def compute_type(self, scope_chain: scope.ScopeChain):
         scope_chain.declare(self.name, self.var_type)
         if self.initializer is not None:
             self.initializer.check_type(scope_chain)

@@ -58,10 +58,10 @@ class Parser:
     previous: Token
     diagnostics: list[Diagnostic]
 
-    def __init__(self, source: str):
+    def __init__(self, source: str, diagnostics: list[Diagnostic]):
         self.source = source
         self.scanner = Scanner(source)
-        self.diagnostics = []
+        self.diagnostics = diagnostics
         self.current = Token(TokenType.EOF, "", None, 0, 0)
         self._advance()
 
@@ -179,7 +179,7 @@ class Parser:
                 self._error(
                     unexpected_token, "Expected number or expression inside parens."
                 )
-                return Expr()
+                return LiteralExpr(unexpected_token)
 
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if not self._check(token_type):
