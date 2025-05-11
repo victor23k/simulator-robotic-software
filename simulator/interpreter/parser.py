@@ -71,7 +71,7 @@ class Parser:
         statements.
         """
 
-        statements = []
+        statements: list[Stmt] = []
 
         while not self._is_at_end():
             stmt = self._statement()

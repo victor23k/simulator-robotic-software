@@ -1,8 +1,9 @@
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.environment import EnvError, Environment, Value
-from simulator.interpreter.expr import BinaryExpr, Expr, LiteralExpr, VariableExpr
-from simulator.interpreter.stmt import ExpressionStmt, Stmt, VariableStmt
+from simulator.interpreter.expr import Expr
+from simulator.interpreter.stmt import Stmt
 from simulator.interpreter.token import TokenType
+from simulator.interpreter.types import token_to_arduino_type
 
 
 class Interpreter:
@@ -23,47 +24,55 @@ class Interpreter:
 
     def run(self) -> None:
         for statement in self.statements:
-            return self._execute(statement)
+            return statement.execute(self.environment)
 
-    def _execute(self, statement: Stmt) -> None:
-        match statement:
-            case ExpressionStmt(expr):
-                self._evaluate(expr)
-            case VariableStmt(var_type, name, initializer):
-                init_value = None
-                if initializer:
-                    init_value = self._evaluate(initializer)
+    def resolve(self, expr: Expr, depth: int):
+        # todo
+        pass
 
-                value = Value(var_type.token, init_value)
-                self.environment.define(name, value)
-            case _:
-                pass
+    def resolve_global(self, expr: Expr):
+        pass
 
-    def _evaluate(self, expression: Expr) -> Value:
-        match expression:
-            case LiteralExpr():
-                return expression.value
-            case VariableExpr(name):
-                return self.environment.get(name)
-            case BinaryExpr(lhs, token, rhs):
-                left = self._evaluate(lhs)
-                right = self._evaluate(rhs)
 
-                match token.token:
-                    # check both types are compatible
-                    case TokenType.PLUS:
-                        return left.value + right.value
-                    case TokenType.MINUS:
-                        return left.value - right.value
-                    case TokenType.STAR:
-                        return left.value * right.value
-                    case TokenType.SLASH:
-                        if right == 0:
-                            # error, can`t divide by 0
-                            return EnvError.VariableDoesNotExist
-                        else:
-                            return left / right
-                    case TokenType.PERCENTAGE:
-                        return left % right
-            case _:
-                return EnvError.VariableDoesNotExist
+    # def _execute(self, statement: Stmt) -> None:
+    #     match statement:
+    #         case ExpressionStmt(expr):
+    #             self._evaluate(expr)
+    #         case VariableStmt(var_type, name, initializer):
+    #             init_value = None
+    #             if initializer:
+    #                 init_value = self._evaluate(initializer)
+    #
+    #             value = Value(var_type.token, init_value)
+    #             self.environment.define(name, value)
+    #         case _:
+    #             pass
+    #
+    # def _evaluate(self, expr: Expr) -> Value:
+    #     match expr:
+    #         case LiteralExpr():
+    #             return Value(expr.value.token, token_to_arduino_type(expr.value))
+    #         case VariableExpr(name):
+    #             return self.environment.get(name)
+    #         case BinaryExpr(lhs, token, rhs):
+    #             left = self._evaluate(lhs)
+    #             right = self._evaluate(rhs)
+    #
+    #             match token.token:
+    #                 # at this point, types have been checked and ops should work
+    #                 case TokenType.PLUS:
+    #                     return left.value + right.value
+    #                 case TokenType.MINUS:
+    #                     return left.value - right.value
+    #                 case TokenType.STAR:
+    #                     return left.value * right.value
+    #                 case TokenType.SLASH:
+    #                     if right == 0:
+    #                         # error, can`t divide by 0
+    #                         return EnvError.VariableDoesNotExist
+    #                     else:
+    #                         return left / right
+    #                 case TokenType.PERCENTAGE:
+    #                     return left % right
+    #         case _:
+    #             return EnvError.VariableDoesNotExist
