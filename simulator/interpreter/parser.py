@@ -80,8 +80,7 @@ class Parser:
         return statements
 
     def _statement(self) -> Stmt:
-        next_token = self._advance()
-        match next_token.token:
+        match self._peek().token:
             # var type, must be a declaration
             case (
                 TokenType.BOOL
@@ -104,7 +103,7 @@ class Parser:
                 return self._expression_statement()
 
     def _declaration(self) -> VariableStmt:
-        var_type = self.previous
+        var_type = self._advance()
         identifier = self._consume(
             TokenType.IDENTIFIER, "Expect identifier in variable declaration."
         )
@@ -134,16 +133,16 @@ class Parser:
         stmt = ExpressionStmt(expr)
         return stmt
 
-    def _expression(self) -> Expr:
+    def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
         match self._peek():
-            # case Token(token=TokenType.IDENTIFIER) as name:
-            #     self._advance()
-            #     return VariableExpr(name)
-            case Token(token=TokenType.NUMBER) as num:
+            case Token(token=TokenType.IDENTIFIER) as name:
+                self._advance()
+                return VariableExpr(name)
+            case Token(token=TokenType.INT_LITERAL) as num:
                 self._advance()
                 return LiteralExpr(num)
             case _:
-                return self._parse_binary_expr(PrecLevel.MINIMAL)
+                return self._parse_binary_expr(min_prec)
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
@@ -156,7 +155,7 @@ class Parser:
             next_min_prec = min_prec + 1 if assoc is Assoc.LEFT else min_prec
 
             self._advance()
-            rhs = self._parse_binary_expr(next_min_prec)
+            rhs = self._expression(next_min_prec)
             lhs = BinaryExpr(lhs, op, rhs)
 
         return lhs
@@ -165,10 +164,10 @@ class Parser:
         match self._peek():
             case Token(token=TokenType.LEFT_PAREN):
                 self._advance()
-                expr = self._parse_binary_expr(PrecLevel.MINIMAL)
+                expr = self._expression(PrecLevel.MINIMAL)
                 self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
                 return expr
-            case Token(token=TokenType.NUMBER) as token:
+            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL) as token:
                 self._advance()
                 return LiteralExpr(token)
             case Token(token=TokenType.IDENTIFIER) as token:
