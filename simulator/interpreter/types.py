@@ -3,24 +3,17 @@ from enum import Enum
 
 from simulator.interpreter.token import Token, TokenType
 
-
 class ArduinoBuiltinType(Enum):
+    ERR = 0
     INT = 1
     FLOAT = 2
     DOUBLE = 3
 
-    NONE = 30
-
+type ArduinoType = ArduinoBuiltinType | ArduinoObjType
 
 @dataclass
 class ArduinoObjType:
     classname: str
-
-
-type ArduinoType = ArduinoBuiltinType | ArduinoObjType
-
-class TypeException(Exception):
-    pass
 
 def token_to_arduino_type(token: Token) -> ArduinoType:
     match token.token:

@@ -74,43 +74,44 @@ class ScopeChain:
     def end_scope(self):
         self.scopes.pop()
 
-    def declare(self, name: Token, var_type: Token):
-        arduino_type = token_to_arduino_type(var_type)
-        var = Var(arduino_type, VarState.DECLARED)
+    def declare(self, name_token: Token, vtype: ArduinoType):
+        var = Var(vtype, VarState.DECLARED)
         # if shadowing is not allowed, check all scopes.
-        if self.scopes[-1].variables.get(name.lexeme) is not None:
-            diag = diagnostic_from_token("Redeclaration of variable.", name)
+        if self.scopes[-1].variables.get(name_token.lexeme) is not None:
+            diag = diagnostic_from_token("Redeclaration of variable.",
+                                         name_token)
             self.diagnostics.append(diag)
             return
 
-        self.scopes[-1].variables[name.lexeme] = var
+        self.scopes[-1].variables[name_token.lexeme] = var
 
-    def define(self, name: Token):
+    def define(self, name_token: Token):
         for depth in range(len(self.scopes), 0, -1):
             depth -= 1
-            if self.scopes[depth].variables.get(name.lexeme) is not None:
-                self.scopes[depth].variables[name.lexeme].state = VarState.DEFINED
+            if self.scopes[depth].variables.get(name_token.lexeme) is not None:
+                self.scopes[depth].variables[name_token.lexeme].state = VarState.DEFINED
                 return
 
-        diag = diagnostic_from_token("Variable defined before declaration", name)
+        diag = diagnostic_from_token("Variable defined before declaration", name_token)
         self.diagnostics.append(diag)
 
-    def use(self, name: Token) -> int:
+    def use(self, name_token: Token) -> int:
         for depth in range(len(self.scopes), 0, -1):
             depth -= 1
-            var = self.scopes[depth].variables.get(name.lexeme)
+            var = self.scopes[depth].variables.get(name_token.lexeme)
             if var is not None:
                 var.state = VarState.USED
                 return len(self.scopes) - 1 - depth
 
-        diag = diagnostic_from_token("Variable used before declaration", name)
+        diag = diagnostic_from_token("Variable used before declaration",
+                                     name_token)
         self.diagnostics.append(diag)
 
         return 0
 
 
-    def get_type(self, name: Token) -> ArduinoType:
-        var = self.scopes[-1].variables.get(name.lexeme)
+    def get_type(self, name_token: Token) -> ArduinoType:
+        var = self.scopes[-1].variables.get(name_token.lexeme)
         if var is not None:
             return var.var_type
 

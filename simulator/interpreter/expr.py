@@ -1,15 +1,48 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:  # Only imports the below statements during type checking
+from typing import TYPE_CHECKING, override
+if TYPE_CHECKING:
     from simulator.interpreter.scope import ScopeChain
+    from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
+    from simulator.interpreter.environment import Environment
 
-from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
-from simulator.interpreter.environment import Environment
+from simulator.interpreter.environment import Value
 from simulator.interpreter.token import Token
 from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, token_to_arduino_type
 
 type Expr = BinaryExpr | VariableExpr | LiteralExpr
+
+
+class AssignExpr:
+    name: Token
+    value: Expr
+    ttype: ArduinoType | None
+
+    def __init__(self, name: Token, value: Expr):
+        self.name = name
+        self.value = value
+        self.ttype = None
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.name)
+
+    def evaluate(self, env: Environment) -> object:
+        value_result = self.value.evaluate(env)
+
+        env.assign(self.name.lexeme, Value(self.value.ttype, value_result))
+
+        return value_result
+
+    def check_type(self, scope_chain: ScopeChain, diags: list[Diagnostic]):
+        self.value.check_type(scope_chain, diags)
+        var_type = scope_chain.get_type(self.name)
+        if var_type == self.value.ttype:
+            self.ttype = var_type
+        else:
+            diag = diagnostic_from_token("Type of value assigned is not compatible with variable.", self.name)
+            diags.append(diag)
+            self.ttype = ArduinoBuiltinType.ERR 
+
 
 class BinaryExpr:
     lhs: Expr
@@ -30,6 +63,10 @@ class BinaryExpr:
         self.rhs = rhs
         self.ttype = None
 
+    @override
+    def __repr__(self):
+        return self.to_string()
+
     def to_string(self, ntab: int = 0) -> str:
         result: str = " "*ntab + str(self.op)
         result += self.lhs.to_string(ntab+2)
@@ -46,15 +83,21 @@ class BinaryExpr:
         result = self.op_table[self.op.lexeme](left_value, right_value)
         return result
 
-    def check_type(self, scope_chain: ScopeChain):
-        self.lhs.check_type(scope_chain)
-        self.rhs.check_type(scope_chain)
+    def check_type(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.lhs.check_type(scope_chain, diagnostics)
+        self.rhs.check_type(scope_chain, diagnostics)
         if self.lhs.ttype == self.rhs.ttype:
             self.ttype = self.lhs.ttype
         else:
-            # add diag
+            diag = diagnostic_from_token("Types not compatible for this operation.", self.op)
+            diagnostics.append(diag)
             self.ttype = ArduinoBuiltinType.ERR 
 
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.lhs.resolve(scope_chain, diagnostics)
+        self.rhs.resolve(scope_chain, diagnostics)
+        self.check_type(scope_chain, diagnostics)
 
 
 class LiteralExpr:
@@ -65,40 +108,60 @@ class LiteralExpr:
         self.value = token
         self.ttype = None
 
+    @override
+    def __repr__(self):
+        return self.to_string()
+
     def evaluate(self, _env: Environment) -> object:
         return self.value.literal
 
     def to_string(self, ntab: int = 0) -> str:
-        result: str = " "*ntab + str(self.value)
-        result += " "*ntab + str(self.ttype)
+        result: str = "\t"*ntab + str(self.__class__.__name__) + "(\n"
+        result += "\t"*(ntab+1) + str(self.value) + "\n"
+        result += "\t"*(ntab+1) + str(self.ttype) + "\n"
+        result += "\t"*ntab + ")"
         return result
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.value)
 
-    def check_type(self, _scope_chain: ScopeChain):
+    def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = token_to_arduino_type(self.value)
 
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.check_type(scope_chain, diagnostics)
+
 class VariableExpr:
-    name: Token
+    vname: Token
     ttype: ArduinoType | None
-    scope_depth: int
+    scope_distance: int
 
     def __init__(self, token: Token):
-        self.name = token
+        self.vname = token
         self.ttype = None
-        self.scope_depth = 0
+        self.scope_distance = 0
 
-    def evaluate(self, env: Environment) -> object:
-        return env.get(self.name)
+    @override
+    def __repr__(self):
+        return self.to_string()
 
     def to_string(self, ntab: int = 0) -> str:
-        result: str = " "*ntab + str(self.name)
-        result += " "*ntab + str(self.ttype)
+        result: str = "\t"*ntab + str(self.__class__.__name__) + "(\n"
+        result = "\t"*ntab + str(self.vname)
+        result += "\t"*ntab + str(self.ttype)
+        result += "\t"*ntab + ")"
         return result
 
-    def gen_diagnostic(self, message: str) -> Diagnostic:
-        return diagnostic_from_token(message, self.name)
+    def evaluate(self, env: Environment) -> object:
+        value = env.get(self.vname.lexeme, self.scope_distance)
+        return value
 
-    def check_type(self, scope_chain: ScopeChain):
-        self.ttype = scope_chain.get_type(self.name)
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.vname)
+
+    def check_type(self, scope_chain: ScopeChain, _diagnostics: list[Diagnostic]):
+        self.ttype = scope_chain.get_type(self.vname)
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.scope_distance = scope_chain.use(self.vname)
+        self.check_type(scope_chain, diagnostics)

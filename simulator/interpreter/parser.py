@@ -125,7 +125,7 @@ class Parser:
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
 
-        return VariableStmt(var_type, identifier, initializer)
+        return VariableStmt(var_type, identifier, initializer, None)
 
     def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()

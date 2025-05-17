@@ -6,7 +6,7 @@ from simulator.interpreter.types import ArduinoType
 
 @dataclass
 class Value:
-    value_type: ArduinoType
+    value_type: ArduinoType | None
     value: object
 
 
