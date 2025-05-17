@@ -1,3 +1,4 @@
+from pprint import pprint
 import unittest
 from simulator.interpreter.scanner import Scanner 
 from simulator.interpreter.token import TokenType
@@ -148,6 +149,12 @@ class TestScanner(unittest.TestCase):
         num = next(scanner)
         self.assertIs(TokenType.INT_LITERAL, num.token)
         self.assertIs(2, num.literal)
+
+    def test_scans_assignment_and_usage(self):
+        scanner = Scanner("int a = 2;\na;")
+        tokens = [token for token in scanner]
+        pprint(tokens)
+
 
 if __name__ == '__main__':
     unittest.main()
