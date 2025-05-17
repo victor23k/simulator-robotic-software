@@ -29,11 +29,4 @@ class Interpreter:
 
     def run(self) -> None:
         for statement in self.statements:
-            return statement.execute(self.environment)
-
-    def resolve(self, expr: Expr, depth: int):
-        # todo
-        pass
-
-    def resolve_global(self, expr: Expr):
-        pass
+            statement.execute(self.environment)

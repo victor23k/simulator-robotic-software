@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Self
 
 from simulator.interpreter.types import ArduinoType
-from simulator.interpreter.token import Token
 
 
 @dataclass
@@ -27,7 +26,7 @@ class Environment:
         self.values = {}
         self.enclosing = enclosing
 
-    def define(self, name: Token, value: Value | None):
+    def define(self, name: str, value: Value | None):
         """
         Defines a variable by its `name` and `value`.
 
@@ -38,11 +37,12 @@ class Environment:
         # this should not happen, checked in the Resolver
         assert name not in self.values
 
-        self.values[name.lexeme] = value
+        # if shadowing is not allowed, use depth to get the env to define
+        self.values[name] = value
 
-    def assign(self, name: Token, value: Value | None):
+    def assign(self, name: str, value: Value | None):
         if name in self.values:
-            self.values[name.lexeme] = value
+            self.values[name] = value
             return
 
         if self.enclosing:
@@ -53,12 +53,17 @@ class Environment:
         return None
 
 
-    def get(self, name: Token) -> Value | None:
-        if name in self.values:
-            return self.values[name.lexeme]
+    def get(self, name: str, distance: int) -> Value | None:
+        env = self._ancestor(distance)
 
-        if self.enclosing:
-            return self.enclosing.get(name)
+        if name in env.values:
+            return self.values[name]
+        else:
+            # unreachable if resolver is good
+            pass
 
-        # should be unreachable, checked in the Resolver
-        return None
+    def _ancestor(self, distance: int) -> Self:
+        while distance > 0 and self.enclosing:
+            return self.enclosing._ancestor(distance - 1)
+
+        return self
