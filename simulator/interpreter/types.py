@@ -9,6 +9,8 @@ class ArduinoBuiltinType(Enum):
     FLOAT = 2
     DOUBLE = 3
 
+    BOOL = 4
+
 type ArduinoType = ArduinoBuiltinType | ArduinoObjType
 
 @dataclass
@@ -23,6 +25,8 @@ def token_to_arduino_type(token: Token) -> ArduinoType:
             return ArduinoBuiltinType.FLOAT
         case TokenType.DOUBLE:
             return ArduinoBuiltinType.DOUBLE
+        case TokenType.BOOL | TokenType.TRUE | TokenType.FALSE:
+            return ArduinoBuiltinType.BOOL
         case TokenType.IDENTIFIER:
             return ArduinoObjType(token.lexeme)
         case _:

@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from simulator.interpreter.scope import ScopeChain
-    from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
+    from simulator.interpreter.diagnostic import Diagnostic
     from simulator.interpreter.environment import Environment
 
 from simulator.interpreter.environment import Value
+from simulator.interpreter.diagnostic import diagnostic_from_token
 from simulator.interpreter.token import Token
 from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, token_to_arduino_type
 
@@ -69,10 +70,31 @@ class BinaryExpr:
     ttype: ArduinoType | None
 
     op_table = {
-        "*" : lambda x, y: x * y,
-        "+" : lambda x, y: x + y,
-        "-" : lambda x, y: x - y,
-        "%" : lambda x, y: x % y,
+        # Arithmetic
+        "*": lambda x, y: x * y,
+        "/": lambda x, y: x / y,
+        "%": lambda x, y: x % y,
+        "+": lambda x, y: x + y,
+        "-": lambda x, y: x - y,
+
+        # Comparison
+        "==": lambda x, y: x == y,
+        "!=": lambda x, y: x != y,
+        "<": lambda x, y: x < y,
+        "<=": lambda x, y: x <= y,
+        ">": lambda x, y: x > y,
+        ">=": lambda x, y: x >= y,
+
+        # Bitwise
+        "&": lambda x, y: x & y,
+        "|": lambda x, y: x | y,
+        "^": lambda x, y: x ^ y,
+        "<<": lambda x, y: x << y,
+        ">>": lambda x, y: x >> y,
+
+        # Logical
+        "&&": lambda x, y: bool(x) and bool(y),
+        "||": lambda x, y: bool(x) or bool(y),
     }
 
     def __init__(self, lhs: Expr, op: Token, rhs: Expr):

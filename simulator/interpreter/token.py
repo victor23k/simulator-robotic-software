@@ -122,6 +122,32 @@ class Token:
             TokenType.STAR,
             TokenType.SLASH,
             TokenType.PERCENTAGE,
+
+            TokenType.EQUAL_EQUAL,
+            TokenType.NOT_EQUAL,
+            TokenType.LESS_THAN,
+            TokenType.LESS_THAN_EQUAL,
+            TokenType.GREATER_THAN,
+            TokenType.GREATER_THAN_EQUAL,
+
+            TokenType.AMPERSAND,
+            TokenType.BITWISE_OR,
+            TokenType.BITWISE_XOR,
+            TokenType.BITSHIFT_LEFT,
+            TokenType.BITSHIFT_RIGHT,
+
+            TokenType.LOGICAL_AND,
+            TokenType.LOGICAL_OR,
+
+            TokenType.EQUAL,
+            TokenType.PLUS_EQUAL,
+            TokenType.MINUS_EQUAL,
+            TokenType.STAR_EQUAL,
+            TokenType.SLASH_EQUAL,
+            TokenType.PERCENTAGE_EQUAL,
+            TokenType.AND_EQUAL,
+            TokenType.OR_EQUAL,
+            TokenType.XOR_EQUAL,
         ]
 
     def to_string(self, ntab: int = 0, name: str = "") -> str:
