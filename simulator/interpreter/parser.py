@@ -134,19 +134,12 @@ class Parser:
         return stmt
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
-        match self._peek():
-            case Token(token=TokenType.IDENTIFIER) as name:
-                self._advance()
-                return VariableExpr(name)
-            case Token(token=TokenType.INT_LITERAL) as num:
-                self._advance()
-                return LiteralExpr(num)
-            case _:
-                return self._parse_binary_expr(min_prec)
+        return self._parse_binary_expr(min_prec)
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
         lhs = self._parse_atom()
+
         curr_token_prec = get_binary_op_precedence(self._peek().token)
 
         while self._peek().is_binary() and curr_token_prec >= min_prec:
