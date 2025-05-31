@@ -15,12 +15,13 @@ class Interpreter:
 
     statements: list[Stmt]
     environment: Environment
-    globals: Environment = Environment(None)
+    globals: Environment
     diagnostics: list[Diagnostic]
 
     def __init__(self, statements: list[Stmt], diagnostics: list[Diagnostic]):
         self.statements = statements
         self.diagnostics = diagnostics
+        self.globals = Environment(None)
         self.environment = self.globals
 
     def print_diagnostics(self, diagnostics: list[Diagnostic]):
