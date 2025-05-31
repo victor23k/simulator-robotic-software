@@ -123,3 +123,17 @@ class Token:
             TokenType.SLASH,
             TokenType.PERCENTAGE,
         ]
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += f"{" "*(ntab+2)}token_type={self.token},\n"
+        result += f"{" "*(ntab+2)}lexeme={self.lexeme},\n"
+        result += f"{" "*(ntab+2)}literal={self.literal},\n"
+        result += f"{" "*(ntab+2)}line={self.line},\n"
+        result += f"{" "*(ntab+2)}column={self.line},\n"
+        result += f"{" "*(ntab)})"
+
+        return result

@@ -23,6 +23,24 @@ class AssignExpr:
         self.value = value
         self.ttype = None
 
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.name.to_string(ntab+2, "name") + "\n"
+        result += self.value.to_string(ntab+2, "value") + "\n"
+
+        if self.ttype is not None:
+            result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{" "*ntab})\n"
+        return result
+
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
@@ -67,11 +85,19 @@ class BinaryExpr:
     def __repr__(self):
         return self.to_string()
 
-    def to_string(self, ntab: int = 0) -> str:
-        result: str = " "*ntab + str(self.op)
-        result += self.lhs.to_string(ntab+2)
-        result += self.rhs.to_string(ntab+2) + "\n"
-        result += " "*ntab + str(self.ttype)
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.lhs.to_string(ntab+2, "lhs") + "\n"
+        result += self.op.to_string(ntab+2, "op") + "\n"
+        result += self.rhs.to_string(ntab+2, "rhs") + "\n"
+
+        if self.ttype is not None:
+            result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{" "*ntab})\n"
         return result
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
@@ -112,15 +138,21 @@ class LiteralExpr:
     def __repr__(self):
         return self.to_string()
 
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.value.to_string(ntab+2, "value") + "\n"
+
+        if self.ttype is not None:
+            result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{" "*ntab})\n"
+        return result
+
     def evaluate(self, _env: Environment) -> object:
         return self.value.literal
-
-    def to_string(self, ntab: int = 0) -> str:
-        result: str = "\t"*ntab + str(self.__class__.__name__) + "(\n"
-        result += "\t"*(ntab+1) + str(self.value) + "\n"
-        result += "\t"*(ntab+1) + str(self.ttype) + "\n"
-        result += "\t"*ntab + ")"
-        return result
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.value)
@@ -145,11 +177,18 @@ class VariableExpr:
     def __repr__(self):
         return self.to_string()
 
-    def to_string(self, ntab: int = 0) -> str:
-        result: str = "\t"*ntab + str(self.__class__.__name__) + "(\n"
-        result = "\t"*ntab + str(self.vname)
-        result += "\t"*ntab + str(self.ttype)
-        result += "\t"*ntab + ")"
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.vname.to_string(ntab+2, "vname") + "\n"
+        result += f"{" "*(ntab+2)}scope_distance={self.scope_distance}\n"
+
+        if self.ttype is not None:
+            result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{" "*ntab})\n"
         return result
 
     def evaluate(self, env: Environment) -> object:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 
 import simulator.interpreter.scope as scope
 import simulator.interpreter.expr as expr
@@ -18,6 +19,19 @@ class ExpressionStmt:
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
         self.expr.resolve(scope_chain, diagnostics)
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.expr.to_string(ntab+2, "expr") + "\n"
+        result += f"{" "*ntab})\n"
+        return result
 
 # declaration = type identifier [ array ] [ "=" expression ] ";"
 
@@ -45,6 +59,27 @@ class VariableStmt:
     name: Token
     initializer: expr.Expr | None
     ttype: ArduinoType | None
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.var_type.to_string(ntab+2, "var_type")
+        result += ",\n" + self.name.to_string(ntab+2, "name")
+
+        if self.initializer is not None:
+            result += ",\n" + self.initializer.to_string(ntab+2, "initializer")
+
+        if self.ttype is not None:
+            result += ",\n" + f"{" "*(ntab+2)}ttype={self.ttype}"
+
+        result += f"{" "*ntab})\n"
+        return result
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
