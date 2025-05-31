@@ -161,6 +161,12 @@ class Scanner:
                     next_token = self._produce_empty_token(TokenType.PERCENTAGE_EQUAL)
                 else:
                     next_token = self._produce_empty_token(TokenType.PERCENTAGE)
+            case "!":
+                if self._peek() == "=":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.NOT_EQUAL)
+                else:
+                    next_token = self._produce_empty_token(TokenType.LOGICAL_NOT)
             case "0":
                 match self._peek():
                     case "b":
@@ -176,13 +182,21 @@ class Scanner:
                         else:
                             # can be 0 or float with leading 0.
                             next_token = self._number()
+            case "\x00":
+                pass
             case char:
                 if is_decimal(char):
                     next_token = self._number()
                 elif char.isalpha():
                     next_token = self._identifier()
                 else:
-                    # error: unexpected character
+                    diag = Diagnostic(
+                        message=f"Unexpected character: {char}",
+                        line=self.line,
+                        col_start=self.column - (self.current - self.start),
+                        col_end=self.column,
+                    )
+                    self.diagnostics.append(diag)
                     pass
 
         self.start = self.current
