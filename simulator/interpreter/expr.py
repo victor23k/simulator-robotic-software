@@ -13,6 +13,8 @@ from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, token_t
 
 type Expr = BinaryExpr | VariableExpr | LiteralExpr
 
+class BinaryOpException(Exception):
+    pass
 
 class AssignExpr:
     name: Token
@@ -45,18 +47,23 @@ class AssignExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
-    def evaluate(self, env: Environment) -> object:
+    def evaluate(self, env: Environment) -> Value | None:
         value_result = self.value.evaluate(env)
-
-        env.assign(self.name.lexeme, Value(self.value.ttype, value_result))
-
+        env.assign(self.name.lexeme, value_result)
         return value_result
 
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.value.resolve(scope_chain, diagnostics)
+        scope_chain.define(self.name)
+        self.check_type(scope_chain, diagnostics)
+
     def check_type(self, scope_chain: ScopeChain, diags: list[Diagnostic]):
-        self.value.check_type(scope_chain, diags)
         var_type = scope_chain.get_type(self.name)
+        self.ttype = var_type
+
+        # check compatibility
         if var_type == self.value.ttype:
-            self.ttype = var_type
+            pass
         else:
             diag = diagnostic_from_token("Type of value assigned is not compatible with variable.", self.name)
             diags.append(diag)
@@ -112,9 +119,9 @@ class BinaryExpr:
             name += "="
 
         result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
-        result += self.lhs.to_string(ntab+2, "lhs") + "\n"
+        result += self.lhs.to_string(ntab+2, "lhs")
         result += self.op.to_string(ntab+2, "op") + "\n"
-        result += self.rhs.to_string(ntab+2, "rhs") + "\n"
+        result += self.rhs.to_string(ntab+2, "rhs")
 
         if self.ttype is not None:
             result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
@@ -125,17 +132,32 @@ class BinaryExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return Diagnostic(message, self.op.line, self.op.column, self.op.column)
 
-    def evaluate(self, env: Environment) -> object:
+    def evaluate(self, env: Environment) -> Value | None:
         left_value = self.lhs.evaluate(env)
         right_value = self.rhs.evaluate(env)
-        result = self.op_table[self.op.lexeme](left_value, right_value)
-        return result
+
+        if left_value is not None: 
+            left_value = left_value.value
+        if right_value is not None: 
+            right_value = right_value.value
+
+        op_fn = self.op_table[self.op.lexeme]
+        try:
+            result = op_fn(left_value, right_value)
+        except TypeError as e:
+            raise BinaryOpException(f"{left_value} and {right_value} not compatible") from e
+        return Value(self.ttype, result)
 
     def check_type(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.lhs.check_type(scope_chain, diagnostics)
         self.rhs.check_type(scope_chain, diagnostics)
+        # check compatibility
         if self.lhs.ttype == self.rhs.ttype:
-            self.ttype = self.lhs.ttype
+            if self.op.is_boolean():
+                self.ttype = ArduinoBuiltinType.BOOL
+            else:
+                # do type coercion
+                self.ttype = self.lhs.ttype
         else:
             diag = diagnostic_from_token("Types not compatible for this operation.", self.op)
             diagnostics.append(diag)
@@ -173,8 +195,8 @@ class LiteralExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, _env: Environment) -> object:
-        return self.value.literal
+    def evaluate(self, _env: Environment) -> Value | None:
+        return Value(self.ttype, self.value.literal)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.value)
@@ -213,7 +235,7 @@ class VariableExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, env: Environment) -> object:
+    def evaluate(self, env: Environment) -> Value | None:
         value = env.get(self.vname.lexeme, self.scope_distance)
         return value
 

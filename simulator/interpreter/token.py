@@ -115,6 +115,19 @@ class Token:
     line: int
     column: int
 
+    def is_boolean(self) -> bool:
+        return self.token in [
+            TokenType.EQUAL_EQUAL,
+            TokenType.NOT_EQUAL,
+            TokenType.LESS_THAN,
+            TokenType.LESS_THAN_EQUAL,
+            TokenType.GREATER_THAN,
+            TokenType.GREATER_THAN_EQUAL,
+
+            TokenType.LOGICAL_AND,
+            TokenType.LOGICAL_OR,
+        ]
+
     def is_binary(self) -> bool:
         return self.token in [
             TokenType.PLUS,

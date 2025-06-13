@@ -3,19 +3,29 @@ from enum import Enum
 
 from simulator.interpreter.token import Token, TokenType
 
+
 class ArduinoBuiltinType(Enum):
     ERR = 0
-    INT = 1
-    FLOAT = 2
-    DOUBLE = 3
 
-    BOOL = 4
+    BOOL = 1
+    CHAR = 2
+    UNSIGNED_CHAR = 3
+    INT = 4
+    UNSIGNED_INT = 5
+    LONG = 6
+    UNSIGNED_LONG = 7
+    FLOAT = 8
+    DOUBLE = 9
+
+
 
 type ArduinoType = ArduinoBuiltinType | ArduinoObjType
+
 
 @dataclass
 class ArduinoObjType:
     classname: str
+
 
 def token_to_arduino_type(token: Token) -> ArduinoType:
     match token.token:
@@ -31,3 +41,32 @@ def token_to_arduino_type(token: Token) -> ArduinoType:
             return ArduinoObjType(token.lexeme)
         case _:
             return ArduinoObjType(token.lexeme)
+
+
+def types_compatibility(type_a: ArduinoType, type_b: ArduinoType) -> bool:
+    return type_a == type_b or (
+        type_a
+        in [
+            ArduinoBuiltinType.INT,
+            ArduinoBuiltinType.FLOAT,
+            ArduinoBuiltinType.DOUBLE,
+        ]
+        and type_b
+        in [
+            ArduinoBuiltinType.INT,
+            ArduinoBuiltinType.FLOAT,
+            ArduinoBuiltinType.DOUBLE,
+        ]
+    )
+
+def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
+    if type_a == type_b:
+        return type_a
+    elif type_a in [
+            ArduinoBuiltinType.INT,
+            ArduinoBuiltinType.FLOAT,
+            ArduinoBuiltinType.DOUBLE,
+        ]:
+        return type_b
+
+    return ArduinoBuiltinType.ERR

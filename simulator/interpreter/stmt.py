@@ -88,8 +88,7 @@ class VariableStmt:
         init_value = None
         if self.initializer is not None and self.initializer.ttype is not None:
             init_value = self.initializer.evaluate(environment)
-            value = Value(self.initializer.ttype, init_value)
-            environment.define(self.name.lexeme, value)
+            environment.define(self.name.lexeme, init_value)
         else:
             environment.define(self.name.lexeme, None)
 

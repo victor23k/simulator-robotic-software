@@ -1,5 +1,5 @@
 from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
-from simulator.interpreter.expr import Expr, BinaryExpr, LiteralExpr, VariableExpr
+from simulator.interpreter.expr import AssignExpr, Expr, BinaryExpr, LiteralExpr, VariableExpr
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.scanner import Scanner
@@ -149,7 +149,15 @@ class Parser:
 
             self._advance()
             rhs = self._expression(next_min_prec)
-            lhs = BinaryExpr(lhs, op, rhs)
+            if op.token is TokenType.EQUAL: 
+                if isinstance(lhs, VariableExpr):
+                    lhs = AssignExpr(lhs.vname, rhs)
+                else:
+                    # lhs = AssignExpr(Token(TokenType.ERROR, "", None, op.line,
+                                            # op.column), rhs)
+                    self._error(lhs, "Invalid l-value for assignment expression")
+            else:
+                lhs = BinaryExpr(lhs, op, rhs)
 
         return lhs
 

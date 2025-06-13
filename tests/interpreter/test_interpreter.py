@@ -1,3 +1,4 @@
+from pprint import pprint
 import unittest
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.interpreter import Interpreter
@@ -8,23 +9,33 @@ from simulator.interpreter.types import ArduinoBuiltinType
 class TestInterpreter(unittest.TestCase):
     def test_interprets_simple_arithmetic(self):
         diags = []
-        parser = Parser("5 - 4 / 2;", diags)
+        parser = Parser("float a = 5 - 4 / 2;", diags)
         statements = parser.parse()
         interpreter = Interpreter(statements, diags)
-        a = interpreter.run()
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        interpreter.run()
+        a_value = interpreter.environment.get("a", 0)
 
-        self.assertEqual(a, 3.0)
+        assert a_value is not None
+        self.assertEqual(a_value.value, 3.0)
+        self.assertEqual(a_value.value_type, ArduinoBuiltinType.FLOAT)
 
 
     def test_interprets_complex_arithmetic(self):
         diags = []
-        parser = Parser("1 * (5 - 24 % (10 - 3)) / 10;", diags)
+        parser = Parser("float a = 1 * (5 - 24 % (10 - 3)) / 10;", diags)
         statements = parser.parse()
         interpreter = Interpreter(statements, diags)
-        a = interpreter.run()
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        interpreter.run()
+        a_value = interpreter.environment.get("a", 0)
 
+        assert a_value is not None
         should_be = 1 * (5 - 24 % (10 - 3)) / 10
-        self.assertEqual(a, should_be)
+        self.assertEqual(a_value.value, should_be)
+        self.assertEqual(a_value.value_type, ArduinoBuiltinType.FLOAT)
 
     def test_interprets_assignment_and_usage(self):
         diags = []
@@ -35,7 +46,11 @@ class TestInterpreter(unittest.TestCase):
         resolver.resolve(statements)
         interpreter.run()
 
-        print(diags)
+        b_value = interpreter.environment.get("b", 0)
+
+        assert b_value is not None
+        self.assertEqual(b_value.value, 5)
+        self.assertEqual(b_value.value_type, ArduinoBuiltinType.INT)
 
     def test_interprets_binary_op_plus(self):
         code = "int a = 4 + 2;"
@@ -74,10 +89,7 @@ class TestInterpreter(unittest.TestCase):
             self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
 
     def test_interprets_comparisons(self):
-        code = """
-        bool a = 5 == 6;
-        bool b = 5 != 6;
-        """
+        code = "bool a = 5 == 6;\nbool b = 5 != 6;"
 
         diags: list[Diagnostic] = []
         parser = Parser(code, diags)
