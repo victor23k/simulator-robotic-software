@@ -67,12 +67,9 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(a_value.value, 6)
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.INT)
 
-    def test_interprets_binary_op_plus_float(self):
-        code = """
-        float a = 4 + 2;
-        float b = 4.0 + 2;
-        float c = 4.0 + 2.0;
-        """
+    def test_interprets_binary_op_plus_float_coerce_var(self):
+        code = "float a = 4 + 2;"
+
         diags: list[Diagnostic] = []
         parser = Parser(code, diags)
         statements = parser.parse()
@@ -81,12 +78,45 @@ class TestInterpreter(unittest.TestCase):
         resolver.resolve(statements)
         interpreter.run()
 
-        for varname in ["a", "b", "c"]:
-            val = interpreter.environment.get(varname, 0)
+        val = interpreter.environment.get("a", 0)
 
-            assert val is not None
-            self.assertEqual(val.value, 6.0)
-            self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
+        assert val is not None
+        self.assertEqual(val.value, 6.0)
+        self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
+
+    def test_interprets_binary_op_plus_float_coerce(self):
+        code = "float a = 4.0 + 2;"
+
+        diags: list[Diagnostic] = []
+        parser = Parser(code, diags)
+        statements = parser.parse()
+        interpreter = Interpreter(statements, diags)
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        interpreter.run()
+
+        val = interpreter.environment.get("a", 0)
+
+        assert val is not None
+        self.assertEqual(val.value, 6.0)
+        self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
+
+    def test_interprets_binary_op_plus_float(self):
+        code = "float a = 4.0 + 2.0;"
+
+        diags: list[Diagnostic] = []
+        parser = Parser(code, diags)
+        statements = parser.parse()
+        interpreter = Interpreter(statements, diags)
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        interpreter.run()
+
+        val = interpreter.environment.get("a", 0)
+
+        assert val is not None
+        self.assertEqual(val.value, 6.0)
+        self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
 
     def test_interprets_comparisons(self):
         code = "bool a = 5 == 6;\nbool b = 5 != 6;"

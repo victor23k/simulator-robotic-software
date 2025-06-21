@@ -1,14 +1,23 @@
 from dataclasses import dataclass
 from typing import Self
 
-from simulator.interpreter.types import ArduinoType
+from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType
 
 
 @dataclass
 class Value:
-    value_type: ArduinoType | None
+    value_type: ArduinoType
     value: object
 
+    def coerce(self, arduino_type: ArduinoType):
+        self.value_type = arduino_type
+
+        if arduino_type is ArduinoBuiltinType.FLOAT:
+            self.value = float(self.value)
+        elif arduino_type is ArduinoBuiltinType.INT:
+            self.value = int(self.value)
+        else:
+            pass
 
 class Environment:
     """

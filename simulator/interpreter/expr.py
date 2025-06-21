@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import diagnostic_from_token
 from simulator.interpreter.token import Token
-from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, token_to_arduino_type
+from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
 type Expr = BinaryExpr | VariableExpr | LiteralExpr
 
@@ -19,7 +19,7 @@ class BinaryOpException(Exception):
 class AssignExpr:
     name: Token
     value: Expr
-    ttype: ArduinoType | None
+    ttype: ArduinoType
 
     def __init__(self, name: Token, value: Expr):
         self.name = name
@@ -59,11 +59,9 @@ class AssignExpr:
 
     def check_type(self, scope_chain: ScopeChain, diags: list[Diagnostic]):
         var_type = scope_chain.get_type(self.name)
-        self.ttype = var_type
 
-        # check compatibility
-        if var_type == self.value.ttype:
-            pass
+        if types_compatibility(var_type, self.value.ttype):
+            self.ttype = coerce_types(var_type, self.value.ttype)
         else:
             diag = diagnostic_from_token("Type of value assigned is not compatible with variable.", self.name)
             diags.append(diag)
@@ -74,7 +72,7 @@ class BinaryExpr:
     lhs: Expr
     op: Token
     rhs: Expr
-    ttype: ArduinoType | None
+    ttype: ArduinoType
 
     op_table = {
         # Arithmetic
@@ -144,19 +142,19 @@ class BinaryExpr:
         op_fn = self.op_table[self.op.lexeme]
         try:
             result = op_fn(left_value, right_value)
+            return Value(self.ttype, result)
         except TypeError as e:
             raise BinaryOpException(f"{left_value} and {right_value} not compatible") from e
-        return Value(self.ttype, result)
 
     def check_type(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.lhs.check_type(scope_chain, diagnostics)
         self.rhs.check_type(scope_chain, diagnostics)
-        # check compatibility
-        if self.lhs.ttype == self.rhs.ttype:
+
+        if types_compatibility(self.lhs.ttype, self.rhs.ttype):
             if self.op.is_boolean():
                 self.ttype = ArduinoBuiltinType.BOOL
             else:
-                # do type coercion
+                self.ttype = coerce_types(self.lhs.ttype, self.rhs.ttype)
                 self.ttype = self.lhs.ttype
         else:
             diag = diagnostic_from_token("Types not compatible for this operation.", self.op)
@@ -172,7 +170,7 @@ class BinaryExpr:
 
 class LiteralExpr:
     value: Token
-    ttype: ArduinoType | None
+    ttype: ArduinoType
 
     def __init__(self, token: Token):
         self.value = token
@@ -209,7 +207,7 @@ class LiteralExpr:
 
 class VariableExpr:
     vname: Token
-    ttype: ArduinoType | None
+    ttype: ArduinoType
     scope_distance: int
 
     def __init__(self, token: Token):

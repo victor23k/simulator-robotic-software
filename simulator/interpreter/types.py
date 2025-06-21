@@ -19,7 +19,7 @@ class ArduinoBuiltinType(Enum):
 
 
 
-type ArduinoType = ArduinoBuiltinType | ArduinoObjType
+type ArduinoType = ArduinoBuiltinType | ArduinoObjType | None
 
 
 @dataclass
@@ -62,11 +62,11 @@ def types_compatibility(type_a: ArduinoType, type_b: ArduinoType) -> bool:
 def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
     if type_a == type_b:
         return type_a
-    elif type_a in [
+    elif type_b in [
             ArduinoBuiltinType.INT,
             ArduinoBuiltinType.FLOAT,
             ArduinoBuiltinType.DOUBLE,
         ]:
-        return type_b
+        return type_a
 
     return ArduinoBuiltinType.ERR
