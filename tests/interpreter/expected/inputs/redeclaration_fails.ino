@@ -1,2 +1,2 @@
 int a = 3;
-int a = 7;
+int a = 8;
