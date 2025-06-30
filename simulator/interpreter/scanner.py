@@ -113,6 +113,10 @@ class Scanner:
                 next_token = self._produce_empty_token(TokenType.LEFT_BRACKET)
             case "]":
                 next_token = self._produce_empty_token(TokenType.RIGHT_BRACKET)
+            case "{":
+                next_token = self._produce_empty_token(TokenType.LEFT_BRACE)
+            case "}":
+                next_token = self._produce_empty_token(TokenType.RIGHT_BRACE)
             case ".":
                 next_token = self._produce_empty_token(TokenType.DOT)
             case ";":

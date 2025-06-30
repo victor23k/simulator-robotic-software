@@ -4,6 +4,7 @@ import unittest
 from simulator.interpreter.interpreter import Interpreter
 from simulator.interpreter.parser import Parser
 from simulator.interpreter.resolver import Resolver
+from simulator.interpreter.scanner import Scanner
 from simulator.interpreter.token import TokenType
 from tests.interpreter.ast import (
     BinaryExprSpec,
@@ -43,6 +44,8 @@ input_test_filenames = os.listdir(input_test_dir)
 output_test_filenames = os.listdir(output_test_dir)
 test_failures_filenames = [filename for filename in input_test_filenames if
     filename.rfind("_fails") != -1]
+scanner_output_filenames = [filename for filename in output_test_filenames if
+    filename.rfind(".tok") != -1]
 
 input_test_filenames = set(input_test_filenames).difference(test_failures_filenames)
 
@@ -89,6 +92,23 @@ class ExpectedFailureCase(unittest.TestCase):
         self.assertNotEqual(len(diags), 0, f"Expected some error diagnostics for {self.filename} but found none")
 
 
+class ScannerOutputCase(unittest.TestCase):
+    def __init__(self, methodName, code="", tok="", filename="unknown"):
+        super(ScannerOutputCase, self).__init__(methodName)
+
+        self.code: str = code
+        self.tok: str = tok
+        self.filename: str = filename
+
+    def runTest(self):
+        scanner = Scanner(self.code)
+        tokens = [token for token in scanner]
+        spec_tokens: list[StmtSpec] = eval(self.tok)
+
+        self.assertEqual(len(scanner.diagnostics), 0, f"No error diagnostics for {self.filename} expected but found: {scanner.diagnostics}")
+        self.assertTrue(match_structure(tokens, spec_tokens), f"Match error for {self.filename}")
+
+
 def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
 
@@ -106,7 +126,8 @@ def load_tests(loader, tests, pattern):
         with open(output_file_path, "r") as ir_file:
             ir = ir_file.read()
         
-        suite.addTest(ExpectedOutputCase('runTest', code, ir, input_filename))
+        suite.addTest(ExpectedOutputCase('runTest', code, ir,
+                                         output_filename_noext))
 
 
     for failure_filename in test_failures_filenames:
@@ -116,5 +137,23 @@ def load_tests(loader, tests, pattern):
             code = ino_file.read()
 
         suite.addTest(ExpectedFailureCase('runTest', code, failure_filename))
+
+    for scanner_output_filename in scanner_output_filenames:
+        output_filename_noext, _ext = os.path.splitext(scanner_output_filename)
+        if output_filename_noext + ".ino" not in input_test_filenames:
+            raise Exception(f"No input file for test '{scanner_output_filename}' found.")
+
+        input_file_path = os.path.join(input_test_dir, output_filename_noext +
+            ".ino")
+
+        with open(input_file_path, "r") as ino_file:
+            code = ino_file.read()
+
+        output_file_path = os.path.join(output_test_dir, scanner_output_filename)
+
+        with open(output_file_path, "r") as tok_file:
+            tokens = tok_file.read()
+
+        suite.addTest(ScannerOutputCase('runTest', code, tokens, output_filename_noext))
 
     return suite
