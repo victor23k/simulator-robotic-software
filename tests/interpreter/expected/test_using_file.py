@@ -6,16 +6,7 @@ from simulator.interpreter.parser import Parser
 from simulator.interpreter.resolver import Resolver
 from simulator.interpreter.scanner import Scanner
 from simulator.interpreter.token import TokenType
-from tests.interpreter.ast import (
-    BinaryExprSpec,
-    ExpressionStmtSpec,
-    ExprSpec,
-    LiteralExprSpec,
-    StmtSpec,
-    TokenSpec,
-    VariableExprSpec,
-    VariableStmtSpec,
-)
+from tests.interpreter.ast import *
 
 
 def match_structure(actual: object, spec: object):

@@ -1,22 +1,32 @@
 [
-  VariableStmtSpec(
-    var_type=TokenSpec(token=TokenType.INT),
-    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
-    initializer=LiteralExprSpec(
-      value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
-    )
-  ),
-  VariableStmtSpec(
-    var_type=TokenSpec(token=TokenType.INT),
-    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b'),
-    initializer=BinaryExprSpec(
-      lhs=VariableExprSpec(
-        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
-      ),
-      op=TokenSpec(token=TokenType.PLUS),
-      rhs=LiteralExprSpec(
-        value=TokenSpec(token=TokenType.INT_LITERAL, literal=3)
-      )
-    )
-  )
+    BlockStmtSpec(stmts=[
+        # int a = 1;
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="a"),
+            initializer=LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+            )
+        ),
+        BlockStmtSpec(stmts=[
+            # int b = 2; (first block)
+            VariableStmtSpec(
+                var_type=TokenSpec(token=TokenType.INT),
+                name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+                initializer=LiteralExprSpec(
+                    value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+                )
+            ),
+        ]),
+        BlockStmtSpec(stmts=[
+            # int b = 3; (second block)
+            VariableStmtSpec(
+                var_type=TokenSpec(token=TokenType.INT),
+                name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+                initializer=LiteralExprSpec(
+                    value=TokenSpec(token=TokenType.INT_LITERAL, literal=3)
+                )
+            )
+        ])
+    ])
 ]

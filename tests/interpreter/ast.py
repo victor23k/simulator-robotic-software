@@ -12,6 +12,10 @@ class TokenSpec:
     lexeme: str | None = None
     literal: object | None = None
 
+@dataclass
+class BlockStmtSpec:
+    stmts: list[StmtSpec]
+
 
 @dataclass
 class ExpressionStmtSpec:

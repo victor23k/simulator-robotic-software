@@ -11,7 +11,7 @@ from simulator.interpreter.diagnostic import diagnostic_from_token
 from simulator.interpreter.token import Token
 from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
-type Expr = BinaryExpr | VariableExpr | LiteralExpr
+type Expr = AssignExpr | BinaryExpr | VariableExpr | LiteralExpr
 
 class BinaryOpException(Exception):
     pass

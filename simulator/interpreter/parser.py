@@ -3,7 +3,7 @@ from simulator.interpreter.expr import AssignExpr, Expr, BinaryExpr, LiteralExpr
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.scanner import Scanner
-from simulator.interpreter.stmt import ExpressionStmt, Stmt, VariableStmt
+from simulator.interpreter.stmt import BlockStmt, ExpressionStmt, Stmt, VariableStmt
 from simulator.interpreter.token import Token, TokenType
 
 from typing import override
@@ -99,8 +99,22 @@ class Parser:
                 | TokenType.UNSIGNED_LONG
             ):
                 return self._declaration()
+            case TokenType.LEFT_BRACE:
+                return self._block()
             case _:
                 return self._expression_statement()
+
+    def _block(self) -> BlockStmt:
+        self._advance() # LEFT_BRACE
+
+        stmts: list[Stmt] = []
+
+        while not (self._check(TokenType.RIGHT_BRACE) or self._is_at_end()):
+            stmts.append(self._statement())
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
+
+        return BlockStmt(stmts)
 
     def _declaration(self) -> VariableStmt:
         var_type = self._advance()

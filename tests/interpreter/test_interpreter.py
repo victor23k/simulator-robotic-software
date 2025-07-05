@@ -141,6 +141,37 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(b_value.value, True)
         self.assertEqual(b_value.value_type, ArduinoBuiltinType.BOOL)
 
+    def test_interprets_nested_blocks(self):
+        code = """int a = 7;
+int b = 0;
+int c = 0;
+{
+    a = 3;
+    b = a + 1;
+    {
+        c = b + 5;
+    }
+}"""
+
+        diags: list[Diagnostic] = []
+        parser = Parser(code, diags)
+        statements = parser.parse()
+        interpreter = Interpreter(statements, diags)
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+        interpreter.run()
+
+        val_a = interpreter.environment.get("a", 0)
+        val_b = interpreter.environment.get("b", 0)
+        val_c = interpreter.environment.get("c", 0)
+
+        assert val_a is not None
+        self.assertEqual(val_a.value, 3)
+        assert val_b is not None
+        self.assertEqual(val_b.value, 4)
+        assert val_c is not None
+        self.assertEqual(val_c.value, 9)
+
 
 if __name__ == "__main__":
     unittest.main()

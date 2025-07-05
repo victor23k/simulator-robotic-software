@@ -8,7 +8,42 @@ from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.token import Token
 from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
-type Stmt = ExpressionStmt | VariableStmt
+type Stmt = BlockStmt | ExpressionStmt | VariableStmt
+
+@dataclass
+class BlockStmt:
+    stmts: list[Stmt]
+
+    def execute(self, env: Environment):
+        block_env = Environment(enclosing=env)
+
+        for stmt in self.stmts:
+            stmt.execute(block_env)
+
+        del block_env
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+        scope_chain.begin_scope()
+
+        for stmt in self.stmts:
+            stmt.resolve(scope_chain, diagnostics)
+
+        scope_chain.end_scope()
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        for stmt in self.stmts:
+            result += stmt.to_string(ntab+2) + "\n"
+
+        result += f"{" "*ntab})\n"
+        return result
 
 @dataclass
 class ExpressionStmt:

@@ -66,7 +66,7 @@ class Environment:
         env = self._ancestor(distance)
 
         if name in env.values:
-            return self.values[name]
+            return env.values[name]
         else:
             # unreachable if resolver is good
             pass
