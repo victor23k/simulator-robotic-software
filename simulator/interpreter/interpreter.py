@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from simulator.interpreter.stmt import Stmt
+    from simulator.interpreter.ast.stmt import Stmt
 
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.environment import Environment

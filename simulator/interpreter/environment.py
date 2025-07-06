@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Self
 
-from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType
+from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType
 
 
 @dataclass

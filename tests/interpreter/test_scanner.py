@@ -1,7 +1,7 @@
-from pprint import pprint
 import unittest
-from simulator.interpreter.scanner import Scanner 
-from simulator.interpreter.token import TokenType
+
+from simulator.interpreter.lex.scanner import Scanner 
+from simulator.interpreter.lex.token import TokenType
 
 class TestScanner(unittest.TestCase):
 

@@ -1,10 +1,10 @@
-from simulator.interpreter.associativity import Assoc, get_binary_op_assoc
-from simulator.interpreter.expr import AssignExpr, Expr, BinaryExpr, LiteralExpr, VariableExpr
+from simulator.interpreter.parse.associativity import Assoc, get_binary_op_assoc
+from simulator.interpreter.ast.expr import AssignExpr, Expr, BinaryExpr, LiteralExpr, VariableExpr
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.precedence import PrecLevel, get_binary_op_precedence
-from simulator.interpreter.scanner import Scanner
-from simulator.interpreter.stmt import BlockStmt, ExpressionStmt, Stmt, VariableStmt
-from simulator.interpreter.token import Token, TokenType
+from simulator.interpreter.parse.precedence import PrecLevel, get_binary_op_precedence
+from simulator.interpreter.lex.scanner import Scanner
+from simulator.interpreter.ast.stmt import BlockStmt, ExpressionStmt, Stmt, VariableStmt
+from simulator.interpreter.lex.token import Token, TokenType
 
 from typing import override
 

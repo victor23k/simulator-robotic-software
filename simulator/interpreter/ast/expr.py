@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
-    from simulator.interpreter.scope import ScopeChain
+    from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.diagnostic import Diagnostic
     from simulator.interpreter.environment import Environment
 
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import diagnostic_from_token
-from simulator.interpreter.token import Token
-from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
+from simulator.interpreter.lex.token import Token
+from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
 type Expr = AssignExpr | BinaryExpr | VariableExpr | LiteralExpr
 

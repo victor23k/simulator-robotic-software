@@ -1,6 +1,6 @@
+from simulator.interpreter.ast.stmt import Stmt
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.scope import ScopeChain
-from simulator.interpreter.stmt import Stmt
+from simulator.interpreter.sema.scope import ScopeChain
 
 
 class Resolver:

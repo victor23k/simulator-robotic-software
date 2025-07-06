@@ -1,5 +1,6 @@
 from enum import Enum
-from simulator.interpreter.token import TokenType
+
+from simulator.interpreter.lex.token import TokenType
 
 
 class Assoc(Enum):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from simulator.interpreter.token import TokenType
+from simulator.interpreter.lex.token import TokenType
 
 type StmtSpec = ExpressionStmtSpec | VariableStmtSpec
 type ExprSpec = VariableExprSpec | BinaryExprSpec | LiteralExprSpec

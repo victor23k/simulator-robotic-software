@@ -2,9 +2,9 @@ import unittest
 
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.interpreter import Interpreter
-from simulator.interpreter.parser import Parser
-from simulator.interpreter.resolver import Resolver
-from simulator.interpreter.types import ArduinoBuiltinType
+from simulator.interpreter.parse.parser import Parser
+from simulator.interpreter.sema.resolver import Resolver
+from simulator.interpreter.sema.types import ArduinoBuiltinType
 
 def run(code: str) -> Interpreter:
     parser = Parser(code, [])

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from simulator.interpreter.token import Token, TokenType
+from simulator.interpreter.lex.token import Token, TokenType
 
 
 class ArduinoBuiltinType(Enum):

@@ -2,11 +2,11 @@ import os
 import unittest
 
 from simulator.interpreter.interpreter import Interpreter
-from simulator.interpreter.parser import Parser
-from simulator.interpreter.resolver import Resolver
-from simulator.interpreter.scanner import Scanner
-from simulator.interpreter.token import TokenType
-from tests.interpreter.ast import *
+from simulator.interpreter.parse.parser import Parser
+from simulator.interpreter.sema.resolver import Resolver
+from simulator.interpreter.lex.scanner import Scanner
+from simulator.interpreter.lex.token import TokenType
+from tests.interpreter.ast_spec import *
 
 
 def match_structure(actual: object, spec: object):

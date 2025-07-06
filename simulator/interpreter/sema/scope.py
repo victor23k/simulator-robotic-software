@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
-from simulator.interpreter.token import Token
-from simulator.interpreter.types import (
+from simulator.interpreter.lex.token import Token
+from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoType,
     token_to_arduino_type,

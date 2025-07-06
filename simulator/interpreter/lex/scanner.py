@@ -1,5 +1,5 @@
-from simulator.interpreter.token import Token, TokenType
 from simulator.interpreter.diagnostic import Diagnostic
+from simulator.interpreter.lex.token import Token, TokenType
 
 keywords = {
     "break": TokenType.BREAK,

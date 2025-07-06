@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import override
 
-import simulator.interpreter.scope as scope
-import simulator.interpreter.expr as expr
+import simulator.interpreter.sema.scope as scope
+import simulator.interpreter.ast.expr as expr
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
-from simulator.interpreter.token import Token
-from simulator.interpreter.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
+from simulator.interpreter.lex.token import Token
+from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
 type Stmt = BlockStmt | ExpressionStmt | VariableStmt
 

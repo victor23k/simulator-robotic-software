@@ -1,6 +1,7 @@
 from typing import Self
 from enum import Enum
-from simulator.interpreter.token import TokenType
+
+from simulator.interpreter.lex.token import TokenType
 
 class PrecLevel(Enum):
     UNKNOWN = 0

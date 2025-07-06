@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from simulator.interpreter.token import Token
+from simulator.interpreter.lex.token import Token
 
 def diagnostic_from_token(message: str, token: Token):
     return Diagnostic(message, token.line, token.column, len(token.lexeme) +
