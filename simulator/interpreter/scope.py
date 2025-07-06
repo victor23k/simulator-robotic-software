@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from simulator.interpreter.interpreter import Interpreter
-
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
@@ -54,13 +50,11 @@ class Scope:
 class ScopeChain:
     scopes: deque[Scope]
     diagnostics: list[Diagnostic]
-    interpreter: Interpreter
 
-    def __init__(self, diagnostics: list[Diagnostic], interpreter: Interpreter):
+    def __init__(self, diagnostics: list[Diagnostic]):
         self.scopes = deque()
         self.scopes.append(Scope())
         self.diagnostics = diagnostics
-        self.interpreter = interpreter
 
     def __len__(self):
         return len(self.scopes)

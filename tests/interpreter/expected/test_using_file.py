@@ -56,8 +56,7 @@ class ExpectedOutputCase(unittest.TestCase):
         spec_stmts: list[StmtSpec] = eval(self.ir)
 
 
-        interpreter = Interpreter(stmts, diags)
-        resolver = Resolver(interpreter)
+        resolver = Resolver(diags)
         resolver.resolve(stmts)
 
         self.assertEqual(len(diags), 0, f"No error diagnostics for {self.filename} expected but found: {diags}")
@@ -76,8 +75,7 @@ class ExpectedFailureCase(unittest.TestCase):
         parser = Parser(self.code, diags)
         stmts = parser.parse()
 
-        interpreter = Interpreter(stmts, diags)
-        resolver = Resolver(interpreter)
+        resolver = Resolver(diags)
         resolver.resolve(stmts)
 
         self.assertNotEqual(len(diags), 0, f"Expected some error diagnostics for {self.filename} but found none")

@@ -13,13 +13,11 @@ class Interpreter:
     statements.
     """
 
-    statements: list[Stmt]
     environment: Environment
     globals: Environment
     diagnostics: list[Diagnostic]
 
-    def __init__(self, statements: list[Stmt], diagnostics: list[Diagnostic]):
-        self.statements = statements
+    def __init__(self, diagnostics: list[Diagnostic]):
         self.diagnostics = diagnostics
         self.globals = Environment(None)
         self.environment = self.globals
@@ -27,6 +25,6 @@ class Interpreter:
     def print_diagnostics(self, diagnostics: list[Diagnostic]):
         pass
 
-    def run(self) -> None:
-        for statement in self.statements:
+    def run(self, statements: list[Stmt]) -> None:
+        for statement in statements:
             statement.execute(self.environment)

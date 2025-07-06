@@ -1,20 +1,26 @@
-from pprint import pprint
 import unittest
+
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.interpreter import Interpreter
 from simulator.interpreter.parser import Parser
 from simulator.interpreter.resolver import Resolver
 from simulator.interpreter.types import ArduinoBuiltinType
 
+def run(code: str) -> Interpreter:
+    parser = Parser(code, [])
+    statements = parser.parse()
+    interpreter = Interpreter([])
+    resolver = Resolver([])
+    resolver.resolve(statements)
+    interpreter.run(statements)
+
+    return interpreter
+
 class TestInterpreter(unittest.TestCase):
     def test_interprets_simple_arithmetic(self):
-        diags = []
-        parser = Parser("float a = 5 - 4 / 2;", diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        code = "float a = 5 - 4 / 2;"
+        interpreter = run(code)
+
         a_value = interpreter.environment.get("a", 0)
 
         assert a_value is not None
@@ -23,13 +29,9 @@ class TestInterpreter(unittest.TestCase):
 
 
     def test_interprets_complex_arithmetic(self):
-        diags = []
-        parser = Parser("float a = 1 * (5 - 24 % (10 - 3)) / 10;", diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        code = "float a = 1 * (5 - 24 % (10 - 3)) / 10;"
+        interpreter = run(code)
+
         a_value = interpreter.environment.get("a", 0)
 
         assert a_value is not None
@@ -38,13 +40,8 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.FLOAT)
 
     def test_interprets_assignment_and_usage(self):
-        diags = []
-        parser = Parser("int a = 2;\nint b;\nb = a + 3;", diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        code = "int a = 2;\nint b;\nb = a + 3;"
+        interpreter = run(code)
 
         b_value = interpreter.environment.get("b", 0)
 
@@ -54,13 +51,8 @@ class TestInterpreter(unittest.TestCase):
 
     def test_interprets_binary_op_plus(self):
         code = "int a = 4 + 2;"
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
+
         a_value = interpreter.environment.get("a", 0)
 
         assert a_value is not None
@@ -69,14 +61,7 @@ class TestInterpreter(unittest.TestCase):
 
     def test_interprets_binary_op_plus_float_coerce_var(self):
         code = "float a = 4 + 2;"
-
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
 
         val = interpreter.environment.get("a", 0)
 
@@ -86,14 +71,7 @@ class TestInterpreter(unittest.TestCase):
 
     def test_interprets_binary_op_plus_float_coerce(self):
         code = "float a = 4.0 + 2;"
-
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
 
         val = interpreter.environment.get("a", 0)
 
@@ -103,14 +81,7 @@ class TestInterpreter(unittest.TestCase):
 
     def test_interprets_binary_op_plus_float(self):
         code = "float a = 4.0 + 2.0;"
-
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
 
         val = interpreter.environment.get("a", 0)
 
@@ -120,14 +91,7 @@ class TestInterpreter(unittest.TestCase):
 
     def test_interprets_comparisons(self):
         code = "bool a = 5 == 6;\nbool b = 5 != 6;"
-
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
 
         a_value = interpreter.environment.get("a", 0)
 
@@ -153,13 +117,7 @@ int c = 0;
     }
 }"""
 
-        diags: list[Diagnostic] = []
-        parser = Parser(code, diags)
-        statements = parser.parse()
-        interpreter = Interpreter(statements, diags)
-        resolver = Resolver(interpreter)
-        resolver.resolve(statements)
-        interpreter.run()
+        interpreter = run(code)
 
         val_a = interpreter.environment.get("a", 0)
         val_b = interpreter.environment.get("b", 0)

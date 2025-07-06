@@ -153,7 +153,7 @@ class TestScanner(unittest.TestCase):
     def test_scans_assignment_and_usage(self):
         scanner = Scanner("int a = 2;\na;")
         tokens = [token for token in scanner]
-        pprint(tokens)
+        # pprint(tokens)
 
 
 if __name__ == '__main__':
