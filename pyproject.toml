@@ -10,5 +10,12 @@ dependencies = [
     "pillow>=11.0.0",
 ]
 
+[project.scripts]
+interpino = "simulator.interpreter.cli:main"
+
 [tool.setuptools.packages.find]
-where = ["simulator"]
+where = ["."]
+include = ["simulator*"]
+
+[tool.basedpyright]
+reportUnusedCallResult = false
