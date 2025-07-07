@@ -172,7 +172,7 @@ class Token:
         result += f"{" "*(ntab+2)}lexeme={self.lexeme},\n"
         result += f"{" "*(ntab+2)}literal={self.literal},\n"
         result += f"{" "*(ntab+2)}line={self.line},\n"
-        result += f"{" "*(ntab+2)}column={self.line},\n"
+        result += f"{" "*(ntab+2)}column={self.column},\n"
         result += f"{" "*(ntab)})"
 
         return result

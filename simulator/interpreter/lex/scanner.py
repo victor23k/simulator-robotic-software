@@ -204,6 +204,7 @@ class Scanner:
                     pass
 
         self.start = self.current
+        self.tokens.append(next_token)
         return next_token
 
     def _is_at_end(self) -> bool:
@@ -379,12 +380,12 @@ class Scanner:
         if peek_chr == "\n" or peek_chr == "\r":
             self.line += 1
             self._advance()
-            self.column = 0
+            self.column = 1
         elif peek_chr == "\r" and self._peek_next() == "\n":
             self.line += 1
             self._advance()
             self._advance()
-            self.column = 0
+            self.column = 1
 
         while self._peek().isspace():
             self._advance()
@@ -396,4 +397,4 @@ class Scanner:
 
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
-        return Token(token_type, text, literal, self.line, self.column)
+        return Token(token_type, text, literal, self.line, self.column - len(text))
