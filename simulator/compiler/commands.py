@@ -2,11 +2,13 @@ import traceback
 import importlib.util
 import sys
 import time
+from typing import override
 import output.console as console
 import compiler.transpiler as transpiler
 import libraries.standard as standard
 import libraries.serial as serial
 import robot_components.robot_state as state
+from simulator.arduino import Arduino
 
 module = None
 
@@ -132,3 +134,28 @@ class Loop(Command):
                 self.controller.console.write_error(
                     console.Error("Error de ejecución", 0, 0, "El sketch no se ha podido ejecutar correctamente"))
                 self.controller.executing = False
+
+class ArduinoCompiler(Arduino):
+
+    def __init__(self, controller, code):
+        self.compile_command = Compile(controller)
+        self.setup_command = Setup(controller)
+        self.loop_command = Loop(controller)
+        self.code = code
+
+
+    @override
+    def compile(self):
+        self.compile_command.compile(self.code)
+
+    @override
+    def check(self) -> bool | None:
+        return self.compile_command.execute()
+
+    @override
+    def setup(self):
+        self.setup_command.execute()
+
+    @override
+    def loop(self):
+        self.loop_command.execute()
