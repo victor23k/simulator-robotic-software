@@ -1,30 +1,78 @@
-from __future__ import annotations
+import sys
+from typing import override
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from simulator.interpreter.ast.stmt import Stmt
-
+from simulator.interpreter.ast.stmt import Stmt
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.environment import Environment
+from simulator.interpreter.ast_interpreter import AstInterpreter
+from simulator.interpreter.parse.parser import Parser
+from simulator.interpreter.sema.resolver import Resolver
+from simulator.arduino import Arduino
 
-class Interpreter:
+
+class Interpreter(Arduino):
     """
-    Runs an Arduino Language AST by evaluating expressions and executing
-    statements.
+    Arduino sketch interpreter.
     """
 
-    environment: Environment
-    globals: Environment
+    code: str
+    parser: Parser
     diagnostics: list[Diagnostic]
+    resolver: Resolver
+    interpreter: AstInterpreter
+    statements: list[Stmt]
 
-    def __init__(self, diagnostics: list[Diagnostic]):
-        self.diagnostics = diagnostics
-        self.globals = Environment(None)
-        self.environment = self.globals
+    def __init__(self, code: str):
+        self.code = code
+        self.diagnostics = []
+        self.parser = Parser(code, self.diagnostics)
+        self.resolver = Resolver(self.diagnostics)
+        self.interpreter = AstInterpreter(self.diagnostics)
 
-    def print_diagnostics(self, diagnostics: list[Diagnostic]):
-        pass
+    @override
+    def compile(self):
+        statements = self.parser.parse()
+        self.resolver.resolve(statements)
 
-    def run(self, statements: list[Stmt]) -> None:
-        for statement in statements:
-            statement.execute(self.environment)
+        self.statements = statements
+
+    @override
+    def check(self) -> bool | None:
+        return self._check_program()
+
+    @override
+    def setup(self):
+        raise NotImplementedError()
+
+    @override
+    def loop(self):
+        raise NotImplementedError()
+
+    @override
+    def run(self):
+        """
+        Interprets the loaded Arduino sketch.
+
+        If there are any errors before execution, prints them to standard error
+        output and exits.
+        """
+
+        if len(self.diagnostics) == 0:
+            self.interpreter.run(self.statements)
+        else:
+            print(self.diagnostics, file=sys.stderr)
+
+    def _check_program(self) -> bool:
+        """
+        Checks the loaded Arduino sketch for errors and returns a boolean
+        indicating if the program is correct.
+
+        If there are any errors, prints them to standard error output.
+        """
+
+        statements = self.parser.parse()
+        self.resolver.resolve(statements)
+
+        return len(self.diagnostics) == 0
+
+    def print_diagnostics(self):
+        print(self.diagnostics, file=sys.stderr)

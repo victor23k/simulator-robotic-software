@@ -9,10 +9,11 @@ class Arduino(ABC):
     @abstractmethod
     def compile(self):
         """
-        Compiles the Arduino sketch and returns the final representation.
+        Compiles the Arduino sketch to the executable intermediate
+        representation.
 
-        In this project compilation can mean transpilation, error checking or real
-        compilation to a binary.
+        In this project compilation can mean transpilation, error checking or
+        real compilation to a binary.
         """
 
         pass
@@ -40,3 +41,11 @@ class Arduino(ABC):
         """
 
         pass
+
+    def run(self):
+        """
+        Run Arduino sketch.
+        """
+        
+        self.setup()
+        self.loop()

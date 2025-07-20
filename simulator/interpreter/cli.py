@@ -1,7 +1,8 @@
 import argparse
 import sys
 
-from simulator.interpreter.arduino import Arduino
+from simulator.arduino import Arduino
+from simulator.interpreter.interpreter import Interpreter
 
 
 def main():
@@ -26,13 +27,13 @@ def main():
 
     code = args.file.read()
 
-    arduino = Arduino(code)
+    arduino: Arduino = Interpreter(code)
 
     if args.command == "run":
         arduino.run()
 
     elif args.command == "check":
-        if arduino.check_program():
+        if arduino.check():
             print("All good!!")
         else:
             print("Found some errors:")
