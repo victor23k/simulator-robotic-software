@@ -44,6 +44,9 @@ class Command:
 
 
 class Compile(Command):
+    """
+    Transpiles the Arduino sketch to python code in a temp python script. 
+    """
 
     def __init__(self, controller):
         super().__init__(controller)
@@ -91,6 +94,10 @@ class Compile(Command):
 
 
 class Setup(Command):
+    """
+    Loads the sketch module from the temp python script and executes the setup
+    function.
+    """
 
     def __init__(self, controller):
         super().__init__(controller)

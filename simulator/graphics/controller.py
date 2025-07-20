@@ -13,9 +13,7 @@ class RobotsController:
         self.console: console.Console = None
         self.robot_layer: layers.Layer = None
         self.consoleGamification = console_gamification.ConsoleGamification()
-        self.compile_command = commands.Compile(self)
-        self.setup_command = commands.Setup(self)
-        self.loop_command = commands.Loop(self)
+        self.arduino = commands.ArduinoCompiler(self, view.get_code())
         self.executing = False
         self.board = False
         self.new = True
@@ -27,26 +25,22 @@ class RobotsController:
             self.view.abort_after()
             self.robot_layer.execute()
             self.console.clear()
-            if self.compile_command.execute():
-                if self.setup_command.execute():
+            if self.arduino.check():
+                if self.arduino.setup():
                     self.executing = True
                     self.drawing_loop()
         else:
-            user_ast = self.compile_command.compile(self.get_code())
-            if user_ast is not None:
+            if self.arduino.check():
                 self.probe_robot(option_gamification)
 
     def drawing_loop(self):
         screen_updater.refresh()
         if not self.view.keys_used:
-            self.loop_command.execute()
+            self.arduino.loop()
         self.view.identifier = self.view.after(10, self.drawing_loop)
 
     def stop(self):
         self.executing = False
-        self.compile_command.reboot()
-        self.setup_command.reboot()
-        self.loop_command.reboot()
         self.robot_layer.stop()
         self.view.abort_after()
 
