@@ -17,6 +17,8 @@ class ArduinoBuiltinType(Enum):
     FLOAT = 8
     DOUBLE = 9
 
+    VOID = 10
+
 
 
 type ArduinoType = ArduinoBuiltinType | ArduinoObjType | None

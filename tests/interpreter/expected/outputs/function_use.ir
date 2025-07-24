@@ -1,0 +1,50 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="add"),
+      params=[
+        # int a
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="a"),
+        ),
+        # int b
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+        ),
+      ],
+      body=[
+          # return a + b
+          ReturnStmtSpec(
+              expr=BinaryExprSpec(
+                lhs=VariableExprSpec(
+                  vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                ),
+                op=TokenSpec(token=TokenType.PLUS),
+                rhs=VariableExprSpec(
+                  vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                )
+            )
+          )
+        ]
+      ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='add')
+        ),
+        arguments=[BinaryExprSpec(
+                lhs=LiteralExprSpec(
+                  value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+                ),  
+                op=TokenSpec(token=TokenType.PLUS),
+                rhs=LiteralExprSpec(
+                  value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+                ),
+        )]
+      )
+    )
+]

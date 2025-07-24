@@ -16,3 +16,6 @@ class Diagnostic:
     line: int
     col_start: int
     col_end: int
+
+class ArduinoRuntimeError(Exception):
+    pass

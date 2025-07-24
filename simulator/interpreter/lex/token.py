@@ -96,8 +96,9 @@ class TokenType(Enum):
     LEFT_BRACKET = 93
     RIGHT_BRACKET = 94
     DOT = 95
-    NUMBER = 96
-    IDENTIFIER = 97
+    COMMA = 96
+    NUMBER = 97
+    IDENTIFIER = 98
 
     EOF = 100
     ERROR = 101

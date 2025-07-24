@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
+
 if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.diagnostic import Diagnostic
     from simulator.interpreter.environment import Environment
+    from simulator.interpreter.ast.stmt import Function
 
 from simulator.interpreter.environment import Value
-from simulator.interpreter.diagnostic import diagnostic_from_token
+from simulator.interpreter.diagnostic import ArduinoRuntimeError, diagnostic_from_token
 from simulator.interpreter.lex.token import Token
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
-type Expr = AssignExpr | BinaryExpr | VariableExpr | LiteralExpr
+type Expr = AssignExpr | BinaryExpr | CallExpr | VariableExpr | LiteralExpr
 
 class BinaryOpException(Exception):
     pass
@@ -47,7 +49,7 @@ class AssignExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
-    def evaluate(self, env: Environment) -> Value | None:
+    def evaluate(self, env: Environment):
         value_result = self.value.evaluate(env)
         env.assign(self.name.lexeme, value_result)
         return value_result
@@ -130,7 +132,7 @@ class BinaryExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return Diagnostic(message, self.op.line, self.op.column, self.op.column)
 
-    def evaluate(self, env: Environment) -> Value | None:
+    def evaluate(self, env: Environment):
         left_value = self.lhs.evaluate(env)
         right_value = self.rhs.evaluate(env)
 
@@ -168,6 +170,56 @@ class BinaryExpr:
         self.check_type(scope_chain, diagnostics)
 
 
+class CallExpr:
+    callee: VariableExpr
+    # callee can be the function name (VariableExpr) and a method call on an
+    # object (GetExpr). The latter is not implemented yet. 
+    arguments: list[Expr]
+    ttype: ArduinoType
+
+    def __init__(self, callee: VariableExpr, arguments: list[Expr]):
+        self.callee = callee
+        self.arguments = arguments
+        self.ttype = None
+
+    def evaluate(self, env: Environment):
+        fn = self.callee.evaluate(env)
+
+        if not isinstance(fn, Function):
+            raise ArduinoRuntimeError("Can only call functions.")
+
+        if len(self.arguments) != fn.arity():
+            raise ArduinoRuntimeError(
+                f"Expected {fn.arity()} arguments but got {len(self.arguments)}.")
+
+        args = [arg.evaluate(env) for arg in self.arguments]
+
+        return fn.call(args)
+
+    def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
+        self.ttype = self.callee.ttype
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.callee.check_type(scope_chain, diagnostics)
+        self.check_type(scope_chain, diagnostics)
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.callee.to_string(ntab+2, "callee")
+        result += f"{' ' * (ntab + 2)}params=["
+        result += ",\n".join([arg.to_string(ntab + 2) for arg in self.arguments])
+        result += f"{' ' * (ntab + 2)}],\n"
+
+        if self.ttype is not None:
+            result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{" "*ntab})\n"
+        return result
+
+
 class LiteralExpr:
     value: Token
     ttype: ArduinoType
@@ -193,7 +245,7 @@ class LiteralExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, _env: Environment) -> Value | None:
+    def evaluate(self, _env: Environment):
         return Value(self.ttype, self.value.literal)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
@@ -233,7 +285,7 @@ class VariableExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, env: Environment) -> Value | None:
+    def evaluate(self, env: Environment):
         value = env.get(self.vname.lexeme, self.scope_distance)
         return value
 

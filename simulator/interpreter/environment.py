@@ -28,14 +28,14 @@ class Environment:
     in.
     """
 
-    values: dict[str, Value | None]
+    values: dict[str, object]
     enclosing: Self | None
 
     def __init__(self, enclosing: Self | None):
         self.values = {}
         self.enclosing = enclosing
 
-    def define(self, name: str, value: Value | None):
+    def define(self, name: str, value: object):
         """
         Defines a variable by its `name` and `value`.
 
@@ -49,7 +49,7 @@ class Environment:
         # if shadowing is not allowed, use depth to get the env to define
         self.values[name] = value
 
-    def assign(self, name: str, value: Value | None):
+    def assign(self, name: str, value: object):
         if name in self.values:
             self.values[name] = value
             return
@@ -62,7 +62,7 @@ class Environment:
         return None
 
 
-    def get(self, name: str, distance: int) -> Value | None:
+    def get(self, name: str, distance: int) -> object:
         env = self._ancestor(distance)
 
         if name in env.values:
@@ -76,3 +76,4 @@ class Environment:
             return self.enclosing._ancestor(distance - 1)
 
         return self
+

@@ -1,7 +1,7 @@
 import unittest
 
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.interpreter import AstInterpreter
+from simulator.interpreter.ast_interpreter import AstInterpreter
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.sema.types import ArduinoBuiltinType

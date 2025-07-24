@@ -1,15 +1,31 @@
 from simulator.interpreter.parse.associativity import Assoc, get_binary_op_assoc
-from simulator.interpreter.ast.expr import AssignExpr, Expr, BinaryExpr, LiteralExpr, VariableExpr
+from simulator.interpreter.ast.expr import (
+    AssignExpr,
+    CallExpr,
+    Expr,
+    BinaryExpr,
+    LiteralExpr,
+    VariableExpr,
+)
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.parse.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.lex.scanner import Scanner
-from simulator.interpreter.ast.stmt import BlockStmt, ExpressionStmt, Stmt, VariableStmt
+from simulator.interpreter.ast.stmt import (
+    BlockStmt,
+    ExpressionStmt,
+    FunctionStmt,
+    ReturnStmt,
+    Stmt,
+    VariableStmt,
+)
 from simulator.interpreter.lex.token import Token, TokenType
 
 from typing import override
 
-class ParseError():
+
+class ParseError:
     """Base class for exceptions raised by the parser."""
+
     msg: str
     line: int
     col: int
@@ -39,6 +55,25 @@ class ParseError():
         return f"""{self.__class__.__name__}: {self.msg}.
                 Ocurred at pos ({self.line}, {self.col}) in:
                 {self.text}"""
+
+
+var_ttype = [
+    TokenType.BOOL,
+    TokenType.BOOLEAN,
+    TokenType.BYTE,
+    TokenType.CHAR,
+    TokenType.DOUBLE,
+    TokenType.FLOAT,
+    TokenType.INT,
+    TokenType.LONG,
+    TokenType.SHORT,
+    TokenType.SIZE_T,
+    TokenType.UNSIGNED_INT,
+    TokenType.VOID,
+    TokenType.WORD,
+    TokenType.UNSIGNED_CHAR,
+    TokenType.UNSIGNED_LONG,
+]
 
 
 class Parser:
@@ -74,54 +109,57 @@ class Parser:
         statements: list[Stmt] = []
 
         while not self._is_at_end():
-            stmt = self._statement()
+            stmt = self._declaration()
             statements.append(stmt)
 
         return statements
 
+    def _declaration(self) -> Stmt:
+        if self._match(*var_ttype):
+            ttype, identifier = self._declaration_start()
+
+            if self._match(TokenType.EQUAL):
+                initializer = self._expression()
+                self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+                return VariableStmt(ttype, identifier, initializer, ttype=None)
+
+            elif self._match(TokenType.LEFT_PAREN):
+                return self._function_declaration(ttype, identifier)
+
+            else:
+                self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+                return VariableStmt(ttype, identifier, initializer=None, ttype=None)
+        else:
+            return self._statement()
+
     def _statement(self) -> Stmt:
         match self._peek().token:
-            # var type, must be a declaration
-            case (
-                TokenType.BOOL
-                | TokenType.BOOLEAN
-                | TokenType.BYTE
-                | TokenType.CHAR
-                | TokenType.DOUBLE
-                | TokenType.FLOAT
-                | TokenType.INT
-                | TokenType.LONG
-                | TokenType.SHORT
-                | TokenType.SIZE_T
-                | TokenType.UNSIGNED_INT
-                | TokenType.WORD
-                | TokenType.UNSIGNED_CHAR
-                | TokenType.UNSIGNED_LONG
-            ):
-                return self._declaration()
             case TokenType.LEFT_BRACE:
+                self._advance()  # LEFT_BRACE
                 return self._block()
+            case TokenType.RETURN:
+                return self._return_stmt()
             case _:
                 return self._expression_statement()
 
-    def _block(self) -> BlockStmt:
-        self._advance() # LEFT_BRACE
+    def _return_stmt(self):
+        self._advance()  # RETURN
+        expr = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after return expression.")
+        return ReturnStmt(expr, ttype=None)
 
+    def _block(self) -> BlockStmt:
         stmts: list[Stmt] = []
 
-        while not (self._check(TokenType.RIGHT_BRACE) or self._is_at_end()):
-            stmts.append(self._statement())
+        while (not self._check(TokenType.RIGHT_BRACE)) or self._is_at_end():
+            stmts.append(self._declaration())
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
 
-        return BlockStmt(stmts)
+        return BlockStmt(stmts, ttype=None)
 
-    def _declaration(self) -> VariableStmt:
-        var_type = self._advance()
-        identifier = self._consume(
-            TokenType.IDENTIFIER, "Expect identifier in variable declaration."
-        )
-        initializer = None
+    def _declaration_start(self):
+        var_type = self.previous
 
         # if left square bracket, this is an array
         if self._match(TokenType.LEFT_BRACKET):
@@ -131,15 +169,49 @@ class Parser:
             self._consume(
                 TokenType.RIGHT_BRACKET, "Expect closing ']' in array declaration."
             )
-            # don't know what to do with this yet
 
-        # if equals, we are initializing the variable
-        if self._match(TokenType.EQUAL):
-            initializer = self._expression()
+        identifier = self._consume(
+            TokenType.IDENTIFIER, "Expect identifier in variable declaration."
+        )
 
-        self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+        return var_type, identifier
 
-        return VariableStmt(var_type, identifier, initializer, None)
+    def _function_declaration(self, fn_type: Token, identifier: Token) -> FunctionStmt:
+        self._advance()  # LEFT_PAREN
+        params = self._parameters()
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
+        body: list[Stmt] = []
+
+        while (not self._check(TokenType.RIGHT_BRACE)) or self._is_at_end():
+            body.append(self._declaration())
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close function body.")
+
+        return FunctionStmt(identifier, params, body, fn_type, ttype=None)
+
+    def _parameters(self) -> list[VariableStmt]:
+        params: list[VariableStmt] = []
+
+        if not self._check(TokenType.RIGHT_PAREN):
+            var_type, identifier = self._declaration_start()
+            param = VariableStmt(var_type, identifier, None, None)
+            params.append(param)
+
+        while not self._check(TokenType.RIGHT_PAREN) and self._match(TokenType.COMMA):
+            if len(params) > 255:
+                self._error(self._peek(), "Can't have more than 255 parameters.")
+
+            if self._match(*var_ttype):
+                var_type, identifier = self._declaration_start()
+                param = VariableStmt(var_type, identifier, None, None)
+                params.append(param)
+            else:
+                self._error(self._peek(), "Function parameter must have valid type")
+
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+
+        return params
 
     def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()
@@ -163,12 +235,12 @@ class Parser:
 
             self._advance()
             rhs = self._expression(next_min_prec)
-            if op.token is TokenType.EQUAL: 
+            if op.token is TokenType.EQUAL:
                 if isinstance(lhs, VariableExpr):
                     lhs = AssignExpr(lhs.vname, rhs)
                 else:
                     # lhs = AssignExpr(Token(TokenType.ERROR, "", None, op.line,
-                                            # op.column), rhs)
+                    # op.column), rhs)
                     self._error(lhs, "Invalid l-value for assignment expression")
             else:
                 lhs = BinaryExpr(lhs, op, rhs)
@@ -185,9 +257,13 @@ class Parser:
             case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL) as token:
                 self._advance()
                 return LiteralExpr(token)
-            case Token(token=TokenType.IDENTIFIER) as token:
+            case Token(token=TokenType.IDENTIFIER) as identifier:
                 self._advance()
-                return VariableExpr(token)
+
+                if self._match(TokenType.LEFT_PAREN):
+                    return self._call_expr(identifier)
+                else:
+                    return VariableExpr(identifier)
             case unexpected_token:
                 self._advance()
                 self._error(
@@ -195,11 +271,35 @@ class Parser:
                 )
                 return LiteralExpr(unexpected_token)
 
+    def _call_expr(self, identifier: Token):
+        fn_name = VariableExpr(identifier)
+
+        arguments: list[Expr] = []
+
+        if not self._check(TokenType.RIGHT_PAREN):
+            arg = self._expression()
+            arguments.append(arg)
+
+        while not self._check(TokenType.RIGHT_PAREN) and self._match(TokenType.COMMA):
+            if len(arguments) > 255:
+                self._error(self._peek(), "Can't have more than 255 arguments.")
+
+            arg = self._expression()
+            arguments.append(arg)
+
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments.")
+
+        return CallExpr(fn_name, arguments)
+
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if not self._check(token_type):
 
-            diag = Diagnostic(message, self.current.line, self.current.column,
-                        len(self.current.lexeme) + self.current.column)
+            diag = Diagnostic(
+                message,
+                self.current.line,
+                self.current.column,
+                len(self.current.lexeme) + self.current.column,
+            )
             self.diagnostics.append(diag)
 
         return self._advance()
@@ -228,8 +328,9 @@ class Parser:
 
     def _error(self, token: Token, message: str):
         # This should generate a Diagnostic, report it to the interpreter and
-        # return it        
-        
-        diag = Diagnostic(message, token.line, token.column, token.column +
-            len(token.lexeme))
+        # return it
+
+        diag = Diagnostic(
+            message, token.line, token.column, token.column + len(token.lexeme)
+        )
         self.diagnostics.append(diag)

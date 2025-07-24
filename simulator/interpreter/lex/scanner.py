@@ -26,6 +26,7 @@ types = {
     "long": TokenType.LONG,
     "short": TokenType.SHORT,
     "size_t": TokenType.SIZE_T,
+    "void": TokenType.VOID,
     "word": TokenType.WORD,
 }
 
@@ -119,6 +120,8 @@ class Scanner:
                 next_token = self._produce_empty_token(TokenType.RIGHT_BRACE)
             case ".":
                 next_token = self._produce_empty_token(TokenType.DOT)
+            case ",":
+                next_token = self._produce_empty_token(TokenType.COMMA)
             case ";":
                 next_token = self._produce_empty_token(TokenType.SEMICOLON)
             case "=":
