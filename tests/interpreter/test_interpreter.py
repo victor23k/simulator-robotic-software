@@ -1,18 +1,13 @@
 import unittest
 
-from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.ast_interpreter import AstInterpreter
-from simulator.interpreter.parse.parser import Parser
-from simulator.interpreter.sema.resolver import Resolver
+from simulator.interpreter.environment import Value
+from simulator.interpreter.interpreter import Interpreter
 from simulator.interpreter.sema.types import ArduinoBuiltinType
 
-def run(code: str) -> AstInterpreter:
-    parser = Parser(code, [])
-    statements = parser.parse()
-    interpreter = AstInterpreter([])
-    resolver = Resolver([])
-    resolver.resolve(statements)
-    interpreter.run(statements)
+def run(code: str) -> Interpreter:
+    interpreter = Interpreter(code)
+    interpreter.compile()
+    interpreter.run_test()
 
     return interpreter
 
@@ -23,7 +18,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         a_value = interpreter.environment.get("a", 0)
 
-        assert a_value is not None
+        assert isinstance(a_value, Value)
         self.assertEqual(a_value.value, 3.0)
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.FLOAT)
 
@@ -34,7 +29,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         a_value = interpreter.environment.get("a", 0)
 
-        assert a_value is not None
+        assert isinstance(a_value, Value)
         should_be = 1 * (5 - 24 % (10 - 3)) / 10
         self.assertEqual(a_value.value, should_be)
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.FLOAT)
@@ -45,7 +40,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         b_value = interpreter.environment.get("b", 0)
 
-        assert b_value is not None
+        assert isinstance(b_value, Value)
         self.assertEqual(b_value.value, 5)
         self.assertEqual(b_value.value_type, ArduinoBuiltinType.INT)
 
@@ -55,7 +50,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         a_value = interpreter.environment.get("a", 0)
 
-        assert a_value is not None
+        assert isinstance(a_value, Value)
         self.assertEqual(a_value.value, 6)
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.INT)
 
@@ -65,7 +60,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         val = interpreter.environment.get("a", 0)
 
-        assert val is not None
+        assert isinstance(val, Value)
         self.assertEqual(val.value, 6.0)
         self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
 
@@ -75,7 +70,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         val = interpreter.environment.get("a", 0)
 
-        assert val is not None
+        assert isinstance(val, Value)
         self.assertEqual(val.value, 6.0)
         self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
 
@@ -85,7 +80,7 @@ class TestAstInterpreter(unittest.TestCase):
 
         val = interpreter.environment.get("a", 0)
 
-        assert val is not None
+        assert isinstance(val, Value)
         self.assertEqual(val.value, 6.0)
         self.assertEqual(val.value_type, ArduinoBuiltinType.FLOAT)
 
@@ -95,13 +90,13 @@ class TestAstInterpreter(unittest.TestCase):
 
         a_value = interpreter.environment.get("a", 0)
 
-        assert a_value is not None
+        assert isinstance(a_value, Value)
         self.assertEqual(a_value.value, False)
         self.assertEqual(a_value.value_type, ArduinoBuiltinType.BOOL)
 
         b_value = interpreter.environment.get("b", 0)
 
-        assert b_value is not None
+        assert isinstance(b_value, Value)
         self.assertEqual(b_value.value, True)
         self.assertEqual(b_value.value_type, ArduinoBuiltinType.BOOL)
 

@@ -1,9 +1,9 @@
 import sys
 from typing import override
 
-from simulator.interpreter.ast.stmt import Stmt
+from simulator.interpreter.ast.stmt import Function, Stmt
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.ast_interpreter import AstInterpreter
+from simulator.interpreter.environment import Environment
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
@@ -18,15 +18,18 @@ class Interpreter(Arduino):
     parser: Parser
     diagnostics: list[Diagnostic]
     resolver: Resolver
-    interpreter: AstInterpreter
     statements: list[Stmt]
+    environment: Environment
+    globals: Environment
 
     def __init__(self, code: str):
         self.code = code
         self.diagnostics = []
         self.parser = Parser(code, self.diagnostics)
         self.resolver = Resolver(self.diagnostics)
-        self.interpreter = AstInterpreter(self.diagnostics)
+        self.globals = Environment(None)
+        self.environment = self.globals
+        self.statements = []
 
     @override
     def compile(self):
@@ -41,11 +44,21 @@ class Interpreter(Arduino):
 
     @override
     def setup(self):
-        raise NotImplementedError()
+        for statement in self.statements:
+            statement.execute(self.environment)
+
+        setup_fn = self.environment.get("setup", 0)
+        assert isinstance(setup_fn, Function)
+
+        setup_fn.call([])
 
     @override
     def loop(self):
-        raise NotImplementedError()
+        loop_fn = self.environment.get("loop", 0)
+        assert isinstance(loop_fn, Function)
+
+        while True:
+            loop_fn.call([])
 
     @override
     def run(self):
@@ -57,9 +70,28 @@ class Interpreter(Arduino):
         """
 
         if len(self.diagnostics) == 0:
-            self.interpreter.run(self.statements)
+            self.setup()
+            self.loop()
         else:
             print(self.diagnostics, file=sys.stderr)
+
+    def run_test(self):
+        """
+        Interprets the Arduino sketch for a test run.
+
+        This does not require `setup` and `loop` functions.
+        """
+
+        for statement in self.statements:
+            statement.execute(self.environment)
+
+        setup_fn = self.environment.get("setup", 0)
+        loop_fn = self.environment.get("loop", 0)
+
+        if isinstance(setup_fn, Function) and isinstance(loop_fn, Function):
+            setup_fn.call([])
+            while True:
+                loop_fn.call([])
 
     def _check_program(self) -> bool:
         """

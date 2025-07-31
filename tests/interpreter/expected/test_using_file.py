@@ -1,7 +1,6 @@
 import os
 import unittest
 
-from simulator.interpreter.interpreter import AstInterpreter
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.lex.scanner import Scanner
