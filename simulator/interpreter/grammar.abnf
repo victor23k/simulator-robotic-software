@@ -1,0 +1,39 @@
+keyword = "break" / "case" / "continue" / "do" / "else" / "for" 
+keyword /= "goto" / "if" / "return" / "switch" / "while"
+
+type = "bool" / "boolean" / "byte" / "char" / "double" / "float" / "int"
+type /= "long" / "short" / "size_t" / "void" / "word" 
+
+unsigned_type = "unsigned int" / "unsigned char" / "unsigned long"
+
+declaration  = classDecl
+declaration  = varDecl
+declaration /= fnDecl
+declaration /= statement
+
+statement  = exprStmt
+statement /= returnStmt
+statement /= blockStmt
+
+varDecl = declStart ["=" initializer] ";"
+fnDecl  = declStart "(" params ")" "{" +statement "}"
+declStart = (type / unsigned_type) [array_def] identifier
+
+initializer = expr
+
+exprStmt = expr ";"
+returnStmt = "return" expr ";"
+blockStmt = "{" *declaration "}"
+
+array_def = "[" +DIGIT "]"
+
+params = *declStart *("," declStart)
+
+expr = binaryExpr
+expr /= literalExpr
+expr /= variableExpr
+expr /= callExpr
+
+callExpr = variableExpr "(" arguments? ")"
+
+arguments = expr *( "," expr )
