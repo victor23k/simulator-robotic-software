@@ -205,7 +205,7 @@ class FunctionStmt:
     ttype: ArduinoType
 
     def execute(self, env: Environment):
-        fn = Function(self, env)
+        fn = Function(self.params, self.body, env)
         env.define(self.name.lexeme, fn)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
@@ -276,24 +276,26 @@ class Function:
     Function in the Arduino language.
     """
 
-    decl: FunctionStmt
+    params: list[VariableStmt]
+    body: list[Stmt]
     closure: Environment
 
     def arity(self) -> int:
         "Returns the function's number of parameters"
 
-        return len(self.decl.params)
+        return len(self.params)
 
     def call(self, arguments: list[object]) -> object:
         "Call the function and return."
 
         fn_env = Environment(self.closure)
 
-        for param, arg in zip(self.decl.params, arguments):
+        for param, arg in zip(self.params, arguments):
             fn_env.define(param.name.lexeme, arg)
 
         try:
-            self.decl.body.execute(fn_env)
+            for stmt in self.body:
+                stmt.execute(fn_env)
         except ReturnException as ret:
             return ret.value
 
