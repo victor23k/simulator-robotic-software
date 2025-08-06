@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 
 from simulator.arduino import Arduino
@@ -36,8 +37,7 @@ def main():
         if arduino.check():
             print("All good!!")
         else:
-            print("Found some errors:")
-            arduino.print_diagnostics()
+            print("Found some errors :(")
 
     elif args.command == "debug":
         print("Debug not implemented yet")

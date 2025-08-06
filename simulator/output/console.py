@@ -4,6 +4,9 @@ import os
 from time import time
 import tkinter as tk
 
+from simulator.graphics.text_widget_handler import TextWidgetHandler
+
+logger = logging.getLogger("SketchLogger")
 
 class ConsoleReportMessage:
 
@@ -83,6 +86,8 @@ class Console:
         self.text_widget.tag_config('warning', foreground='yellow')
         self.text_widget.tag_config('error', foreground='red')
 
+        text_widget_handler = TextWidgetHandler(self.text_widget)
+        logger.addHandler(text_widget_handler)
         self.begin(4000000)
         # self.__test()
 
@@ -165,6 +170,7 @@ class Console:
         self.text_widget.insert(tk.END, message, m_type)
         self.text_widget.see("end")
         self.text_widget.config(state=tk.DISABLED)
+        logger.info(message)
         self.logger.write_log(m_type, message)
         self.messages.append((m_type, message))
 
@@ -177,6 +183,7 @@ class Console:
         message = error_msg.to_string()
         m_type = 'error'
         self.__insert_text(message, m_type)
+        logger.error(message)
         self.logger.write_log(m_type, message)
         self.messages.append((m_type, error_msg.to_string()))
 
@@ -189,6 +196,7 @@ class Console:
         message = warning_msg.to_string()
         m_type = 'warning'
         self.__insert_text(message, m_type)
+        logger.warning(message)
         self.logger.write_log(m_type, message)
         self.messages.append((m_type, warning_msg.to_string()))
 

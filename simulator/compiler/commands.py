@@ -1,3 +1,4 @@
+import logging
 import traceback
 import importlib.util
 import sys
@@ -11,6 +12,7 @@ import robot_components.robot_state as state
 from simulator.arduino import Arduino
 
 module = None
+logger = logging.getLogger("SketchLogger")
 
 
 def _import_module():
@@ -65,8 +67,8 @@ class Compile(Command):
         except Exception as e:
             print(f'la excepción es {e}')
             traceback.print_exc()
-            self.controller.console.write_error(
-                console.Error("Error de compilación", 0, 0, "El sketch no se ha podido compilar correctamente"))
+            logger.error(
+                console.Error("Error de compilación", 0, 0, "El sketch no se ha podido compilar correctamente").to_string())
 
     def compile(self, code):
         try:
@@ -86,11 +88,11 @@ class Compile(Command):
 
     def print_warnings(self, warnings):
         for warning in warnings:
-            self.controller.console.write_warning(warning)
+            logger.warning(warning.to_string())
 
     def print_errors(self, errors):
         for error in errors:
-            self.controller.console.write_error(error)
+            logger.error(error.to_string())
 
 
 class Setup(Command):

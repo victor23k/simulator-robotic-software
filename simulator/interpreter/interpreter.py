@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import override
 
@@ -8,6 +9,7 @@ from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
 
+logger = logging.getLogger("SketchLogger")
 
 class Interpreter(Arduino):
     """
@@ -73,7 +75,7 @@ class Interpreter(Arduino):
             self.setup()
             self.loop()
         else:
-            print(self.diagnostics, file=sys.stderr)
+            self._log_diagnostics()
 
     def run_test(self):
         """
@@ -103,8 +105,10 @@ class Interpreter(Arduino):
 
         statements = self.parser.parse()
         self.resolver.resolve(statements)
+        self._log_diagnostics()
 
         return len(self.diagnostics) == 0
 
-    def print_diagnostics(self):
-        print(self.diagnostics, file=sys.stderr)
+    def _log_diagnostics(self):
+        for diag in self.diagnostics:
+            logger.error(diag)
