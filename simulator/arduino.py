@@ -7,12 +7,13 @@ class Arduino(ABC):
     """
 
     @abstractmethod
-    def compile(self):
+    def compile(self, console, board) -> bool:
         """
         Compiles the Arduino sketch to the executable intermediate
-        representation.
+        representation and sets up the standard library. Returns if the
+        compilation completed successfully.
 
-        In this project compilation can mean transpilation, error checking or
+        In this project compilation can mean transpilation, creating the AST or
         real compilation to a binary.
         """
 

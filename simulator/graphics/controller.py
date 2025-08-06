@@ -1,3 +1,4 @@
+from logging import warning
 import graphics.layers as layers
 import output.console as console
 import output.console_gamification as console_gamification
@@ -5,33 +6,34 @@ import compiler.commands as commands
 import graphics.screen_updater as screen_updater
 from datetime import datetime
 
+from simulator.arduino import Arduino
+
 
 class RobotsController:
 
-    def __init__(self, view):
+    def __init__(self, view, arduino):
         self.view = view
         self.console: console.Console = None
         self.robot_layer: layers.Layer = None
         self.consoleGamification = console_gamification.ConsoleGamification()
-        self.arduino = commands.ArduinoCompiler(self, view.get_code())
+        self.arduino: Arduino = arduino(view.get_code())
         self.executing = False
         self.board = False
         self.new = True
 
     def execute(self, option_gamification):
-        if not self.board:
+        if not self.board and not self.executing:
             screen_updater.layer = self.robot_layer
             screen_updater.view = self.view
             self.view.abort_after()
             self.robot_layer.execute()
             self.console.clear()
-            if self.arduino.check():
-                if self.arduino.setup():
-                    self.executing = True
-                    self.drawing_loop()
+            if self.arduino.compile(self.console, self.robot_layer.robot.board):
+                self.arduino.setup()
+                self.executing = True
+                self.drawing_loop()
         else:
-            if self.arduino.check():
-                self.probe_robot(option_gamification)
+            self.probe_robot(option_gamification)
 
     def drawing_loop(self):
         screen_updater.refresh()

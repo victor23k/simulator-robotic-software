@@ -14,7 +14,7 @@ BLUE = "#17a1a5"
 
 class MainApplication(tk.Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, arduino, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         self.title("Simulador Software para Robots")
         self.geometry("1280x720")
@@ -37,7 +37,7 @@ class MainApplication(tk.Tk):
             self.vertical_pane, self, bg=DARK_BLUE)
 
         self.identifier = None
-        self.controller = controller.RobotsController(self)
+        self.controller = controller.RobotsController(self, arduino)
         self.prepare_controller()
         self.keys_used = True
         self.file_manager = files.FileManager()

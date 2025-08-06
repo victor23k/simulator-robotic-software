@@ -1,5 +1,4 @@
 import logging
-import sys
 from typing import override
 
 from simulator.interpreter.ast.stmt import Function, Stmt
@@ -8,6 +7,10 @@ from simulator.interpreter.environment import Environment
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
+
+import simulator.libraries.standard as standard
+import simulator.libraries.serial as serial
+import simulator.robot_components.robot_state as state
 
 logger = logging.getLogger("SketchLogger")
 
@@ -34,11 +37,18 @@ class Interpreter(Arduino):
         self.statements = []
 
     @override
-    def compile(self):
+    def compile(self, console, board):
+        standard.board = board
+        standard.state = state.State()
+        serial.cons = console
+
         statements = self.parser.parse()
         self.resolver.resolve(statements)
 
         self.statements = statements
+        self._log_diagnostics()
+
+        return len(self.diagnostics) == 0
 
     @override
     def check(self) -> bool | None:
