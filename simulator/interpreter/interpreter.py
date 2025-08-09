@@ -26,6 +26,7 @@ class Interpreter(Arduino):
     statements: list[Stmt]
     environment: Environment
     globals: Environment
+    valid: bool
 
     def __init__(self, code: str):
         self.code = code
@@ -35,6 +36,7 @@ class Interpreter(Arduino):
         self.globals = Environment(None)
         self.environment = self.globals
         self.statements = []
+        self.valid = False
 
     @override
     def compile(self, console, board):
@@ -48,11 +50,12 @@ class Interpreter(Arduino):
         self.statements = statements
         self._log_diagnostics()
 
+        self.valid = len(self.diagnostics) == 0 # change to only errors
         return len(self.diagnostics) == 0
 
     @override
     def check(self) -> bool | None:
-        return self._check_program()
+        return self.valid
 
     @override
     def setup(self):

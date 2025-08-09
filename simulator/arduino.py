@@ -5,6 +5,8 @@ class Arduino(ABC):
     """
     Functions to interact with an Arduino sketch program.
     """
+    
+    valid: bool
 
     @abstractmethod
     def compile(self, console, board) -> bool:
@@ -22,7 +24,8 @@ class Arduino(ABC):
     @abstractmethod
     def check(self) -> bool | None:
         """
-        Checks errors on the Arduino sketch
+        Once the Arduino sketch is compiled, returns if the sketch compiled
+        without errors. 
         """
 
         pass

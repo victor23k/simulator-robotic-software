@@ -32,7 +32,7 @@ class RobotsController:
                 self.arduino.setup()
                 self.executing = True
                 self.drawing_loop()
-        else:
+        elif self.arduino.check():
             self.probe_robot(option_gamification)
 
     def drawing_loop(self):

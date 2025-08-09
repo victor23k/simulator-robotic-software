@@ -28,6 +28,7 @@ def _import_module():
 class ArduinoCompiler(Arduino):
     def __init__(self, code):
         self.code = code
+        self.valid = False
 
     @override
     def compile(self, console, board) -> bool:
@@ -44,7 +45,8 @@ class ArduinoCompiler(Arduino):
             self.print_errors(errors)
             self.print_warnings(warns)
 
-            return len(errors) == 0
+            if len(errors) == 0:
+                self.valid = True
         except Exception as e:
             print(f"la excepción es {e}")
             traceback.print_exc()
@@ -60,7 +62,7 @@ class ArduinoCompiler(Arduino):
 
     @override
     def check(self) -> bool | None:
-        pass
+        return self.valid
 
     @override
     def setup(self):
