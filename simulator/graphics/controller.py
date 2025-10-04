@@ -11,17 +11,19 @@ from simulator.arduino import Arduino
 
 class RobotsController:
 
-    def __init__(self, view, arduino):
+    def __init__(self, view, arduino_rt):
         self.view = view
         self.console: console.Console = None
         self.robot_layer: layers.Layer = None
         self.consoleGamification = console_gamification.ConsoleGamification()
-        self.arduino: Arduino = arduino(view.get_code())
+        self.arduino_rt = arduino_rt
+        self.arduino: Arduino = None
         self.executing = False
         self.board = False
         self.new = True
 
     def execute(self, option_gamification):
+        self.arduino = self.arduino_rt(self.view.get_code())
         if not self.board and not self.executing:
             screen_updater.layer = self.robot_layer
             screen_updater.view = self.view
