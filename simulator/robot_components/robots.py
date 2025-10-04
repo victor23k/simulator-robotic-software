@@ -37,7 +37,7 @@ class Robot:
 
 class MobileRobot(Robot):
 
-    def __init__(self, n_ligth_sens, pins):
+    def __init__(self, n_light_sens, pins):
         """
         Constructor for mobile robot
         Arguments:
@@ -52,7 +52,7 @@ class MobileRobot(Robot):
 
         self.light_sensors = []
         i = 0
-        while i < n_ligth_sens:
+        while i < n_light_sens:
             self.light_sensors.append(elements.LightSensor())
             i += 1
 

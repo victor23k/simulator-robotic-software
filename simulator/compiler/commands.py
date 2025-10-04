@@ -47,6 +47,8 @@ class ArduinoCompiler(Arduino):
 
             if len(errors) == 0:
                 self.valid = True
+                return True
+            return False
         except Exception as e:
             print(f"la excepción es {e}")
             traceback.print_exc()
