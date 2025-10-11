@@ -3,10 +3,11 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 import tkinter.ttk as ttk
-import graphics.controller as controller
-import files.files_reader as files
 import subprocess
-import robot_components.robots as robots
+
+import simulator.graphics.controller as controller
+import simulator.files.files_reader as files
+import simulator.robot_components.robots as robots
 
 DARK_BLUE = "#006468"
 BLUE = "#17a1a5"

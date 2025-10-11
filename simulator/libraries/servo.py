@@ -1,4 +1,4 @@
-import robot_components.boards as boards
+import simulator.robot_components.boards as boards
 
 
 def get_name():

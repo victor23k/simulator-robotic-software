@@ -1,10 +1,11 @@
 import tkinter as tk
-from tkinter import Scrollbar, Text
-from PIL import ImageTk, Image
-import robot_components.robots as rbts
 import subprocess
 import os
-import robot_components.robots as robots
+from tkinter import Scrollbar, Text
+from PIL import ImageTk, Image
+
+import simulator.robot_components.robots as rbts
+import simulator.robot_components.robots as robots
 
 from pathlib import Path
 

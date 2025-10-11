@@ -1,8 +1,8 @@
-import graphics.drawing as drawing
-import graphics.robot_drawings as robot_drawings
-import graphics.huds as huds
-import robot_components.robots as robots
-import files.files_reader as filesr
+import simulator.files.files_reader as filesr
+import simulator.graphics.drawing as drawing
+import simulator.graphics.huds as huds
+import simulator.graphics.robot_drawings as robot_drawings
+import simulator.robot_components.robots as robots
 
 
 class Layer:

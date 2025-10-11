@@ -7,9 +7,9 @@ import string
 import time
 import random as ran
 from math import cos, sin, sqrt, tan
-import robot_components.boards as boards
-import robot_components.robot_state as robot_state
-import graphics.screen_updater as screen_updater
+import simulator.robot_components.boards as boards
+import simulator.robot_components.robot_state as robot_state
+import simulator.graphics.screen_updater as screen_updater
 
 HIGH = 1
 LOW = 0

@@ -1,6 +1,6 @@
 import unittest
 
-from simulator.interpreter.lex.scanner import Scanner 
+from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.lex.token import TokenType
 
 class TestScanner(unittest.TestCase):

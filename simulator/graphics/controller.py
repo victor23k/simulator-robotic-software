@@ -1,10 +1,9 @@
-from logging import warning
-import graphics.layers as layers
-import output.console as console
-import output.console_gamification as console_gamification
-import compiler.commands as commands
-import graphics.screen_updater as screen_updater
 from datetime import datetime
+
+import simulator.graphics.layers as layers
+import simulator.output.console as console
+import simulator.output.console_gamification as console_gamification
+import simulator.graphics.screen_updater as screen_updater
 
 from simulator.arduino import Arduino
 

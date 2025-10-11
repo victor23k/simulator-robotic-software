@@ -7,11 +7,11 @@ Those libraries are:
     - Servo
     - Keyboard
 """
-import libraries.standard as std
-import libraries.serial as serial
-import libraries.servo as servo
-import libraries.keyboard as keyboard
-import libraries.string as string
+import simulator.libraries.standard as std
+import simulator.libraries.serial as serial
+import simulator.libraries.servo as servo
+import simulator.libraries.keyboard as keyboard
+import simulator.libraries.string as string
 
 
 class LibraryManager:

@@ -4,8 +4,7 @@ the board and the computer (with the possibility of expansion
 into other devices not implemented)
 """
 
-import output.console as console
-import robot_components.boards as boards
+import simulator.output.console as console
 
 OK = 0
 ERROR = -1

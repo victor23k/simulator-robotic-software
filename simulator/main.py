@@ -1,5 +1,5 @@
 import argparse
-import graphics.gui as gui
+import simulator.graphics.gui as gui
 from simulator.compiler.commands import ArduinoCompiler
 from simulator.interpreter.interpreter import Interpreter
 
