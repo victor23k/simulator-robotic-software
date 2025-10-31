@@ -12,6 +12,7 @@ from simulator.interpreter.parse.precedence import PrecLevel, get_binary_op_prec
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.ast.stmt import (
     BlockStmt,
+    BreakStmt,
     ExpressionStmt,
     FunctionStmt,
     ReturnStmt,
@@ -140,6 +141,8 @@ class Parser:
                 return self._block()
             case TokenType.RETURN:
                 return self._return_stmt()
+            case TokenType.BREAK:
+                return self._break_stmt()
             case TokenType.IF:
                 return self._if_stmt()
             case _:
@@ -150,6 +153,11 @@ class Parser:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after return expression.")
         return ReturnStmt(expr, ttype=None)
+
+    def _break_stmt(self):
+        brk = self._advance()  # BREAK
+        self._consume(TokenType.SEMICOLON, "Expect ';' after break.")
+        return BreakStmt(brk)
 
     def _if_stmt(self):
         self._advance()  # IF

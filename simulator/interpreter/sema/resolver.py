@@ -43,4 +43,4 @@ class Resolver:
     def resolve(self, statements: list[Stmt]):
         for statement in statements:
             statement.resolve(self.scope_chain, self.diagnostics,
-                              self.function_type)
+                              self.function_type, False)

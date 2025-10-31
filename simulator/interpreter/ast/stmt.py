@@ -16,7 +16,7 @@ from simulator.interpreter.sema.types import (
 )
 
 type Stmt = (BlockStmt | ExpressionStmt | FunctionStmt | ReturnStmt 
-    | VariableStmt | IfStmt)
+    | VariableStmt | IfStmt | BreakStmt)
 
 
 @dataclass
@@ -33,11 +33,11 @@ class BlockStmt:
         del block_env
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType):
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
         scope_chain.begin_scope()
 
         for stmt in self.stmts:
-            stmt.resolve(scope_chain, diagnostics, fn_type)
+            stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
         last_stmt = self.stmts[-1]
 
@@ -74,7 +74,7 @@ class ExpressionStmt:
         self.expr.evaluate(env)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType):
+                list[Diagnostic], _fn_type: FunctionType, _breakable: bool):
         self.expr.resolve(scope_chain, diagnostics)
 
     @override
@@ -101,7 +101,7 @@ class ReturnStmt:
         raise ReturnException(value)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType):
+                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
         self.expr.resolve(scope_chain, diagnostics)
         self.ttype = self.expr.ttype
 
@@ -125,6 +125,36 @@ class ReturnStmt:
 
         if self.ttype is not None:
             result += ",\n" + f"{' ' * (ntab + 2)}ttype={self.ttype}"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+
+@dataclass
+class BreakStmt:
+    brk: Token
+
+    def execute(self, _env: Environment):
+        raise BreakException()
+
+    def resolve(self, _scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], _fn_type: FunctionType, breakable: bool):
+        if not breakable:
+            diag = diagnostic_from_token(
+                "Break statement outside of a loop",
+                self.brk
+            )
+            diagnostics.append(diag)
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
 
         result += f"{' ' * ntab})\n"
         return result
@@ -177,7 +207,7 @@ class VariableStmt:
             environment.define(self.name.lexeme, None)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType):
+                list[Diagnostic], _fn_type: FunctionType, _breakable: bool):
         if self.initializer:
             self.initializer.resolve(scope_chain, diagnostics)
 
@@ -241,11 +271,11 @@ class IfStmt:
             self.else_branch.execute(environment)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType):
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
         self.condition.resolve(scope_chain, diagnostics)
-        self.then_branch.resolve(scope_chain, diagnostics, fn_type)
+        self.then_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
         if self.else_branch is not None:
-            self.else_branch.resolve(scope_chain, diagnostics, fn_type)
+            self.else_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
 @dataclass
@@ -261,7 +291,7 @@ class FunctionStmt:
         env.define(self.name.lexeme, fn)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType):
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
         scope_chain.begin_scope()
 
         self.ttype = token_to_arduino_type(self.return_type)
@@ -270,9 +300,9 @@ class FunctionStmt:
         fn_type.return_type = self.ttype
 
         for param in self.params:
-            param.resolve(scope_chain, diagnostics, fn_type)
+            param.resolve(scope_chain, diagnostics, fn_type, breakable)
         for stmt in self.body:
-            stmt.resolve(scope_chain, diagnostics, fn_type)
+            stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
         scope_chain.end_scope()
 
@@ -311,6 +341,10 @@ class ReturnException(Exception):
     def __init__(self, ret_value: object):
         super().__init__()
         self.value = ret_value
+
+
+class BreakException(Exception):
+    pass
 
 
 @dataclass

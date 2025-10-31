@@ -13,6 +13,7 @@ declaration /= statement
 
 statement  = exprStmt
 statement /= returnStmt
+statement /= breakStmt
 statement /= ifStmt
 statement /= blockStmt
 
@@ -24,6 +25,7 @@ initializer = expr
 
 exprStmt = expr ";"
 returnStmt = "return" expr ";"
+breakStmt = "break" ";"
 ifStmt = "if" "(" expr ")" blockStmt ["else" blockStmt]
 blockStmt = "{" *declaration "}"
 
