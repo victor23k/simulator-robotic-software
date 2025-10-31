@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import override
 
+from simulator.interpreter.sema.resolver import FunctionState, FunctionType
 import simulator.interpreter.sema.scope as scope
 import simulator.interpreter.ast.expr as expr
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
@@ -14,7 +15,8 @@ from simulator.interpreter.sema.types import (
     types_compatibility,
 )
 
-type Stmt = BlockStmt | ExpressionStmt | FunctionStmt | ReturnStmt | VariableStmt
+type Stmt = (BlockStmt | ExpressionStmt | FunctionStmt | ReturnStmt 
+    | VariableStmt | IfStmt)
 
 
 @dataclass
@@ -30,11 +32,12 @@ class BlockStmt:
 
         del block_env
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType):
         scope_chain.begin_scope()
 
         for stmt in self.stmts:
-            stmt.resolve(scope_chain, diagnostics)
+            stmt.resolve(scope_chain, diagnostics, fn_type)
 
         last_stmt = self.stmts[-1]
 
@@ -42,6 +45,7 @@ class BlockStmt:
             self.ttype = last_stmt.ttype
         else:
             self.ttype = ArduinoBuiltinType.VOID
+
 
         scope_chain.end_scope()
 
@@ -54,10 +58,7 @@ class BlockStmt:
             name += "="
 
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
-        for stmt in self.stmts:
-            result += stmt.to_string(ntab + 2) + "\n"
-
-        result += f"{' ' * (ntab + 2)}stmts=["
+        result += f"{' ' * (ntab + 2)}stmts=[\n"
         result += ",\n".join([stmt.to_string(ntab + 4) for stmt in self.stmts])
         result += f"{' ' * (ntab + 2)}],\n"
 
@@ -72,7 +73,8 @@ class ExpressionStmt:
     def execute(self, env: Environment):
         self.expr.evaluate(env)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], _fn_type: FunctionType):
         self.expr.resolve(scope_chain, diagnostics)
 
     @override
@@ -98,9 +100,17 @@ class ReturnStmt:
         value = self.expr.evaluate(env)
         raise ReturnException(value)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType):
         self.expr.resolve(scope_chain, diagnostics)
         self.ttype = self.expr.ttype
+
+        if (fn_type.fn_state is FunctionState.FUNCTION and
+            fn_type.return_type != self.ttype):
+            diag = self.expr.gen_diagnostic(
+                f"Function type '{fn_type.return_type}' and actual return type '{self.ttype}' are incompatible",
+            )
+            diagnostics.append(diag)
 
     @override
     def __repr__(self):
@@ -166,7 +176,8 @@ class VariableStmt:
         else:
             environment.define(self.name.lexeme, None)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType):
         if self.initializer:
             self.initializer.resolve(scope_chain, diagnostics)
 
@@ -197,6 +208,47 @@ class VariableStmt:
 
 
 @dataclass
+class IfStmt:
+    condition: expr.Expr
+    then_branch: BlockStmt
+    else_branch: BlockStmt | None
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.condition.to_string(ntab + 2, "condition")
+        result += ",\n" + self.then_branch.to_string(ntab + 2, "then_branch")
+
+        if self.else_branch is not None:
+            result += ",\n" + self.else_branch.to_string(ntab + 2, "else_branch")
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        condition_value = self.condition.evaluate(environment)
+        if (isinstance(condition_value, Value)
+            and condition_value.value_type == ArduinoBuiltinType.BOOL
+            and condition_value.value):
+            self.then_branch.execute(environment)
+        elif self.else_branch is not None:
+            self.else_branch.execute(environment)
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType):
+        self.condition.resolve(scope_chain, diagnostics)
+        self.then_branch.resolve(scope_chain, diagnostics, fn_type)
+        if self.else_branch is not None:
+            self.then_branch.resolve(scope_chain, diagnostics, fn_type)
+
+
+@dataclass
 class FunctionStmt:
     name: Token
     params: list[VariableStmt]
@@ -208,34 +260,23 @@ class FunctionStmt:
         fn = Function(self.params, self.body, env)
         env.define(self.name.lexeme, fn)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]):
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType):
         scope_chain.begin_scope()
 
+        self.ttype = token_to_arduino_type(self.return_type)
+        fn_type = FunctionType()
+        fn_type.fn_state = FunctionState.FUNCTION
+        fn_type.return_type = self.ttype
+
         for param in self.params:
-            param.resolve(scope_chain, diagnostics)
+            param.resolve(scope_chain, diagnostics, fn_type)
         for stmt in self.body:
-            stmt.resolve(scope_chain, diagnostics)
+            stmt.resolve(scope_chain, diagnostics, fn_type)
 
         scope_chain.end_scope()
 
-        arduino_return_type = token_to_arduino_type(self.return_type)
-
-        last_stmt = self.body[-1]
-
-        if isinstance(last_stmt, ReturnStmt):
-            last_stmt_type = last_stmt.ttype
-        else:
-            last_stmt_type = ArduinoBuiltinType.VOID
-
-        if types_compatibility(arduino_return_type, last_stmt_type):
-            self.ttype = coerce_types(arduino_return_type, last_stmt_type)
-            scope_chain.declare(self.name, self.ttype)
-        else:
-            diag = diagnostic_from_token(
-                "Function type and actual return type are incompatible",
-                self.return_type,
-            )
-            diagnostics.append(diag)
+        scope_chain.declare(self.name, self.ttype)
 
     @override
     def __repr__(self):
@@ -252,7 +293,9 @@ class FunctionStmt:
         result += ",\n".join([param.to_string(ntab + 4) for param in self.params])
         result += f"{' ' * (ntab + 2)}],\n"
 
-        result += self.body.to_string(ntab + 2, "body")
+        result += f"{' ' * (ntab + 2)}body=[\n"
+        result += ",\n".join([stmt.to_string(ntab + 4) for stmt in self.body])
+        result += f"{' ' * (ntab + 2)}],\n"
         result += self.return_type.to_string(ntab + 2, "return_type")
 
         if self.ttype is not None:

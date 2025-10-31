@@ -15,6 +15,7 @@ from simulator.interpreter.ast.stmt import (
     ExpressionStmt,
     FunctionStmt,
     ReturnStmt,
+    IfStmt,
     Stmt,
     VariableStmt,
 )
@@ -139,6 +140,8 @@ class Parser:
                 return self._block()
             case TokenType.RETURN:
                 return self._return_stmt()
+            case TokenType.IF:
+                return self._if_stmt()
             case _:
                 return self._expression_statement()
 
@@ -147,6 +150,23 @@ class Parser:
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after return expression.")
         return ReturnStmt(expr, ttype=None)
+
+    def _if_stmt(self):
+        self._advance()  # IF
+
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after if statement.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' after if condition.")
+        then_branch = self._block()
+
+        else_branch = None
+        if self._match(TokenType.ELSE):
+            self._consume(TokenType.LEFT_BRACE, "Expect '{' after 'else'.")
+            else_branch = self._block()
+
+        return IfStmt(condition, then_branch, else_branch)
 
     def _block(self) -> BlockStmt:
         stmts: list[Stmt] = []

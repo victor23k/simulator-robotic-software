@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
+from typing import override
 
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.lex.token import Token
@@ -46,6 +47,10 @@ class Scope:
 
     def __init__(self):
         self.variables = {}
+
+    @override
+    def __repr__(self) -> str:
+        return f"Scope=({self.variables.__repr__()})"
 
 class ScopeChain:
     scopes: deque[Scope]
@@ -105,9 +110,17 @@ class ScopeChain:
 
 
     def get_type(self, name_token: Token) -> ArduinoType:
-        var = self.scopes[-1].variables.get(name_token.lexeme)
-        if var is not None:
-            return var.var_type
+        for depth in range(len(self.scopes), 0, -1):
+            depth -= 1
+            var = self.scopes[depth].variables.get(name_token.lexeme)
+            if var is not None:
+                return var.var_type
 
         return ArduinoBuiltinType.ERR
 
+    def get_type_at(self, name_token: Token, depth: int) -> ArduinoType:
+        var = self.scopes[-depth - 1].variables.get(name_token.lexeme)
+        if var is not None:
+                return var.var_type
+
+        return ArduinoBuiltinType.ERR

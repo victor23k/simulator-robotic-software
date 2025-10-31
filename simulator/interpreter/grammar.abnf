@@ -13,6 +13,7 @@ declaration /= statement
 
 statement  = exprStmt
 statement /= returnStmt
+statement /= ifStmt
 statement /= blockStmt
 
 varDecl = declStart ["=" initializer] ";"
@@ -23,6 +24,7 @@ initializer = expr
 
 exprStmt = expr ";"
 returnStmt = "return" expr ";"
+ifStmt = "if" "(" expr ")" blockStmt ["else" blockStmt]
 blockStmt = "{" *declaration "}"
 
 array_def = "[" +DIGIT "]"

@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
-    from simulator.interpreter.diagnostic import Diagnostic
     from simulator.interpreter.environment import Environment
     from simulator.interpreter.ast.stmt import Function
 
 from simulator.interpreter.environment import Value
-from simulator.interpreter.diagnostic import ArduinoRuntimeError, diagnostic_from_token
+from simulator.interpreter.diagnostic import (ArduinoRuntimeError, 
+                                            diagnostic_from_token, Diagnostic)
 from simulator.interpreter.lex.token import Token
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
@@ -203,6 +203,9 @@ class CallExpr:
         self.callee.check_type(scope_chain, diagnostics)
         self.check_type(scope_chain, diagnostics)
 
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return self.callee.gen_diagnostic(message)
+
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -293,7 +296,7 @@ class VariableExpr:
         return diagnostic_from_token(message, self.vname)
 
     def check_type(self, scope_chain: ScopeChain, _diagnostics: list[Diagnostic]):
-        self.ttype = scope_chain.get_type(self.vname)
+        self.ttype = scope_chain.get_type_at(self.vname, self.scope_distance)
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.scope_distance = scope_chain.use(self.vname)
