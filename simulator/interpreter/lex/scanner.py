@@ -174,6 +174,18 @@ class Scanner:
                     next_token = self._produce_empty_token(TokenType.NOT_EQUAL)
                 else:
                     next_token = self._produce_empty_token(TokenType.LOGICAL_NOT)
+            case "<":
+                if self._peek() == "=":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.LESS_THAN_EQUAL)
+                else:
+                    next_token = self._produce_empty_token(TokenType.LESS_THAN)
+            case ">":
+                if self._peek() == "=":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.GREATER_THAN_EQUAL)
+                else:
+                    next_token = self._produce_empty_token(TokenType.GREATER_THAN)
             case "0":
                 match self._peek():
                     case "b":
@@ -400,4 +412,5 @@ class Scanner:
 
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
-        return Token(token_type, text, literal, self.line, self.column - len(text))
+        return Token(token_type, text, literal, self.line - 1,
+                     self.column - len(text) - 1)
