@@ -1,5 +1,6 @@
 import os
 import unittest
+import fnmatch
 
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
@@ -102,6 +103,13 @@ class ScannerOutputCase(unittest.TestCase):
 def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
 
+    # Helper to check if test name matches -k pattern
+    def matches_pattern(test_name):
+        if not loader.testNamePatterns:
+            return True
+        return fnmatch.fnmatchcase(test_name, loader.testNamePatterns[0])
+
+    # Expected output tests
     for input_filename in input_test_filenames:
         input_file_path = os.path.join(input_test_dir, input_filename)
         with open(input_file_path, "r") as ino_file:
@@ -112,38 +120,39 @@ def load_tests(loader, tests, pattern):
             raise Exception(f"No expected output file for test '{input_filename}' found.")
 
         output_file_path = os.path.join(output_test_dir, output_filename_noext + ".ir")
-
         with open(output_file_path, "r") as ir_file:
             ir = ir_file.read()
-        
-        suite.addTest(ExpectedOutputCase('runTest', code, ir,
-                                         output_filename_noext))
 
+        test_name = f"ExpectedOutputCase.{output_filename_noext}"
+        if matches_pattern(test_name):
+            suite.addTest(ExpectedOutputCase('runTest', code, ir, output_filename_noext))
 
+    # Expected failure tests
     for failure_filename in test_failures_filenames:
         input_file_path = os.path.join(input_test_dir, failure_filename)
-
         with open(input_file_path, "r") as ino_file:
             code = ino_file.read()
 
-        suite.addTest(ExpectedFailureCase('runTest', code, failure_filename))
+        test_name = f"ExpectedFailureCase.{failure_filename}"
+        if matches_pattern(test_name):
+            suite.addTest(ExpectedFailureCase('runTest', code, failure_filename))
 
+    # Scanner output tests
     for scanner_output_filename in scanner_output_filenames:
         output_filename_noext, _ext = os.path.splitext(scanner_output_filename)
         if output_filename_noext + ".ino" not in input_test_filenames:
             raise Exception(f"No input file for test '{scanner_output_filename}' found.")
 
-        input_file_path = os.path.join(input_test_dir, output_filename_noext +
-            ".ino")
-
+        input_file_path = os.path.join(input_test_dir, output_filename_noext + ".ino")
         with open(input_file_path, "r") as ino_file:
             code = ino_file.read()
 
         output_file_path = os.path.join(output_test_dir, scanner_output_filename)
-
         with open(output_file_path, "r") as tok_file:
             tokens = tok_file.read()
 
-        suite.addTest(ScannerOutputCase('runTest', code, tokens, output_filename_noext))
+        test_name = f"ScannerOutputCase.{output_filename_noext}"
+        if matches_pattern(test_name):
+            suite.addTest(ScannerOutputCase('runTest', code, tokens, output_filename_noext))
 
     return suite
