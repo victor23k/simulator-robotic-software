@@ -5,6 +5,7 @@ from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.lex.token import TokenType
+from simulator.interpreter.diagnostic import Diagnostic, printable_diagnostics
 from tests.interpreter.ast_spec import *
 
 
@@ -49,7 +50,7 @@ class ExpectedOutputCase(unittest.TestCase):
         self.filename: str = filename
 
     def runTest(self):
-        diags = []
+        diags: list[Diagnostic] = []
         parser = Parser(self.code, diags)
         stmts = parser.parse()
         spec_stmts: list[StmtSpec] = eval(self.ir)
@@ -58,8 +59,9 @@ class ExpectedOutputCase(unittest.TestCase):
         resolver = Resolver(diags)
         resolver.resolve(stmts)
 
-        self.assertEqual(len(diags), 0, f"No error diagnostics for {self.filename} expected but found: {diags}")
         self.assertTrue(match_structure(stmts, spec_stmts), f"Match error for {self.filename}")
+        self.assertEqual(len(diags), 0, 
+                         f"No error diagnostics for {self.filename} expected but found: {printable_diagnostics(diags, self.code)}")
 
 
 class ExpectedFailureCase(unittest.TestCase):
@@ -70,7 +72,7 @@ class ExpectedFailureCase(unittest.TestCase):
         self.filename: str = filename
 
     def runTest(self):
-        diags = []
+        diags: list[Diagnostic] = []
         parser = Parser(self.code, diags)
         stmts = parser.parse()
 
