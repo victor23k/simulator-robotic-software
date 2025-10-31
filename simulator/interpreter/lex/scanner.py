@@ -319,7 +319,7 @@ class Scanner:
         return self._produce_token(TokenType.INT_LITERAL, number)
 
     def _identifier(self) -> Token:
-        while self._peek().isalnum() or self._peek == "_":
+        while self._peek().isalnum() or self._peek() == "_":
             self._advance()
 
         identifier = self.source[self.start : self.current]

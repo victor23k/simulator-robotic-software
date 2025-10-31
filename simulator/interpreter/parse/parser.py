@@ -246,16 +246,23 @@ class Parser:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
         lhs = self._parse_atom()
 
-        curr_token_prec = get_binary_op_precedence(self._peek().token)
+        while True:
+            curr_token = self._peek()
 
-        while self._peek().is_binary() and curr_token_prec >= min_prec:
-            op = self.current
-            assoc = get_binary_op_assoc(op.token)
-            next_min_prec = min_prec + 1 if assoc is Assoc.LEFT else min_prec
+            if (not curr_token.is_binary() or
+                get_binary_op_precedence(curr_token.token) < min_prec):
+                return lhs
+
+            prec = get_binary_op_precedence(curr_token.token)
+            assoc = get_binary_op_assoc(curr_token.token)
+            if assoc is Assoc.LEFT:
+                next_min_prec = prec + 1
+            else:
+                next_min_prec = prec
 
             self._advance()
             rhs = self._expression(next_min_prec)
-            if op.token is TokenType.EQUAL:
+            if curr_token.token is TokenType.EQUAL:
                 if isinstance(lhs, VariableExpr):
                     lhs = AssignExpr(lhs.vname, rhs)
                 else:
@@ -263,9 +270,7 @@ class Parser:
                     # op.column), rhs)
                     self._error(lhs, "Invalid l-value for assignment expression")
             else:
-                lhs = BinaryExpr(lhs, op, rhs)
-
-        return lhs
+                lhs = BinaryExpr(lhs, curr_token, rhs)
 
     def _parse_atom(self) -> Expr:
         match self._peek():

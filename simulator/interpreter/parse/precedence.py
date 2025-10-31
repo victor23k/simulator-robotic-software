@@ -17,6 +17,8 @@ class PrecLevel(Enum):
     ADDITIVE = 10
     MULTIPLICATIVE = 11
 
+    TOP = 12
+
     def __gt__(self, other: Self) -> bool:
         return self.value > other.value
 
