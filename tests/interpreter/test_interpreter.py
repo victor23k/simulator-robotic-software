@@ -6,7 +6,7 @@ from simulator.interpreter.sema.types import ArduinoBuiltinType
 
 def run(code: str) -> Interpreter:
     interpreter = Interpreter(code)
-    interpreter.compile()
+    interpreter.compile(None, None)
     interpreter.run_test()
 
     return interpreter
@@ -124,6 +124,23 @@ int c = 0;
         self.assertEqual(val_b.value, 4)
         assert val_c is not None
         self.assertEqual(val_c.value, 9)
+
+
+    def test_interprets_if_statement(self):
+        code = """int a = 7;
+int b = 0;
+if (a > b) {
+    b = 3;
+} else {
+    b = b + 5;
+}"""
+
+        interpreter = run(code)
+
+        val_b = interpreter.environment.get("b", 0)
+
+        assert isinstance(val_b, Value)
+        self.assertEqual(val_b.value, 3)
 
 
 if __name__ == "__main__":

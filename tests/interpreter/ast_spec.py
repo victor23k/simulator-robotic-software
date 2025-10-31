@@ -8,6 +8,7 @@ type StmtSpec = (
     | VariableStmtSpec
     | FunctionStmtSpec
     | ReturnStmtSpec
+    | IfStmtSpec
 )
 type ExprSpec = (
     AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
@@ -49,6 +50,13 @@ class FunctionStmtSpec:
 @dataclass
 class ReturnStmtSpec:
     expr: ExprSpec
+
+
+@dataclass
+class IfStmtSpec:
+    condition: ExprSpec
+    then_branch: StmtSpec
+    else_branch: StmtSpec
 
 
 @dataclass

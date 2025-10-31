@@ -1,0 +1,67 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="max"),
+      params=[
+        # int a
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="a"),
+        ),
+        # int b
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+        ),
+      ],
+      body=[
+          # if
+          IfStmtSpec(
+              condition=BinaryExprSpec(
+                lhs=VariableExprSpec(
+                  vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                ),
+                op=TokenSpec(token=TokenType.GREATER_THAN),
+                rhs=VariableExprSpec(
+                  vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                )
+              ),
+              then_branch=BlockStmtSpec(
+                stmts=[
+                  ReturnStmtSpec(
+                    expr=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                    )
+                  )
+                ],
+              ),
+              else_branch=BlockStmtSpec(
+                stmts=[
+                  ReturnStmtSpec(
+                    expr=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                    )
+                  )
+                ],
+              )
+            )
+        ]
+      ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='m'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+          ),  
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+        ]
+      )
+    )
+]
