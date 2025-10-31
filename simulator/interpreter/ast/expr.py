@@ -159,7 +159,10 @@ class BinaryExpr:
                 self.ttype = coerce_types(self.lhs.ttype, self.rhs.ttype)
                 self.ttype = self.lhs.ttype
         else:
-            diag = diagnostic_from_token("Types not compatible for this operation.", self.op)
+            diag = diagnostic_from_token(
+                    f"Types not compatible for this operation. Left operand: \
+{self.lhs.ttype}. Right operand: {self.rhs.ttype}", self.op)
+
             diagnostics.append(diag)
             self.ttype = ArduinoBuiltinType.ERR 
 

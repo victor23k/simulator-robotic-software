@@ -245,7 +245,7 @@ class IfStmt:
         self.condition.resolve(scope_chain, diagnostics)
         self.then_branch.resolve(scope_chain, diagnostics, fn_type)
         if self.else_branch is not None:
-            self.then_branch.resolve(scope_chain, diagnostics, fn_type)
+            self.else_branch.resolve(scope_chain, diagnostics, fn_type)
 
 
 @dataclass

@@ -61,11 +61,18 @@ class ScopeChain:
         self.scopes.append(Scope())
         self.diagnostics = diagnostics
 
+    @override
+    def __repr__(self) -> str:
+        return f"ScopeChain=({self.scopes.__repr__()})"
+
     def __len__(self):
         return len(self.scopes)
 
     def __getitem__(self, index: int):
         return self.scopes[index]
+
+    def _at_distance(self, distance: int) -> Scope:
+        return self.scopes[-(distance + 1)]
 
     def begin_scope(self):
         self.scopes.append(Scope())
@@ -76,31 +83,29 @@ class ScopeChain:
     def declare(self, name_token: Token, vtype: ArduinoType):
         var = Var(vtype, VarState.DECLARED)
         # if shadowing is not allowed, check all scopes.
-        if self.scopes[-1].variables.get(name_token.lexeme) is not None:
+        if self._at_distance(0).variables.get(name_token.lexeme) is not None:
             diag = diagnostic_from_token("Redeclaration of variable.",
                                          name_token)
             self.diagnostics.append(diag)
             return
 
-        self.scopes[-1].variables[name_token.lexeme] = var
+        self._at_distance(0).variables[name_token.lexeme] = var
 
     def define(self, name_token: Token):
-        for depth in range(len(self.scopes), 0, -1):
-            depth -= 1
-            if self.scopes[depth].variables.get(name_token.lexeme) is not None:
-                self.scopes[depth].variables[name_token.lexeme].state = VarState.DEFINED
+        for depth in range(0, len(self.scopes)):
+            if self._at_distance(depth).variables.get(name_token.lexeme) is not None:
+                self._at_distance(depth).variables[name_token.lexeme].state = VarState.DEFINED
                 return
 
         diag = diagnostic_from_token("Variable defined before declaration", name_token)
         self.diagnostics.append(diag)
 
     def use(self, name_token: Token) -> int:
-        for depth in range(len(self.scopes), 0, -1):
-            depth -= 1
-            var = self.scopes[depth].variables.get(name_token.lexeme)
+        for depth in range(0, len(self.scopes)):
+            var = self._at_distance(depth).variables.get(name_token.lexeme)
             if var is not None:
                 var.state = VarState.USED
-                return len(self.scopes) - 1 - depth
+                return depth
 
         diag = diagnostic_from_token("Variable used before declaration",
                                      name_token)
@@ -110,16 +115,15 @@ class ScopeChain:
 
 
     def get_type(self, name_token: Token) -> ArduinoType:
-        for depth in range(len(self.scopes), 0, -1):
-            depth -= 1
-            var = self.scopes[depth].variables.get(name_token.lexeme)
+        for depth in range(0, len(self.scopes)):
+            var = self._at_distance(depth).variables.get(name_token.lexeme)
             if var is not None:
                 return var.var_type
 
         return ArduinoBuiltinType.ERR
 
     def get_type_at(self, name_token: Token, depth: int) -> ArduinoType:
-        var = self.scopes[-depth - 1].variables.get(name_token.lexeme)
+        var = self._at_distance(depth).variables.get(name_token.lexeme)
         if var is not None:
                 return var.var_type
 

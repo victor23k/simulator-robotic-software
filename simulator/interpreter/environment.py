@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Self
+from typing import Self, override
 
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType
 
@@ -34,6 +34,10 @@ class Environment:
     def __init__(self, enclosing: Self | None):
         self.values = {}
         self.enclosing = enclosing
+
+    @override
+    def __repr__(self) -> str:
+        return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
     def define(self, name: str, value: object):
         """

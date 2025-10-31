@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 import unittest
 import fnmatch
 
@@ -60,9 +61,9 @@ class ExpectedOutputCase(unittest.TestCase):
         resolver = Resolver(diags)
         resolver.resolve(stmts)
 
-        self.assertTrue(match_structure(stmts, spec_stmts), f"Match error for {self.filename}")
         self.assertEqual(len(diags), 0, 
                          f"No error diagnostics for {self.filename} expected but found: {printable_diagnostics(diags, self.code)}")
+        self.assertTrue(match_structure(stmts, spec_stmts), f"Match error for {self.filename}")
 
 
 class ExpectedFailureCase(unittest.TestCase):

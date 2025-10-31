@@ -1,0 +1,147 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="max_of_three"),
+      params=[
+        # int a
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="a"),
+        ),
+        # int b
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+        ),
+        # int c
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="c"),
+        ),
+      ],
+      body=[
+          # if-else if-else
+          IfStmtSpec(
+              condition=BinaryExprSpec(
+                lhs=BinaryExprSpec(
+                  lhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                  ),
+                  op=TokenSpec(token=TokenType.GREATER_THAN),
+                  rhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                  )
+                ),
+                op=TokenSpec(token=TokenType.LOGICAL_AND),
+                rhs=BinaryExprSpec(
+                  lhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                  ),
+                  op=TokenSpec(token=TokenType.GREATER_THAN),
+                  rhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='c')
+                  )
+                )
+              ),
+              then_branch=BlockStmtSpec(
+                stmts=[
+                  ReturnStmtSpec(
+                    expr=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                    )
+                  )
+                ],
+              ),
+              else_branch=IfStmtSpec(
+                condition=BinaryExprSpec(
+                  lhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                  ),
+                  op=TokenSpec(token=TokenType.GREATER_THAN),
+                  rhs=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='c')
+                  )
+                ),
+                then_branch=BlockStmtSpec(
+                  stmts=[
+                    ReturnStmtSpec(
+                      expr=VariableExprSpec(
+                        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+                      )
+                    )
+                  ],
+                ),
+                else_branch=BlockStmtSpec(
+                  stmts=[
+                    ReturnStmtSpec(
+                      expr=VariableExprSpec(
+                        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='c')
+                      )
+                    )
+                  ],
+                )
+              )
+            )
+      ]
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='first'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max_of_three')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=8)
+          ),  
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=3)
+          ),
+        ]
+      )
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='second'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max_of_three')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+          ),  
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=3)
+          ),
+        ]
+      )
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='third'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max_of_three')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+          ),  
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=9)
+          ),
+        ]
+      )
+    )
+]

@@ -186,6 +186,15 @@ class Scanner:
                     next_token = self._produce_empty_token(TokenType.GREATER_THAN_EQUAL)
                 else:
                     next_token = self._produce_empty_token(TokenType.GREATER_THAN)
+            case "&":
+                if self._peek() == "=":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.AND_EQUAL)
+                elif self._peek() == "&":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.LOGICAL_AND)
+                else:
+                    next_token = self._produce_empty_token(TokenType.AMPERSAND)
             case "0":
                 match self._peek():
                     case "b":

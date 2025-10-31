@@ -143,5 +143,27 @@ if (a > b) {
         self.assertEqual(val_b.value, 3)
 
 
+    def test_interprets_if_else_if_statement(self):
+        code = """int a = 4;
+int b = 8;
+int c = 5;
+int res = 0;
+
+if (a > b && a > c) {
+    res = a;
+} else if (b > c) {
+    res = b;
+} else {
+    res = c;
+}"""
+
+        interpreter = run(code)
+
+        val_res = interpreter.environment.get("res", 0)
+
+        assert isinstance(val_res, Value)
+        self.assertEqual(val_res.value, 8)
+
+
 if __name__ == "__main__":
     unittest.main()
