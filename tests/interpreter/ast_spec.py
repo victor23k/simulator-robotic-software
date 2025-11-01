@@ -9,6 +9,9 @@ type StmtSpec = (
     | FunctionStmtSpec
     | ReturnStmtSpec
     | IfStmtSpec
+    | SwitchStmtSpec
+    | BreakStmtSpec
+    | DefaultStmtSpec
 )
 type ExprSpec = (
     AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
@@ -92,3 +95,24 @@ class BinaryExprSpec:
     lhs: ExprSpec
     op: TokenSpec
     rhs: ExprSpec
+
+
+@dataclass
+class SwitchStmtSpec:
+    var: ExprSpec
+    cases: list["CaseStmtSpec"]
+
+
+@dataclass
+class CaseStmtSpec:
+    label: ExprSpec | None
+    stmts: list[StmtSpec]
+
+
+@dataclass
+class DefaultStmtSpec:
+    stmts: list[StmtSpec]
+
+
+class BreakStmtSpec:
+    pass

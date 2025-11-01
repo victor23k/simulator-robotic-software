@@ -19,6 +19,14 @@ class Value:
         else:
             pass
 
+    @override
+    def __eq__(self, value: object, /) -> bool:
+        return (
+            isinstance(value, Value)
+            and self.value_type is value.value_type
+            and self.value == value.value
+        )
+
 class Environment:
     """
     Storage for variables and their values.

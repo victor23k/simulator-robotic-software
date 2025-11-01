@@ -18,12 +18,17 @@ from simulator.interpreter.ast.stmt import (
     ReturnStmt,
     IfStmt,
     Stmt,
+    SwitchStmt,
+    CaseStmt,
+    DefaultStmt,
     VariableStmt,
 )
 from simulator.interpreter.lex.token import Token, TokenType
 
 from typing import override
 
+class ParseException(Exception):
+    pass
 
 class ParseError:
     """Base class for exceptions raised by the parser."""
@@ -112,27 +117,32 @@ class Parser:
 
         while not self._is_at_end():
             stmt = self._declaration()
-            statements.append(stmt)
+            if stmt is not None:
+                statements.append(stmt)
 
         return statements
 
-    def _declaration(self) -> Stmt:
-        if self._match(*var_ttype):
-            ttype, identifier = self._declaration_start()
+    def _declaration(self) -> Stmt | None:
+        try:
+            if self._match(*var_ttype):
+                ttype, identifier = self._declaration_start()
 
-            if self._match(TokenType.EQUAL):
-                initializer = self._expression()
-                self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-                return VariableStmt(ttype, identifier, initializer, ttype=None)
+                if self._match(TokenType.EQUAL):
+                    initializer = self._expression()
+                    self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+                    return VariableStmt(ttype, identifier, initializer, ttype=None)
 
-            elif self._match(TokenType.LEFT_PAREN):
-                return self._function_declaration(ttype, identifier)
+                elif self._match(TokenType.LEFT_PAREN):
+                    return self._function_declaration(ttype, identifier)
 
+                else:
+                    self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+                    return VariableStmt(ttype, identifier, initializer=None, ttype=None)
             else:
-                self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-                return VariableStmt(ttype, identifier, initializer=None, ttype=None)
-        else:
-            return self._statement()
+                return self._statement()
+        except ParseException:
+            self._synchronize()
+            return None
 
     def _statement(self) -> Stmt:
         match self._peek().token:
@@ -143,6 +153,8 @@ class Parser:
                 return self._return_stmt()
             case TokenType.BREAK:
                 return self._break_stmt()
+            case TokenType.SWITCH:
+                return self._switch_stmt()
             case TokenType.IF:
                 return self._if_stmt()
             case _:
@@ -179,11 +191,49 @@ class Parser:
 
         return IfStmt(condition, then_branch, else_branch)
 
+    def _switch_stmt(self) -> SwitchStmt:
+        self._advance()  # SWITCH
+
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after switch statement.")
+        var = self._parse_atom()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after switch var.")
+
+        self._consume(TokenType.LEFT_BRACE, "Expect '{' after switch.")
+        cases: list[CaseStmt] = []
+
+        while self._match(TokenType.CASE):
+            cases.append(self._case_stmt())
+
+        default = None
+        if self._match(TokenType.DEFAULT):
+            self._consume(TokenType.COLON, "Expect ':' after default.")
+            stmts: list[Stmt] = []
+            while self._peek().token is not TokenType.RIGHT_BRACE:
+                stmts.append(self._statement())
+
+            default = DefaultStmt(stmts)
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' to end switch.")
+        return SwitchStmt(var, cases, default)
+
+    def _case_stmt(self) -> CaseStmt:
+        label = self._parse_atom()
+        self._consume(TokenType.COLON, "Expect ':' after case label.")
+
+        stmts: list[Stmt] = []
+        while self._peek().token not in [TokenType.CASE, TokenType.DEFAULT,
+                              TokenType.RIGHT_BRACE]:
+            stmts.append(self._statement())
+
+        return CaseStmt(label, stmts)
+
     def _block(self) -> BlockStmt:
         stmts: list[Stmt] = []
 
         while (not self._check(TokenType.RIGHT_BRACE)) or self._is_at_end():
-            stmts.append(self._declaration())
+            stmt = self._declaration()
+            if stmt is not None:
+                stmts.append(stmt)
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
 
@@ -214,8 +264,10 @@ class Parser:
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
         body: list[Stmt] = []
 
-        while (not self._check(TokenType.RIGHT_BRACE)) or self._is_at_end():
-            body.append(self._declaration())
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            stmt = self._declaration()
+            if stmt is not None:
+                body.append(stmt)
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close function body.")
 
@@ -329,14 +381,7 @@ class Parser:
 
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if not self._check(token_type):
-
-            diag = Diagnostic(
-                message,
-                self.current.line,
-                self.current.column,
-                len(self.current.lexeme) + self.current.column,
-            )
-            self.diagnostics.append(diag)
+            raise self._error(self._peek(), message)
 
         return self._advance()
 
@@ -363,10 +408,28 @@ class Parser:
         return self.previous
 
     def _error(self, token: Token, message: str):
-        # This should generate a Diagnostic, report it to the interpreter and
-        # return it
-
         diag = Diagnostic(
             message, token.line, token.column, token.column + len(token.lexeme)
         )
         self.diagnostics.append(diag)
+        return ParseException()
+
+    def _synchronize(self):
+        self._advance()
+
+        while not self._is_at_end():
+            if self.previous.token is TokenType.SEMICOLON:
+                return
+
+            if self._peek().token in [
+                TokenType.SWITCH,
+                TokenType.CHAR,
+                TokenType.FOR,
+                TokenType.WHILE,
+                TokenType.IF,
+                TokenType.RETURN,
+                TokenType.DO,
+            ]:
+                return
+
+            self._advance()

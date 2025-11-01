@@ -1,9 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, override
 from dataclasses import dataclass
-from typing import override
+
+if TYPE_CHECKING:
+    import simulator.interpreter.ast.expr as expr
 
 from simulator.interpreter.sema.resolver import FunctionState, FunctionType
 import simulator.interpreter.sema.scope as scope
-import simulator.interpreter.ast.expr as expr
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token
@@ -16,7 +20,7 @@ from simulator.interpreter.sema.types import (
 )
 
 type Stmt = (BlockStmt | ExpressionStmt | FunctionStmt | ReturnStmt 
-    | VariableStmt | IfStmt | BreakStmt)
+    | VariableStmt | IfStmt | BreakStmt | SwitchStmt | CaseStmt)
 
 
 @dataclass
@@ -126,7 +130,7 @@ class ReturnStmt:
         if self.ttype is not None:
             result += ",\n" + f"{' ' * (ntab + 2)}ttype={self.ttype}"
 
-        result += f"{' ' * ntab})\n"
+        result += f"{' ' * ntab})"
         return result
 
 
@@ -141,7 +145,7 @@ class BreakStmt:
                 list[Diagnostic], _fn_type: FunctionType, breakable: bool):
         if not breakable:
             diag = diagnostic_from_token(
-                "Break statement outside of a loop",
+                "Break statement outside of a loop or switch",
                 self.brk
             )
             diagnostics.append(diag)
@@ -153,10 +157,7 @@ class BreakStmt:
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
-
-        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
-
-        result += f"{' ' * ntab})\n"
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}()\n"
         return result
 
 
@@ -333,6 +334,117 @@ class FunctionStmt:
 
         result += f"{' ' * ntab})\n"
         return result
+
+
+@dataclass
+class CaseStmt:
+    label: expr.LiteralExpr | expr.VariableExpr
+    stmts: list[Stmt]
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.label.to_string(ntab + 2, "label")
+        result += f"{' ' * (ntab + 2)}stmts=[\n"
+        result += ",\n".join([stmt.to_string(ntab + 4) for stmt in self.stmts])
+        result += f"{' ' * (ntab + 2)}],\n"
+        result += f"{' ' * ntab})"
+        return result
+
+    def execute(self, environment: Environment):
+        for stmt in self.stmts:
+            stmt.execute(environment)
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+        self.label.resolve(scope_chain, diagnostics)
+        for stmt in self.stmts:
+            stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
+
+
+@dataclass
+class DefaultStmt:
+    stmts: list[Stmt]
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += f"{' ' * (ntab + 2)}stmts=[\n"
+        result += ",\n".join([stmt.to_string(ntab + 4) for stmt in self.stmts])
+        result += f"{' ' * (ntab + 2)}],\n"
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        for stmt in self.stmts:
+            stmt.execute(environment)
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+        for stmt in self.stmts:
+            stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
+
+@dataclass
+class SwitchStmt:
+    var: expr.LiteralExpr | expr.VariableExpr
+    cases: list[CaseStmt]
+    default: DefaultStmt | None
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.var.to_string(ntab + 2, "var")
+        result += f"{' ' * (ntab + 2)}cases=[\n"
+        result += ",\n".join([case.to_string(ntab + 4) for case in self.cases])
+        result += f"{' ' * (ntab + 2)}],\n"
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        var = self.var.evaluate(environment)
+
+        matching_case_idx = next(
+            (idx for (idx, case) in enumerate(self.cases) 
+                 if case.label.evaluate(environment) == var),
+            None)
+
+        try:
+            if matching_case_idx is None and self.default is not None:
+                self.default.execute(environment)
+            else:
+                for case in self.cases[matching_case_idx:]:
+                    for stmt in case.stmts:
+                        stmt.execute(environment)
+
+        except BreakException:
+            pass
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
+        self.var.resolve(scope_chain, diagnostics)
+        for case in self.cases:
+            case.resolve(scope_chain, diagnostics, fn_type, True)
+        if self.default is not None:
+            self.default.resolve(scope_chain, diagnostics, fn_type, True)
+
 
 
 class ReturnException(Exception):

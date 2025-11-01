@@ -1,0 +1,73 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="classify"),
+      params=[
+        # int x
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="x"),
+        ),
+      ],
+      body=[
+          # switch
+          SwitchStmtSpec(
+              var=VariableExprSpec(
+                vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+              ),
+              cases=[
+                CaseStmtSpec(
+                  label=LiteralExprSpec(
+                    value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+                  ),
+                  stmts=[
+                    ReturnStmtSpec(
+                      expr=LiteralExprSpec(
+                        value=TokenSpec(token=TokenType.INT_LITERAL, literal=10)
+                      )
+                    ),
+                    BreakStmtSpec()
+                  ]
+                ),
+                CaseStmtSpec(
+                  label=LiteralExprSpec(
+                    value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+                  ),
+                  stmts=[
+                    ReturnStmtSpec(
+                      expr=LiteralExprSpec(
+                        value=TokenSpec(token=TokenType.INT_LITERAL, literal=20)
+                      )
+                    ),
+                    BreakStmtSpec()
+                  ]
+                ),
+                DefaultStmtSpec(
+                  stmts=[
+                    ReturnStmtSpec(
+                      expr=LiteralExprSpec(
+                        value=TokenSpec(token=TokenType.INT_LITERAL, literal=0)
+                      )
+                    ),
+                    BreakStmtSpec()
+                  ]
+                ),
+              ]
+          )
+      ]
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='result'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='classify')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+          ),
+        ]
+      )
+    )
+]

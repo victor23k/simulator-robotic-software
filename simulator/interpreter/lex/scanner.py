@@ -13,6 +13,7 @@ keywords = {
     "return": TokenType.RETURN,
     "switch": TokenType.SWITCH,
     "while": TokenType.WHILE,
+    "default": TokenType.DEFAULT,
 }
 
 types = {
@@ -122,6 +123,8 @@ class Scanner:
                 next_token = self._produce_empty_token(TokenType.DOT)
             case ",":
                 next_token = self._produce_empty_token(TokenType.COMMA)
+            case ":":
+                next_token = self._produce_empty_token(TokenType.COLON)
             case ";":
                 next_token = self._produce_empty_token(TokenType.SEMICOLON)
             case "=":

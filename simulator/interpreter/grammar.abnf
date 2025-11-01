@@ -16,6 +16,7 @@ statement /= returnStmt
 statement /= breakStmt
 statement /= ifStmt
 statement /= blockStmt
+statement /= switchStmt
 
 varDecl = declStart ["=" initializer] ";"
 fnDecl  = declStart "(" params ")" "{" +statement "}"
@@ -28,6 +29,9 @@ returnStmt = "return" expr ";"
 breakStmt = "break" ";"
 ifStmt = "if" "(" expr ")" blockStmt ["else" blockStmt]
 blockStmt = "{" *declaration "}"
+switchStmt = "switch" "(" expr ")" "{" *caseStmt "}"
+caseStmt = "case" int ":" *statement
+caseStmt /= "default" ":" *statement
 
 array_def = "[" +DIGIT "]"
 
@@ -41,3 +45,5 @@ expr /= callExpr
 callExpr = variableExpr "(" arguments? ")"
 
 arguments = expr *( "," expr )
+
+literalExpr = int / str / ident / "true" / "false" / "HIGH" / "LOW"

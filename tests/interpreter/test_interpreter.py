@@ -164,6 +164,38 @@ if (a > b && a > c) {
         assert isinstance(val_res, Value)
         self.assertEqual(val_res.value, 8)
 
+    def test_interprets_switch_case_statement(self):
+        code = """int classify(int x) {
+  switch (x) {
+    case 1:
+      return 10;
+      break;
+    case 2:
+      return 20;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
+int result_ten = classify(1);
+int result_twenty = classify(2);
+int result_default = classify(5);"""
+
+        interpreter = run(code)
+
+        val_res10 = interpreter.environment.get("result_ten", 0)
+        val_res20 = interpreter.environment.get("result_twenty", 0)
+        val_resdef = interpreter.environment.get("result_default", 0)
+
+        assert isinstance(val_res10, Value)
+        self.assertEqual(val_res10.value, 10)
+        assert isinstance(val_res20, Value)
+        self.assertEqual(val_res20.value, 20)
+        assert isinstance(val_resdef, Value)
+        self.assertEqual(val_resdef.value, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

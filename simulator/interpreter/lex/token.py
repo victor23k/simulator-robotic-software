@@ -90,15 +90,16 @@ class TokenType(Enum):
     RETURN = 88
     SWITCH = 89
     WHILE = 90
+    DEFAULT = 91
 
-    LEFT_PAREN = 91
-    RIGHT_PAREN = 92
-    LEFT_BRACKET = 93
-    RIGHT_BRACKET = 94
-    DOT = 95
-    COMMA = 96
-    NUMBER = 97
-    IDENTIFIER = 98
+    LEFT_PAREN = 92
+    RIGHT_PAREN = 93
+    LEFT_BRACKET = 94
+    RIGHT_BRACKET = 95
+    DOT = 96
+    COMMA = 97
+    NUMBER = 98
+    IDENTIFIER = 99
 
     EOF = 100
     ERROR = 101
@@ -106,6 +107,8 @@ class TokenType(Enum):
     # numeric literals
     FLOAT_LITERAL = 110
     INT_LITERAL = 111
+
+    COLON = 112
 
 @dataclass
 class Token:

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.environment import Environment
-    from simulator.interpreter.ast.stmt import Function
 
+from simulator.interpreter.ast.stmt import Function
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import (ArduinoRuntimeError, 
                                             diagnostic_from_token, Diagnostic)
@@ -195,15 +195,17 @@ class CallExpr:
             raise ArduinoRuntimeError(
                 f"Expected {fn.arity()} arguments but got {len(self.arguments)}.")
 
-        args = [arg.evaluate(env) for arg in self.arguments]
+        fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
 
-        return fn.call(args)
+        return fn.call(fn_args)
 
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = self.callee.ttype
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.callee.check_type(scope_chain, diagnostics)
+        for call_arg in self.arguments:
+            call_arg.resolve(scope_chain, diagnostics)
         self.check_type(scope_chain, diagnostics)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
