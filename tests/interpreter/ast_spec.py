@@ -61,11 +61,16 @@ class IfStmtSpec:
     then_branch: StmtSpec
     else_branch: StmtSpec
 
+@dataclass
+class WhileStmtSpec:
+    condition: ExprSpec
+    body: BlockStmtSpec
 
 @dataclass
 class AssignExprSpec:
-    name: TokenSpec
-    value: ExprSpec
+    l_value: ExprSpec
+    op: TokenSpec
+    r_value: ExprSpec
 
 
 @dataclass
@@ -85,16 +90,17 @@ class LiteralExprSpec:
 
 
 @dataclass
-class AssignExpr:
-    name: TokenSpec
-    value: ExprSpec
-
-
-@dataclass
 class BinaryExprSpec:
     lhs: ExprSpec
     op: TokenSpec
     rhs: ExprSpec
+
+
+@dataclass
+class UnaryExprSpec:
+    prefix: bool
+    op: TokenSpec
+    variable: VariableExprSpec
 
 
 @dataclass
