@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from turtle import position
 from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
@@ -22,13 +21,43 @@ class BinaryOpException(Exception):
     pass
 
 class AssignExpr:
-    name: Token
-    value: Expr
+    """
+    An assignment expression takes the right-hand operand and assigns it to the
+    l-value. 
+
+    The assignment expression evaluates to the l-value after the
+    assignment is completed.
+
+    Assignment operators are split into simple assignment '=' and compound
+    assignment, like '+='.
+    """
+
+    l_value: Expr
+    op: Token
+    r_value: Expr
     ttype: ArduinoType
 
-    def __init__(self, name: Token, value: Expr):
-        self.name = name
-        self.value = value
+    op_table = {
+        # Compound arithmetic
+        "*=": lambda x, y: x * y,
+        "/=": lambda x, y: x / y,
+        "%=": lambda x, y: x % y,
+        "+=": lambda x, y: x + y,
+        "-=": lambda x, y: x - y,
+
+        # Compound bitwise
+        "&=": lambda x, y: x & y,
+        "|=": lambda x, y: x | y,
+        "^=": lambda x, y: x ^ y,
+
+        # Simple
+        "=": lambda x, y: y,
+    }
+
+    def __init__(self, l_value: Expr, op: Token, r_value: Expr):
+        self.l_value = l_value
+        self.op = op
+        self.r_value = r_value
         self.ttype = None
 
     @override
@@ -40,8 +69,9 @@ class AssignExpr:
             name += "="
 
         result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
-        result += self.name.to_string(ntab+2, "name") + "\n"
-        result += self.value.to_string(ntab+2, "value") + "\n"
+        result += self.l_value.to_string(ntab+2, "l_value") + "\n"
+        result += self.op.to_string(ntab+2, "op") + "\n"
+        result += self.r_value.to_string(ntab+2, "r_value") + "\n"
 
         if self.ttype is not None:
             result += f"{" "*(ntab+2)}ttype={self.ttype}\n"
@@ -50,23 +80,44 @@ class AssignExpr:
         return result
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
-        return diagnostic_from_token(message, self.name)
+        return diagnostic_from_token(message, self.l_value)
 
     def evaluate(self, env: Environment) -> Value | None:
-        value_result = self.value.evaluate(env)
-        env.assign(self.name.lexeme, value_result)
-        return value_result
+        r_value_result = self.r_value.evaluate(env)
+        l_value_result = self.l_value.evaluate(env)
+
+        op_fn = self.op_table[self.op.lexeme]
+        try:
+            l_value = l_value_result.value if l_value_result is not None else None
+            r_value = r_value_result.value if r_value_result is not None else None
+            result = op_fn(l_value, r_value)
+        except TypeError as e:
+            raise BinaryOpException(f"{l_value_result} and {r_value_result} not compatible") from e
+
+        # assign name:
+        #   var name for VariableExpr
+        #   var name and pos for array
+        #   field and var name for struct
+
+        if isinstance(self.l_value, VariableExpr): 
+            env.assign(self.l_value.vname.lexeme, Value(self.ttype, result))
+
+        return result
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
-        self.value.resolve(scope_chain, diagnostics)
-        scope_chain.define(self.name)
+        self.r_value.resolve(scope_chain, diagnostics)
+        self.l_value.resolve(scope_chain, diagnostics)
+
+        if isinstance(self.l_value, VariableExpr): 
+            scope_chain.define(self.l_value.vname)
+
         self.check_type(scope_chain, diagnostics)
 
     def check_type(self, scope_chain: ScopeChain, diags: list[Diagnostic]):
-        var_type = scope_chain.get_type(self.name)
+        var_type = scope_chain.get_type(self.l_value.vname)
 
-        if types_compatibility(var_type, self.value.ttype):
-            self.ttype = coerce_types(var_type, self.value.ttype)
+        if types_compatibility(var_type, self.l_value.ttype):
+            self.ttype = coerce_types(var_type, self.r_value.ttype)
         else:
             diag = diagnostic_from_token("Type of value assigned is not compatible with variable.", self.name)
             diags.append(diag)
@@ -151,10 +202,7 @@ class BinaryExpr:
         except TypeError as e:
             raise BinaryOpException(f"{left_value} and {right_value} not compatible") from e
 
-    def check_type(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
-        self.lhs.check_type(scope_chain, diagnostics)
-        self.rhs.check_type(scope_chain, diagnostics)
-
+    def check_type(self, _scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         if types_compatibility(self.lhs.ttype, self.rhs.ttype):
             if self.op.is_boolean():
                 self.ttype = ArduinoBuiltinType.BOOL
@@ -219,6 +267,21 @@ class UnaryExpr:
             self.ttype = ArduinoBuiltinType.ERR
         else:
             self.ttype = self.variable.ttype
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' '*ntab}{name}{self.__class__.__name__}(\n"
+        result += self.variable.to_string(ntab+2, "variable")
+        result += self.op.to_string(ntab+2, "op")
+        result += f"{' ' * (ntab + 2)}position={'prefix' if self.prefix else 'postfix'}"
+
+        if self.ttype is not None:
+            result += f"{' '*(ntab+2)}ttype={self.ttype}\n"
+
+        result += f"{' '*ntab})\n"
+        return result
 
 
 class CallExpr:

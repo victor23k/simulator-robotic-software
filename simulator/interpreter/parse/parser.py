@@ -339,9 +339,19 @@ class Parser:
 
             self._advance()
             rhs = self._expression(next_min_prec)
-            if curr_token.token is TokenType.EQUAL:
+            if curr_token.token in [
+                TokenType.EQUAL,
+                TokenType.PLUS_EQUAL,
+                TokenType.MINUS_EQUAL,
+                TokenType.STAR_EQUAL,
+                TokenType.SLASH_EQUAL,
+                TokenType.PERCENTAGE_EQUAL,
+                TokenType.AND_EQUAL,
+                TokenType.OR_EQUAL,
+                TokenType.XOR_EQUAL,
+            ]:
                 if isinstance(lhs, VariableExpr):
-                    lhs = AssignExpr(lhs.vname, rhs)
+                    lhs = AssignExpr(lhs, curr_token, rhs)
                 else:
                     # lhs = AssignExpr(Token(TokenType.ERROR, "", None, op.line,
                     # op.column), rhs)

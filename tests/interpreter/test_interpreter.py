@@ -241,5 +241,38 @@ int a = ++x; int b = --y;"""
         assert isinstance(val_b, Value)
         self.assertEqual(val_b.value, 4)
 
+
+    def test_interprets_compound_arithmetic_assignment(self):
+        code = """int x = 5;
+x += 15 * 10;
+int y = 20;
+y -= 10;
+int z = 20;
+z /= 10;
+int a = 20;
+a %= 15;
+int b = 10;
+b *= 3;
+"""
+
+        interpreter = run(code)
+
+        val_x = interpreter.environment.get("x", 0)
+        val_y = interpreter.environment.get("y", 0)
+        val_z = interpreter.environment.get("z", 0)
+        val_a = interpreter.environment.get("a", 0)
+        val_b = interpreter.environment.get("b", 0)
+
+        assert isinstance(val_x, Value)
+        self.assertEqual(val_x.value, 155)
+        assert isinstance(val_y, Value)
+        self.assertEqual(val_y.value, 10)
+        assert isinstance(val_z, Value)
+        self.assertEqual(val_z.value, 2)
+        assert isinstance(val_a, Value)
+        self.assertEqual(val_a.value, 5)
+        assert isinstance(val_b, Value)
+        self.assertEqual(val_b.value, 30)
+
 if __name__ == "__main__":
     unittest.main()
