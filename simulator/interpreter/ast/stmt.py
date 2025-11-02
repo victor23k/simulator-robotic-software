@@ -448,9 +448,9 @@ class SwitchStmt:
 
 
 class ReturnException(Exception):
-    value: object
+    value: Value | None
 
-    def __init__(self, ret_value: object):
+    def __init__(self, ret_value: Value | None):
         super().__init__()
         self.value = ret_value
 
@@ -474,7 +474,7 @@ class Function:
 
         return len(self.params)
 
-    def call(self, arguments: list[object]) -> object:
+    def call(self, arguments: list[Value | None]) -> Value | None:
         "Call the function and return."
 
         fn_env = Environment(self.closure)

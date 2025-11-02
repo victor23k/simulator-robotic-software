@@ -5,6 +5,7 @@ from simulator.interpreter.ast.expr import (
     Expr,
     BinaryExpr,
     LiteralExpr,
+    UnaryExpr,
     VariableExpr,
 )
 from simulator.interpreter.diagnostic import Diagnostic
@@ -303,7 +304,20 @@ class Parser:
         return stmt
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
+        if self._match(TokenType.DECREMENT, TokenType.INCREMENT):
+            return self._unary_expr()
+
         return self._parse_binary_expr(min_prec)
+
+    def _unary_expr(self) -> UnaryExpr:
+        op = self.previous
+        
+        self._consume(TokenType.IDENTIFIER, 
+                      "Expect identifier after prefix expression")
+
+        var = VariableExpr(self.previous)
+        return UnaryExpr(op, True, var)
+
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
@@ -350,6 +364,9 @@ class Parser:
 
                 if self._match(TokenType.LEFT_PAREN):
                     return self._call_expr(identifier)
+                elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
+                    return UnaryExpr(self.previous, False,
+                                     VariableExpr(identifier))
                 else:
                     return VariableExpr(identifier)
             case unexpected_token:

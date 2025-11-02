@@ -36,7 +36,7 @@ class Environment:
     in.
     """
 
-    values: dict[str, object]
+    values: dict[str, Value | None]
     enclosing: Self | None
 
     def __init__(self, enclosing: Self | None):
@@ -47,7 +47,7 @@ class Environment:
     def __repr__(self) -> str:
         return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
-    def define(self, name: str, value: object):
+    def define(self, name: str, value: Value | None):
         """
         Defines a variable by its `name` and `value`.
 
@@ -61,7 +61,7 @@ class Environment:
         # if shadowing is not allowed, use depth to get the env to define
         self.values[name] = value
 
-    def assign(self, name: str, value: object):
+    def assign(self, name: str, value: Value | None):
         if name in self.values:
             self.values[name] = value
             return
@@ -74,7 +74,7 @@ class Environment:
         return None
 
 
-    def get(self, name: str, distance: int) -> object:
+    def get(self, name: str, distance: int) -> Value | None:
         env = self._ancestor(distance)
 
         if name in env.values:

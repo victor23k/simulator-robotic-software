@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+from turtle import position
 from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
@@ -10,10 +12,11 @@ from simulator.interpreter.ast.stmt import Function
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import (ArduinoRuntimeError, 
                                             diagnostic_from_token, Diagnostic)
-from simulator.interpreter.lex.token import Token
+from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_types, token_to_arduino_type, types_compatibility
 
-type Expr = AssignExpr | BinaryExpr | CallExpr | VariableExpr | LiteralExpr
+type Expr = (AssignExpr | BinaryExpr | CallExpr | VariableExpr | LiteralExpr |
+    UnaryExpr)
 
 class BinaryOpException(Exception):
     pass
@@ -49,7 +52,7 @@ class AssignExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
-    def evaluate(self, env: Environment):
+    def evaluate(self, env: Environment) -> Value | None:
         value_result = self.value.evaluate(env)
         env.assign(self.name.lexeme, value_result)
         return value_result
@@ -173,6 +176,51 @@ class BinaryExpr:
         self.check_type(scope_chain, diagnostics)
 
 
+class UnaryExpr:
+    op: Token
+    prefix: bool # if false, postfix
+    variable: VariableExpr
+    ttype: ArduinoType
+
+    def __init__(self, op: Token, prefix: bool, variable: VariableExpr):
+        self.op = op
+        self.prefix = prefix
+        self.variable = variable
+        self.ttype = None
+
+    def evaluate(self, env: Environment) -> Value | None:
+        var = self.variable.evaluate(env)
+
+        if var is None:
+            raise Exception
+
+        new_var = Value(var.value_type, var.value)
+        if self.op.token is TokenType.DECREMENT:
+            new_var.value = int(var.value) - 1
+        else:
+            new_var.value = int(var.value) + 1
+
+        env.assign(self.variable.vname.lexeme, new_var)
+
+        if self.prefix:
+            return new_var
+        else:
+            return var
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.variable.resolve(scope_chain, diagnostics)
+        if self.variable.ttype not in [ArduinoBuiltinType.INT,
+            ArduinoBuiltinType.LONG]:
+            diag = diagnostic_from_token(
+                "Type of variable must be 'int' or 'long' for decrement or increment.",
+                self.variable.vname
+            )
+            diagnostics.append(diag)
+            self.ttype = ArduinoBuiltinType.ERR
+        else:
+            self.ttype = self.variable.ttype
+
+
 class CallExpr:
     callee: VariableExpr
     # callee can be the function name (VariableExpr) and a method call on an
@@ -185,7 +233,7 @@ class CallExpr:
         self.arguments = arguments
         self.ttype = None
 
-    def evaluate(self, env: Environment):
+    def evaluate(self, env: Environment) -> Value | None:
         fn = self.callee.evaluate(env)
 
         if not isinstance(fn, Function):
@@ -253,7 +301,7 @@ class LiteralExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, _env: Environment):
+    def evaluate(self, _env: Environment) -> Value:
         return Value(self.ttype, self.value.literal)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
@@ -293,7 +341,7 @@ class VariableExpr:
         result += f"{" "*ntab})\n"
         return result
 
-    def evaluate(self, env: Environment):
+    def evaluate(self, env: Environment) -> Value | None:
         value = env.get(self.vname.lexeme, self.scope_distance)
         return value
 

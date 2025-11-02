@@ -17,6 +17,7 @@ statement /= breakStmt
 statement /= ifStmt
 statement /= blockStmt
 statement /= switchStmt
+statement /= forStmt
 
 varDecl = declStart ["=" initializer] ";"
 fnDecl  = declStart "(" params ")" "{" +statement "}"
@@ -32,14 +33,17 @@ blockStmt = "{" *declaration "}"
 switchStmt = "switch" "(" expr ")" "{" *caseStmt "}"
 caseStmt = "case" int ":" *statement
 caseStmt /= "default" ":" *statement
+forStmt = "for" "(" (varDecl / exprStmt / ";") [expr] ";" [expr] ")" statement 
 
 array_def = "[" +DIGIT "]"
 
 params = *declStart *("," declStart)
 
 expr = binaryExpr
+expr /= unaryExpr
 expr /= literalExpr
 expr /= variableExpr
+expr /= assignExpr
 expr /= callExpr
 
 callExpr = variableExpr "(" arguments? ")"
@@ -47,3 +51,5 @@ callExpr = variableExpr "(" arguments? ")"
 arguments = expr *( "," expr )
 
 literalExpr = int / str / ident / "true" / "false" / "HIGH" / "LOW"
+assignExpr = ident "=" expr
+variableExpr = ident
