@@ -247,7 +247,7 @@ class Parser:
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
 
-        return BlockStmt(stmts, ttype=None)
+        return BlockStmt(stmts)
 
     def _while_stmt(self) -> WhileStmt:
         self._advance() # WHILE

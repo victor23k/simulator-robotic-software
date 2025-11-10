@@ -37,7 +37,6 @@ type Stmt = (
 @dataclass
 class BlockStmt:
     stmts: list[Stmt]
-    ttype: ArduinoType
 
     def execute(self, env: Environment):
         block_env = Environment(enclosing=env)
@@ -53,14 +52,6 @@ class BlockStmt:
 
         for stmt in self.stmts:
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
-
-        last_stmt = self.stmts[-1]
-
-        if isinstance(last_stmt, ReturnStmt):
-            self.ttype = last_stmt.ttype
-        else:
-            self.ttype = ArduinoBuiltinType.VOID
-
 
         scope_chain.end_scope()
 
