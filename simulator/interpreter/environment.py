@@ -27,6 +27,7 @@ class Value:
             and self.value == value.value
         )
 
+
 class Environment:
     """
     Storage for variables and their values.
@@ -73,7 +74,6 @@ class Environment:
         # should be unreachable, checked in the Resolver
         return None
 
-
     def get(self, name: str, distance: int) -> Value | None:
         env = self._ancestor(distance)
 
@@ -88,4 +88,3 @@ class Environment:
             return self.enclosing._ancestor(distance - 1)
 
         return self
-

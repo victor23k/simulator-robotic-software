@@ -32,8 +32,10 @@ from simulator.interpreter.lex.token import Token, TokenType
 
 from typing import override
 
+
 class ParseException(Exception):
     pass
+
 
 class ParseError:
     """Base class for exceptions raised by the parser."""
@@ -152,7 +154,6 @@ class Parser:
             self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
             return VariableStmt(ttype, identifier, initializer=None, ttype=None)
 
-
     def _statement(self) -> Stmt:
         match self._peek().token:
             case TokenType.LEFT_BRACE:
@@ -193,7 +194,6 @@ class Parser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after 'continue'.")
         return ContinueStmt(cont)
 
-
     def _if_stmt(self):
         self._advance()  # IF
 
@@ -215,7 +215,10 @@ class Parser:
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after switch statement.")
         var = self._parse_atom()
         if not (isinstance(var, LiteralExpr) or isinstance(var, VariableExpr)):
-            raise self._error(self.previous, "Var to evaluate in switch statement must be a literal or variable.")
+            raise self._error(
+                self.previous,
+                "Var to evaluate in switch statement must be a literal or variable.",
+            )
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after switch var.")
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' after switch.")
@@ -239,12 +242,18 @@ class Parser:
     def _case_stmt(self) -> CaseStmt:
         label = self._parse_atom()
         if not (isinstance(label, LiteralExpr) or isinstance(label, VariableExpr)):
-            raise self._error(self.previous, "Label to evaluate in case statement must be a literal or variable.")
+            raise self._error(
+                self.previous,
+                "Label to evaluate in case statement must be a literal or variable.",
+            )
         self._consume(TokenType.COLON, "Expect ':' after case label.")
 
         stmts: list[Stmt] = []
-        while self._peek().token not in [TokenType.CASE, TokenType.DEFAULT,
-                              TokenType.RIGHT_BRACE]:
+        while self._peek().token not in [
+            TokenType.CASE,
+            TokenType.DEFAULT,
+            TokenType.RIGHT_BRACE,
+        ]:
             stmts.append(self._statement())
 
         return CaseStmt(label, stmts)
@@ -262,7 +271,7 @@ class Parser:
         return BlockStmt(stmts)
 
     def _while_stmt(self) -> WhileStmt:
-        self._advance() # WHILE
+        self._advance()  # WHILE
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after while.")
         condition = self._expression()
@@ -272,7 +281,7 @@ class Parser:
         return WhileStmt(condition, statement)
 
     def _do_while_stmt(self) -> DoWhileStmt:
-        self._advance() # DO
+        self._advance()  # DO
 
         statement = self._statement()
         self._consume(TokenType.WHILE, "Expect 'while' after do-while statement.")
@@ -284,7 +293,7 @@ class Parser:
         return DoWhileStmt(statement, condition)
 
     def _for_stmt(self) -> ForStmt:
-        self._advance() # FOR
+        self._advance()  # FOR
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after for.")
 
@@ -295,10 +304,15 @@ class Parser:
             if self._match(*var_ttype):
                 init_expr = self._variable_declaration()
                 if not isinstance(init_expr, VariableStmt):
-                    raise self._error(self.previous, "For loop init must be a expression or a variable declaration")
+                    raise self._error(
+                        self.previous,
+                        "For loop init must be a expression or a variable declaration",
+                    )
             else:
                 init_expr = self._expression()
-                self._consume(TokenType.SEMICOLON, "Expect ';' after 'for' init expression")
+                self._consume(
+                    TokenType.SEMICOLON, "Expect ';' after 'for' init expression"
+                )
 
         if self._check(TokenType.SEMICOLON):
             self._advance()
@@ -312,7 +326,9 @@ class Parser:
             loop_expr = None
         else:
             loop_expr = self._expression()
-            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after 'for' loop expression")
+            self._consume(
+                TokenType.RIGHT_PAREN, "Expect ')' after 'for' loop expression"
+            )
 
         statement = self._statement()
         return ForStmt(init_expr, condition, loop_expr, statement)
@@ -382,10 +398,10 @@ class Parser:
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
         if self._match(
-            TokenType.DECREMENT, 
-            TokenType.INCREMENT, 
+            TokenType.DECREMENT,
+            TokenType.INCREMENT,
             TokenType.LOGICAL_NOT,
-            TokenType.BITWISE_NOT
+            TokenType.BITWISE_NOT,
         ):
             return self._unary_expr()
 
@@ -393,13 +409,11 @@ class Parser:
 
     def _unary_expr(self) -> UnaryExpr:
         op = self.previous
-        
-        self._consume(TokenType.IDENTIFIER, 
-                      "Expect identifier after prefix expression")
+
+        self._consume(TokenType.IDENTIFIER, "Expect identifier after prefix expression")
 
         var = VariableExpr(self.previous)
         return UnaryExpr(op, True, var)
-
 
     def _parse_binary_expr(self, min_prec: PrecLevel) -> Expr:
         # precedence climbing algorithm from https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
@@ -408,8 +422,10 @@ class Parser:
         while True:
             curr_token = self._peek()
 
-            if (not curr_token.is_binary() or
-                get_binary_op_precedence(curr_token.token) < min_prec):
+            if (
+                not curr_token.is_binary()
+                or get_binary_op_precedence(curr_token.token) < min_prec
+            ):
                 return lhs
 
             prec = get_binary_op_precedence(curr_token.token)
@@ -457,8 +473,7 @@ class Parser:
                 if self._match(TokenType.LEFT_PAREN):
                     return self._call_expr(identifier)
                 elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
-                    return UnaryExpr(self.previous, False,
-                                     VariableExpr(identifier))
+                    return UnaryExpr(self.previous, False, VariableExpr(identifier))
                 else:
                     return VariableExpr(identifier)
             case unexpected_token:

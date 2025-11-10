@@ -13,6 +13,7 @@ from simulator.interpreter.sema.types import (
     token_to_arduino_type,
 )
 
+
 class VarState(Enum):
     DECLARED = 1
     DEFINED = 2
@@ -52,6 +53,7 @@ class Scope:
     def __repr__(self) -> str:
         return f"Scope=({self.variables.__repr__()})"
 
+
 class ScopeChain:
     scopes: deque[Scope]
     diagnostics: list[Diagnostic]
@@ -84,8 +86,7 @@ class ScopeChain:
         var = Var(vtype, VarState.DECLARED)
         # if shadowing is not allowed, check all scopes.
         if self._at_distance(0).variables.get(name_token.lexeme) is not None:
-            diag = diagnostic_from_token("Redeclaration of variable.",
-                                         name_token)
+            diag = diagnostic_from_token("Redeclaration of variable.", name_token)
             self.diagnostics.append(diag)
             return
 
@@ -94,7 +95,9 @@ class ScopeChain:
     def define(self, name_token: Token):
         for depth in range(0, len(self.scopes)):
             if self._at_distance(depth).variables.get(name_token.lexeme) is not None:
-                self._at_distance(depth).variables[name_token.lexeme].state = VarState.DEFINED
+                self._at_distance(depth).variables[
+                    name_token.lexeme
+                ].state = VarState.DEFINED
                 return
 
         diag = diagnostic_from_token("Variable defined before declaration", name_token)
@@ -107,12 +110,10 @@ class ScopeChain:
                 var.state = VarState.USED
                 return depth
 
-        diag = diagnostic_from_token("Variable used before declaration",
-                                     name_token)
+        diag = diagnostic_from_token("Variable used before declaration", name_token)
         self.diagnostics.append(diag)
 
         return 0
-
 
     def get_type(self, name_token: Token) -> ArduinoType:
         for depth in range(0, len(self.scopes)):
@@ -125,6 +126,6 @@ class ScopeChain:
     def get_type_at(self, name_token: Token, depth: int) -> ArduinoType:
         var = self._at_distance(depth).variables.get(name_token.lexeme)
         if var is not None:
-                return var.var_type
+            return var.var_type
 
         return ArduinoBuiltinType.ERR

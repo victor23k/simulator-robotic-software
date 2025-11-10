@@ -3,8 +3,8 @@ import unittest
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.lex.token import TokenType
 
-class TestScanner(unittest.TestCase):
 
+class TestScanner(unittest.TestCase):
     def test_tokenizes_left_paren(self):
         scanner = Scanner("(")
         token = next(scanner)
@@ -18,16 +18,29 @@ class TestScanner(unittest.TestCase):
     def test_scans_simple_arithmetic(self):
         scanner = Scanner("1 * 2 + 3")
         tokens = [token.token for token in scanner]
-        test_tokens = [TokenType.INT_LITERAL, TokenType.STAR, TokenType.INT_LITERAL,
-                       TokenType.PLUS, TokenType.INT_LITERAL, TokenType.EOF]
+        test_tokens = [
+            TokenType.INT_LITERAL,
+            TokenType.STAR,
+            TokenType.INT_LITERAL,
+            TokenType.PLUS,
+            TokenType.INT_LITERAL,
+            TokenType.EOF,
+        ]
         self.assertEqual(tokens, test_tokens)
 
     def test_scans_arithmetic_with_parens(self):
         scanner = Scanner("(1 * 2) + 3")
         tokens = [token.token for token in scanner]
-        test_tokens = [TokenType.LEFT_PAREN, TokenType.INT_LITERAL, TokenType.STAR,
-                       TokenType.INT_LITERAL, TokenType.RIGHT_PAREN,
-                       TokenType.PLUS, TokenType.INT_LITERAL, TokenType.EOF]
+        test_tokens = [
+            TokenType.LEFT_PAREN,
+            TokenType.INT_LITERAL,
+            TokenType.STAR,
+            TokenType.INT_LITERAL,
+            TokenType.RIGHT_PAREN,
+            TokenType.PLUS,
+            TokenType.INT_LITERAL,
+            TokenType.EOF,
+        ]
         self.assertEqual(tokens, test_tokens)
 
     def test_scans_integer_numbers(self):
@@ -156,5 +169,5 @@ class TestScanner(unittest.TestCase):
         # pprint(tokens)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

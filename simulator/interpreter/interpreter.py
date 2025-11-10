@@ -14,6 +14,7 @@ import simulator.robot_components.robot_state as state
 
 logger = logging.getLogger("SketchLogger")
 
+
 class Interpreter(Arduino):
     """
     Arduino sketch interpreter.
@@ -50,7 +51,7 @@ class Interpreter(Arduino):
         self.statements = statements
         self._log_diagnostics()
 
-        self.valid = len(self.diagnostics) == 0 # change to only errors
+        self.valid = len(self.diagnostics) == 0  # change to only errors
         return len(self.diagnostics) == 0
 
     @override

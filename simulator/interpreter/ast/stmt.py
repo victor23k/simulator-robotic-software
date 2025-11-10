@@ -6,7 +6,11 @@ from dataclasses import dataclass
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
 
-from simulator.interpreter.sema.resolver import ControlFlowState, FunctionState, FunctionType
+from simulator.interpreter.sema.resolver import (
+    ControlFlowState,
+    FunctionState,
+    FunctionType,
+)
 import simulator.interpreter.sema.scope as scope
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
@@ -48,9 +52,13 @@ class BlockStmt:
 
         del block_env
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable:
-                ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         scope_chain.begin_scope()
 
         for stmt in self.stmts:
@@ -82,8 +90,13 @@ class ExpressionStmt:
     def execute(self, env: Environment):
         self.expr.evaluate(env)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, _breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        _fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
         self.expr.resolve(scope_chain, diagnostics)
 
     @override
@@ -109,13 +122,20 @@ class ReturnStmt:
         value = self.expr.evaluate(env)
         raise ReturnException(value)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
         self.expr.resolve(scope_chain, diagnostics)
         self.ttype = self.expr.ttype
 
-        if (fn_type.fn_state is FunctionState.FUNCTION and
-            fn_type.return_type != self.ttype):
+        if (
+            fn_type.fn_state is FunctionState.FUNCTION
+            and fn_type.return_type != self.ttype
+        ):
             diag = self.expr.gen_diagnostic(
                 f"Function type '{fn_type.return_type}' and actual return type '{self.ttype}' are incompatible",
             )
@@ -146,12 +166,16 @@ class BreakStmt:
     def execute(self, _env: Environment):
         raise BreakException()
 
-    def resolve(self, _scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        _scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        _fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         if breakable not in [ControlFlowState.LOOP, ControlFlowState.SWITCH]:
             diag = diagnostic_from_token(
-                "Break statement outside of a loop or switch",
-                self.brk
+                "Break statement outside of a loop or switch", self.brk
             )
             diagnostics.append(diag)
 
@@ -173,12 +197,16 @@ class ContinueStmt:
     def execute(self, _env: Environment):
         raise ContinueException()
 
-    def resolve(self, _scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        _scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        _fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         if breakable is not ControlFlowState.LOOP:
             diag = diagnostic_from_token(
-                "Continue statement outside of a loop.",
-                self.cont
+                "Continue statement outside of a loop.", self.cont
             )
             diagnostics.append(diag)
 
@@ -239,8 +267,13 @@ class VariableStmt:
         else:
             environment.define(self.name.lexeme, None)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, _breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        _fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
         if self.initializer:
             self.initializer.resolve(scope_chain, diagnostics)
 
@@ -264,8 +297,9 @@ class VariableStmt:
             return var_arduino_type
 
         diag = self.gen_diagnostic(
-            "Initializer expression has incompatible types. Initializer: " +
-                f"{self.initializer.ttype}. Variable: {var_arduino_type}")
+            "Initializer expression has incompatible types. Initializer: "
+            + f"{self.initializer.ttype}. Variable: {var_arduino_type}"
+        )
         diagnostics.append(diag)
         return ArduinoBuiltinType.ERR
 
@@ -296,15 +330,22 @@ class IfStmt:
 
     def execute(self, environment: Environment):
         condition_value = self.condition.evaluate(environment)
-        if (isinstance(condition_value, Value)
+        if (
+            isinstance(condition_value, Value)
             and condition_value.value_type == ArduinoBuiltinType.BOOL
-            and condition_value.value):
+            and condition_value.value
+        ):
             self.then_branch.execute(environment)
         elif self.else_branch is not None:
             self.else_branch.execute(environment)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         self.condition.resolve(scope_chain, diagnostics)
         self.then_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
         if self.else_branch is not None:
@@ -323,8 +364,13 @@ class FunctionStmt:
         fn = Function(self.params, self.body, env)
         env.define(self.name.lexeme, fn)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         scope_chain.begin_scope()
 
         self.ttype = token_to_arduino_type(self.return_type)
@@ -393,8 +439,13 @@ class CaseStmt:
         for stmt in self.stmts:
             stmt.execute(environment)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         self.label.resolve(scope_chain, diagnostics)
         for stmt in self.stmts:
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
@@ -423,10 +474,16 @@ class DefaultStmt:
         for stmt in self.stmts:
             stmt.execute(environment)
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         for stmt in self.stmts:
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
+
 
 @dataclass
 class SwitchStmt:
@@ -454,9 +511,13 @@ class SwitchStmt:
         var = self.var.evaluate(environment)
 
         matching_case_idx = next(
-            (idx for (idx, case) in enumerate(self.cases) 
-                 if case.label.evaluate(environment) == var),
-            None)
+            (
+                idx
+                for (idx, case) in enumerate(self.cases)
+                if case.label.evaluate(environment) == var
+            ),
+            None,
+        )
 
         try:
             if matching_case_idx is None and self.default is not None:
@@ -469,8 +530,13 @@ class SwitchStmt:
         except BreakException:
             pass
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         self.var.resolve(scope_chain, diagnostics)
         if breakable is ControlFlowState.NONE:
             breakable = ControlFlowState.SWITCH
@@ -502,13 +568,10 @@ class WhileStmt:
 
     def execute(self, environment: Environment):
         try:
-            while (
-                (condition := self.condition.evaluate(environment))
-                and 
-                (
-                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
-                    or condition.value != 0)
-                ):
+            while (condition := self.condition.evaluate(environment)) and (
+                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                or condition.value != 0
+            ):
                 try:
                     self.statement.execute(environment)
                 except ContinueException:
@@ -517,8 +580,13 @@ class WhileStmt:
         except BreakException:
             pass
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
         self.condition.resolve(scope_chain, diagnostics)
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
@@ -545,13 +613,10 @@ class DoWhileStmt:
     def execute(self, environment: Environment):
         try:
             self.statement.execute(environment)
-            while (
-                (condition := self.condition.evaluate(environment))
-                and 
-                (
-                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
-                    or condition.value != 0)
-                ):
+            while (condition := self.condition.evaluate(environment)) and (
+                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                or condition.value != 0
+            ):
                 try:
                     self.statement.execute(environment)
                 except ContinueException:
@@ -560,8 +625,13 @@ class DoWhileStmt:
         except BreakException:
             pass
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
         self.condition.resolve(scope_chain, diagnostics)
 
@@ -605,7 +675,10 @@ class ForStmt:
                 condition = self.condition.evaluate(environment)
 
                 while (condition := self.condition.evaluate(environment)) and (
-                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                    (
+                        condition.value_type is ArduinoBuiltinType.BOOL
+                        and condition.value
+                    )
                     or condition.value != 0
                 ):
                     try:
@@ -627,8 +700,13 @@ class ForStmt:
             except ContinueException:
                 continue
 
-    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
         if isinstance(self.init_expr, VariableStmt):
             self.init_expr.resolve(scope_chain, diagnostics, fn_type, breakable)
         elif self.init_expr is not None:

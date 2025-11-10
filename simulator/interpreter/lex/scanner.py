@@ -348,23 +348,20 @@ class Scanner:
             match second_word:
                 case "char":
                     return self._produce_token(
-                        TokenType.UNSIGNED_CHAR,
-                        self.source[self.start:self.current]
+                        TokenType.UNSIGNED_CHAR, self.source[self.start : self.current]
                     )
                 case "int":
                     return self._produce_token(
-                        TokenType.UNSIGNED_INT,
-                        self.source[self.start:self.current]
+                        TokenType.UNSIGNED_INT, self.source[self.start : self.current]
                     )
                 case "long":
                     return self._produce_token(
-                        TokenType.UNSIGNED_LONG,
-                        self.source[self.start:self.current]
+                        TokenType.UNSIGNED_LONG, self.source[self.start : self.current]
                     )
                 case _:
                     diag = Diagnostic(
-                        message="Only the following types allow an 'unsigned'" +
-                            "modifier: 'char', 'int', and 'long'",
+                        message="Only the following types allow an 'unsigned'"
+                        + "modifier: 'char', 'int', and 'long'",
                         line=self.line,
                         col_start=self.column - (self.current - self.start),
                         col_end=self.column,
@@ -373,8 +370,8 @@ class Scanner:
                     return self._produce_empty_token(TokenType.ERROR)
         else:
             token_type = keywords.get(
-                            identifier,
-                            types.get(identifier, TokenType.IDENTIFIER))
+                identifier, types.get(identifier, TokenType.IDENTIFIER)
+            )
 
             return self._produce_token(token_type, identifier)
 
@@ -426,5 +423,6 @@ class Scanner:
 
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
-        return Token(token_type, text, literal, self.line - 1,
-                     self.column - len(text) - 1)
+        return Token(
+            token_type, text, literal, self.line - 1, self.column - len(text) - 1
+        )

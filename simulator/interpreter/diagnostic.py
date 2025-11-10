@@ -7,11 +7,14 @@ if TYPE_CHECKING:
 
 
 def diagnostic_from_token(message: str, token: Token) -> Diagnostic:
-    return Diagnostic(message, token.line, token.column, len(token.lexeme) +
-        token.column)
+    return Diagnostic(
+        message, token.line, token.column, len(token.lexeme) + token.column
+    )
+
 
 def printable_diagnostics(diags: list[Diagnostic], code: str) -> str:
-    return '\n' + str.join('\n', [diag.print(code) for diag in diags])
+    return "\n" + str.join("\n", [diag.print(code) for diag in diags])
+
 
 @dataclass
 class Diagnostic:
@@ -30,6 +33,7 @@ class Diagnostic:
 Line {self.line + 1}:
 {code.splitlines()[self.line]}
 {" " * self.col_start}{"^" * (self.col_end - self.col_start)}"""
+
 
 class ArduinoRuntimeError(Exception):
     pass

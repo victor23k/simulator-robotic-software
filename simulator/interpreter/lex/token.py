@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 class TokenType(Enum):
     PLUS = 1
     EQUAL = 2
@@ -15,13 +16,13 @@ class TokenType(Enum):
     LESS_THAN = 11
     LESS_THAN_EQUAL = 12
     NOT_EQUAL = 13
-    
+
     BITSHIFT_LEFT = 14
     BITSHIFT_RIGHT = 15
     BITWISE_NOT = 16
     BITWISE_OR = 17
     BITWISE_XOR = 18
-    
+
     BLOCK_COMMENT_START = 19
     BLOCK_COMMENT_END = 20
     LEFT_BRACE = 21
@@ -30,11 +31,11 @@ class TokenType(Enum):
     INCLUDE = 24
     SEMICOLON = 25
     LINE_COMMENT = 26
-    
+
     LOGICAL_AND = 27
     LOGICAL_NOT = 28
     LOGICAL_OR = 29
-    
+
     PLUS_EQUAL = 30
     AND_EQUAL = 31
     OR_EQUAL = 32
@@ -110,9 +111,11 @@ class TokenType(Enum):
 
     COLON = 112
 
+
 @dataclass
 class Token:
     """Arduino Language token."""
+
     token: TokenType
     lexeme: str
     literal: object
@@ -127,7 +130,6 @@ class Token:
             TokenType.LESS_THAN_EQUAL,
             TokenType.GREATER_THAN,
             TokenType.GREATER_THAN_EQUAL,
-
             TokenType.LOGICAL_AND,
             TokenType.LOGICAL_OR,
         ]
@@ -139,23 +141,19 @@ class Token:
             TokenType.STAR,
             TokenType.SLASH,
             TokenType.PERCENTAGE,
-
             TokenType.EQUAL_EQUAL,
             TokenType.NOT_EQUAL,
             TokenType.LESS_THAN,
             TokenType.LESS_THAN_EQUAL,
             TokenType.GREATER_THAN,
             TokenType.GREATER_THAN_EQUAL,
-
             TokenType.AMPERSAND,
             TokenType.BITWISE_OR,
             TokenType.BITWISE_XOR,
             TokenType.BITSHIFT_LEFT,
             TokenType.BITSHIFT_RIGHT,
-
             TokenType.LOGICAL_AND,
             TokenType.LOGICAL_OR,
-
             TokenType.EQUAL,
             TokenType.PLUS_EQUAL,
             TokenType.MINUS_EQUAL,
@@ -171,12 +169,12 @@ class Token:
         if name != "":
             name += "="
 
-        result: str = f"{" "*ntab}{name}{self.__class__.__name__}(\n"
-        result += f"{" "*(ntab+2)}token_type={self.token},\n"
-        result += f"{" "*(ntab+2)}lexeme={self.lexeme},\n"
-        result += f"{" "*(ntab+2)}literal={self.literal},\n"
-        result += f"{" "*(ntab+2)}line={self.line},\n"
-        result += f"{" "*(ntab+2)}column={self.column},\n"
-        result += f"{" "*(ntab)})"
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
+        result += f"{' ' * (ntab + 2)}token_type={self.token},\n"
+        result += f"{' ' * (ntab + 2)}lexeme={self.lexeme},\n"
+        result += f"{' ' * (ntab + 2)}literal={self.literal},\n"
+        result += f"{' ' * (ntab + 2)}line={self.line},\n"
+        result += f"{' ' * (ntab + 2)}column={self.column},\n"
+        result += f"{' ' * (ntab)})"
 
         return result

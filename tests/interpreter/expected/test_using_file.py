@@ -35,8 +35,9 @@ def match_structure(actual: object, spec: object):
     else:
         return spec is None or spec == actual
 
+
 results_pattern = re.compile(
-    r'^(?P<type>[A-Z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.+)$'
+    r"^(?P<type>[A-Z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.+)$"
 )
 
 
@@ -44,10 +45,12 @@ input_test_dir = "./tests/interpreter/expected/inputs/"
 output_test_dir = "./tests/interpreter/expected/outputs/"
 input_test_filenames = os.listdir(input_test_dir)
 output_test_filenames = os.listdir(output_test_dir)
-test_failures_filenames = [filename for filename in input_test_filenames if
-    filename.rfind("_fails") != -1]
-scanner_output_filenames = [filename for filename in output_test_filenames if
-    filename.rfind(".tok") != -1]
+test_failures_filenames = [
+    filename for filename in input_test_filenames if filename.rfind("_fails") != -1
+]
+scanner_output_filenames = [
+    filename for filename in output_test_filenames if filename.rfind(".tok") != -1
+]
 
 input_test_filenames = set(input_test_filenames).difference(test_failures_filenames)
 
@@ -66,13 +69,17 @@ class ExpectedOutputCase(unittest.TestCase):
         stmts = parser.parse()
         spec_stmts: list[StmtSpec] = eval(self.ir)
 
-
         resolver = Resolver(diags)
         resolver.resolve(stmts)
 
-        self.assertEqual(len(diags), 0, 
-                         f"No error diagnostics for {self.filename} expected but found: {printable_diagnostics(diags, self.code)}")
-        self.assertTrue(match_structure(stmts, spec_stmts), f"Match error for {self.filename}")
+        self.assertEqual(
+            len(diags),
+            0,
+            f"No error diagnostics for {self.filename} expected but found: {printable_diagnostics(diags, self.code)}",
+        )
+        self.assertTrue(
+            match_structure(stmts, spec_stmts), f"Match error for {self.filename}"
+        )
 
 
 class ExpectedFailureCase(unittest.TestCase):
@@ -90,7 +97,11 @@ class ExpectedFailureCase(unittest.TestCase):
         resolver = Resolver(diags)
         resolver.resolve(stmts)
 
-        self.assertNotEqual(len(diags), 0, f"Expected some error diagnostics for {self.filename} but found none")
+        self.assertNotEqual(
+            len(diags),
+            0,
+            f"Expected some error diagnostics for {self.filename} but found none",
+        )
 
 
 class ScannerOutputCase(unittest.TestCase):
@@ -106,8 +117,14 @@ class ScannerOutputCase(unittest.TestCase):
         tokens = [token for token in scanner]
         spec_tokens: list[StmtSpec] = eval(self.tok)
 
-        self.assertEqual(len(scanner.diagnostics), 0, f"No error diagnostics for {self.filename} expected but found: {scanner.diagnostics}")
-        self.assertTrue(match_structure(tokens, spec_tokens), f"Match error for {self.filename}")
+        self.assertEqual(
+            len(scanner.diagnostics),
+            0,
+            f"No error diagnostics for {self.filename} expected but found: {scanner.diagnostics}",
+        )
+        self.assertTrue(
+            match_structure(tokens, spec_tokens), f"Match error for {self.filename}"
+        )
 
 
 class InterpretCase(unittest.TestCase):
@@ -127,13 +144,15 @@ class InterpretCase(unittest.TestCase):
             matches = results_pattern.match(line)
             if matches:
                 results = matches.groupdict()
-                with self.subTest(f'{self.filename}: {line}'):
-                    value = interpreter.environment.get(results['identifier'], 0)
+                with self.subTest(f"{self.filename}: {line}"):
+                    value = interpreter.environment.get(results["identifier"], 0)
 
                     assert isinstance(value, Value)
-                    self.assertEqual(value.value.__str__(), results['value'])
-                    self.assertEqual(value.value_type,
-                                     ArduinoBuiltinType[results['type']])
+                    self.assertEqual(value.value.__str__(), results["value"])
+                    self.assertEqual(
+                        value.value_type, ArduinoBuiltinType[results["type"]]
+                    )
+
 
 def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
@@ -150,22 +169,28 @@ def load_tests(loader, tests, pattern):
         with open(input_file_path, "r") as ino_file:
             code = ino_file.read()
 
-        code, *results = re.split(r'^>>>>*$', code, maxsplit=1, flags=re.MULTILINE)
+        code, *results = re.split(r"^>>>>*$", code, maxsplit=1, flags=re.MULTILINE)
 
         output_filename_noext, _ext = os.path.splitext(input_filename)
         if output_filename_noext + ".ir" in output_test_filenames:
-            output_file_path = os.path.join(output_test_dir, output_filename_noext + ".ir")
+            output_file_path = os.path.join(
+                output_test_dir, output_filename_noext + ".ir"
+            )
             with open(output_file_path, "r") as ir_file:
                 ir = ir_file.read()
 
             test_name = f"ExpectedOutputCase.{output_filename_noext}"
             if matches_pattern(test_name):
-                suite.addTest(ExpectedOutputCase('runTest', code, ir, output_filename_noext))
+                suite.addTest(
+                    ExpectedOutputCase("runTest", code, ir, output_filename_noext)
+                )
 
         if len(results) == 1:
             test_name = f"InterpretCase.{output_filename_noext}"
             if matches_pattern(test_name):
-                suite.addTest(InterpretCase('runTest', code, results[0], output_filename_noext))
+                suite.addTest(
+                    InterpretCase("runTest", code, results[0], output_filename_noext)
+                )
 
     # Expected failure tests
     for failure_filename in test_failures_filenames:
@@ -173,23 +198,25 @@ def load_tests(loader, tests, pattern):
         with open(input_file_path, "r") as ino_file:
             code = ino_file.read()
 
-        code, *results = re.split(r'^>>>>*$', code, maxsplit=1, flags=re.MULTILINE)
+        code, *results = re.split(r"^>>>>*$", code, maxsplit=1, flags=re.MULTILINE)
 
         test_name = f"ExpectedFailureCase.{failure_filename}"
         if matches_pattern(test_name):
-            suite.addTest(ExpectedFailureCase('runTest', code, failure_filename))
+            suite.addTest(ExpectedFailureCase("runTest", code, failure_filename))
 
     # Scanner output tests
     for scanner_output_filename in scanner_output_filenames:
         output_filename_noext, _ext = os.path.splitext(scanner_output_filename)
         if output_filename_noext + ".ino" not in input_test_filenames:
-            raise Exception(f"No input file for test '{scanner_output_filename}' found.")
+            raise Exception(
+                f"No input file for test '{scanner_output_filename}' found."
+            )
 
         input_file_path = os.path.join(input_test_dir, output_filename_noext + ".ino")
         with open(input_file_path, "r") as ino_file:
             code = ino_file.read()
 
-        code, *results = re.split(r'^>>>>*$', code, maxsplit=1, flags=re.MULTILINE)
+        code, *results = re.split(r"^>>>>*$", code, maxsplit=1, flags=re.MULTILINE)
 
         output_file_path = os.path.join(output_test_dir, scanner_output_filename)
         with open(output_file_path, "r") as tok_file:
@@ -197,6 +224,8 @@ def load_tests(loader, tests, pattern):
 
         test_name = f"ScannerOutputCase.{output_filename_noext}"
         if matches_pattern(test_name):
-            suite.addTest(ScannerOutputCase('runTest', code, tokens, output_filename_noext))
+            suite.addTest(
+                ScannerOutputCase("runTest", code, tokens, output_filename_noext)
+            )
 
     return suite
