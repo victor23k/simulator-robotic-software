@@ -27,6 +27,7 @@ type Stmt = (
     | VariableStmt
     | IfStmt
     | BreakStmt
+    | ContinueStmt
     | SwitchStmt
     | CaseStmt
     | WhileStmt
@@ -150,6 +151,33 @@ class BreakStmt:
             diag = diagnostic_from_token(
                 "Break statement outside of a loop or switch",
                 self.brk
+            )
+            diagnostics.append(diag)
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}()\n"
+        return result
+
+
+@dataclass
+class ContinueStmt:
+    cont: Token
+
+    def execute(self, _env: Environment):
+        raise ContinueException()
+
+    def resolve(self, _scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], _fn_type: FunctionType, breakable: ControlFlowState):
+        if breakable is not ControlFlowState.LOOP:
+            diag = diagnostic_from_token(
+                "Continue statement outside of a loop.",
+                self.cont
             )
             diagnostics.append(diag)
 
@@ -472,18 +500,18 @@ class WhileStmt:
         return result
 
     def execute(self, environment: Environment):
-        condition = self.condition.evaluate(environment)
-
         try:
-            while (condition is not None) and (
-                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
-                or condition.value != 0
-            ):
-                # try:
+            while (
+                (condition := self.condition.evaluate(environment))
+                and 
+                (
+                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                    or condition.value != 0)
+                ):
+                try:
                     self.statement.execute(environment)
-                    condition = self.condition.evaluate(environment)
-                # except ContinueException:
-                #     continue
+                except ContinueException:
+                    continue
 
         except BreakException:
             pass
@@ -492,6 +520,8 @@ class WhileStmt:
                 list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
         self.condition.resolve(scope_chain, diagnostics)
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
+
+
 
 
 @dataclass
@@ -525,29 +555,35 @@ class ForStmt:
             self.init_expr.execute(environment)
         elif self.init_expr is not None:
             self.init_expr.evaluate(environment)
-        if self.condition is not None:
-            condition = self.condition.evaluate(environment)
-        else:
-            condition = None
 
         try:
-            while (condition is None) or (
-                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
-                or condition.value != 0
-            ):
-                # try:
-                    self.statement.execute(environment)
-                    if self.loop_expr is not None:
-                        self.loop_expr.evaluate(environment)
-                    if self.condition is not None:
-                        condition = self.condition.evaluate(environment)
-                    else:
-                        condition = None
-                # except ContinueException:
-                #     continue
+            if self.condition is None:
+                self._infinite_loop(environment)
+            else:
+                condition = self.condition.evaluate(environment)
+
+                while (condition := self.condition.evaluate(environment)) and (
+                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                    or condition.value != 0
+                ):
+                    try:
+                        self.statement.execute(environment)
+                        if self.loop_expr is not None:
+                            self.loop_expr.evaluate(environment)
+                    except ContinueException:
+                        if self.loop_expr is not None:
+                            self.loop_expr.evaluate(environment)
+                        continue
 
         except BreakException:
             pass
+
+    def _infinite_loop(self, environment: Environment):
+        while True:
+            try:
+                self.statement.execute(environment)
+            except ContinueException:
+                continue
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
                 list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
@@ -572,6 +608,10 @@ class ReturnException(Exception):
 
 
 class BreakException(Exception):
+    pass
+
+
+class ContinueException(Exception):
     pass
 
 
