@@ -7,3 +7,7 @@ int mul(int a, int b) {
 }
 
 int twenty = mul(4, 5);
+
+>>>>>
+
+INT twenty = 21

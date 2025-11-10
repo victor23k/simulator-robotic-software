@@ -6,3 +6,7 @@ int increment_to_five(int x) {
 }
 
 int five = increment_to_five(2);
+
+>>>>>>
+
+INT five = 5
