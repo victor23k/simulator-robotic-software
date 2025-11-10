@@ -127,6 +127,8 @@ class Scanner:
                 next_token = self._produce_empty_token(TokenType.COLON)
             case ";":
                 next_token = self._produce_empty_token(TokenType.SEMICOLON)
+            case "~":
+                next_token = self._produce_empty_token(TokenType.BITWISE_NOT)
             case "=":
                 if self._peek() == "=":
                     self._advance()

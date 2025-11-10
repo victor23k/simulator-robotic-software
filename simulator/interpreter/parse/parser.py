@@ -381,7 +381,12 @@ class Parser:
         return stmt
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
-        if self._match(TokenType.DECREMENT, TokenType.INCREMENT):
+        if self._match(
+            TokenType.DECREMENT, 
+            TokenType.INCREMENT, 
+            TokenType.LOGICAL_NOT,
+            TokenType.BITWISE_NOT
+        ):
             return self._unary_expr()
 
         return self._parse_binary_expr(min_prec)

@@ -230,11 +230,26 @@ class UnaryExpr:
     variable: VariableExpr
     ttype: ArduinoType
 
+    op_table = {
+        # Arithmetic
+        "++": lambda x: int(x) + 1,
+        "--": lambda x: int(x) - 1,
+        # Logical
+        "!": lambda x: not x,
+        # Bitwise
+        "~": lambda x: ~int(x),
+    }
+
+
     def __init__(self, op: Token, prefix: bool, variable: VariableExpr):
         self.op = op
         self.prefix = prefix
         self.variable = variable
         self.ttype = None
+
+    @override
+    def __repr__(self):
+        return self.to_string()
 
     def evaluate(self, env: Environment) -> Value | None:
         var = self.variable.evaluate(env)
@@ -243,10 +258,8 @@ class UnaryExpr:
             raise Exception
 
         new_var = Value(var.value_type, var.value)
-        if self.op.token is TokenType.DECREMENT:
-            new_var.value = int(var.value) - 1
-        else:
-            new_var.value = int(var.value) + 1
+        op_fn = self.op_table[self.op.lexeme]
+        new_var.value = op_fn(var.value)
 
         env.assign(self.variable.vname.lexeme, new_var)
 
@@ -257,10 +270,20 @@ class UnaryExpr:
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.variable.resolve(scope_chain, diagnostics)
-        if self.variable.ttype not in [ArduinoBuiltinType.INT,
-            ArduinoBuiltinType.LONG]:
+        if (self.op.token is TokenType.LOGICAL_NOT and self.variable.ttype is not
+            ArduinoBuiltinType.BOOL):
             diag = diagnostic_from_token(
-                "Type of variable must be 'int' or 'long' for decrement or increment.",
+                "Type of variable must be 'bool' for logical not.",
+                self.variable.vname
+            )
+            diagnostics.append(diag)
+            self.ttype = ArduinoBuiltinType.ERR
+        elif (self.op.token in [TokenType.INCREMENT, TokenType.DECREMENT,
+                                TokenType.BITWISE_NOT]
+                and self.variable.ttype not in [ArduinoBuiltinType.INT,
+                ArduinoBuiltinType.LONG]):
+            diag = diagnostic_from_token(
+                f"Type of variable must be 'int' or 'long' for {self.op.token}.",
                 self.variable.vname
             )
             diagnostics.append(diag)
