@@ -15,6 +15,7 @@ from simulator.interpreter.ast.stmt import (
     BlockStmt,
     BreakStmt,
     ExpressionStmt,
+    ForStmt,
     FunctionStmt,
     ReturnStmt,
     IfStmt,
@@ -23,6 +24,7 @@ from simulator.interpreter.ast.stmt import (
     CaseStmt,
     DefaultStmt,
     VariableStmt,
+    WhileStmt,
 )
 from simulator.interpreter.lex.token import Token, TokenType
 
@@ -126,24 +128,28 @@ class Parser:
     def _declaration(self) -> Stmt | None:
         try:
             if self._match(*var_ttype):
-                ttype, identifier = self._declaration_start()
-
-                if self._match(TokenType.EQUAL):
-                    initializer = self._expression()
-                    self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-                    return VariableStmt(ttype, identifier, initializer, ttype=None)
-
-                elif self._match(TokenType.LEFT_PAREN):
-                    return self._function_declaration(ttype, identifier)
-
-                else:
-                    self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-                    return VariableStmt(ttype, identifier, initializer=None, ttype=None)
+                return self._variable_declaration()
             else:
                 return self._statement()
         except ParseException:
             self._synchronize()
             return None
+
+    def _variable_declaration(self) -> VariableStmt | FunctionStmt:
+        ttype, identifier = self._declaration_start()
+
+        if self._match(TokenType.EQUAL):
+            initializer = self._expression()
+            self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+            return VariableStmt(ttype, identifier, initializer, ttype=None)
+
+        elif self._match(TokenType.LEFT_PAREN):
+            return self._function_declaration(ttype, identifier)
+
+        else:
+            self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+            return VariableStmt(ttype, identifier, initializer=None, ttype=None)
+
 
     def _statement(self) -> Stmt:
         match self._peek().token:
@@ -158,6 +164,10 @@ class Parser:
                 return self._switch_stmt()
             case TokenType.IF:
                 return self._if_stmt()
+            case TokenType.WHILE:
+                return self._while_stmt()
+            case TokenType.FOR:
+                return self._for_stmt()
             case _:
                 return self._expression_statement()
 
@@ -197,6 +207,8 @@ class Parser:
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after switch statement.")
         var = self._parse_atom()
+        if not (isinstance(var, LiteralExpr) or isinstance(var, VariableExpr)):
+            raise self._error(self.previous, "Var to evaluate in switch statement must be a literal or variable.")
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after switch var.")
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' after switch.")
@@ -219,6 +231,8 @@ class Parser:
 
     def _case_stmt(self) -> CaseStmt:
         label = self._parse_atom()
+        if not (isinstance(label, LiteralExpr) or isinstance(label, VariableExpr)):
+            raise self._error(self.previous, "Label to evaluate in case statement must be a literal or variable.")
         self._consume(TokenType.COLON, "Expect ':' after case label.")
 
         stmts: list[Stmt] = []
@@ -239,6 +253,50 @@ class Parser:
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
 
         return BlockStmt(stmts, ttype=None)
+
+    def _while_stmt(self) -> WhileStmt:
+        self._advance() # WHILE
+
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after while.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' to close while condition.")
+
+        statement = self._statement()
+        return WhileStmt(condition, statement)
+
+    def _for_stmt(self) -> ForStmt:
+        self._advance() # FOR
+
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after for.")
+
+        if self._check(TokenType.SEMICOLON):
+            self._advance()
+            init_expr = None
+        else:
+            if self._match(*var_ttype):
+                init_expr = self._variable_declaration()
+                if not isinstance(init_expr, VariableStmt):
+                    raise self._error(self.previous, "For loop init must be a expression or a variable declaration")
+            else:
+                init_expr = self._expression()
+                self._consume(TokenType.SEMICOLON, "Expect ';' after 'for' init expression")
+
+        if self._check(TokenType.SEMICOLON):
+            self._advance()
+            condition = None
+        else:
+            condition = self._expression()
+            self._consume(TokenType.SEMICOLON, "Expect ';' after 'for' condition")
+
+        if self._check(TokenType.RIGHT_PAREN):
+            self._advance()
+            loop_expr = None
+        else:
+            loop_expr = self._expression()
+            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after 'for' loop expression")
+
+        statement = self._statement()
+        return ForStmt(init_expr, condition, loop_expr, statement)
 
     def _declaration_start(self):
         var_type = self.previous

@@ -12,6 +12,8 @@ type StmtSpec = (
     | SwitchStmtSpec
     | BreakStmtSpec
     | DefaultStmtSpec
+    | WhileStmtSpec
+    | ForStmtSpec
 )
 type ExprSpec = (
     AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
@@ -61,10 +63,20 @@ class IfStmtSpec:
     then_branch: StmtSpec
     else_branch: StmtSpec
 
+
 @dataclass
 class WhileStmtSpec:
     condition: ExprSpec
-    body: BlockStmtSpec
+    statement: StmtSpec
+
+
+@dataclass
+class ForStmtSpec:
+    init_expr: ExprSpec | VariableStmtSpec | None
+    condition: ExprSpec | None
+    loop_expr: ExprSpec | None
+    statement: StmtSpec
+
 
 @dataclass
 class AssignExprSpec:

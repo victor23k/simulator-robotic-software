@@ -1,0 +1,92 @@
+[
+  FunctionStmtSpec(
+    return_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="mul"),
+    params=[
+      # int a
+      VariableStmtSpec(
+          var_type=TokenSpec(token=TokenType.INT),
+          name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="a"),
+      ),
+      # int b
+      VariableStmtSpec(
+          var_type=TokenSpec(token=TokenType.INT),
+          name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="b"),
+      )
+    ],
+    body=[
+        # int result = 0;
+        VariableStmtSpec(
+          var_type=TokenSpec(token=TokenType.INT),
+          name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='result'),
+          initializer=
+              LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=0)
+              )  
+        ),
+        ForStmtSpec(
+          init_expr=VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i'),
+            initializer=
+              LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+              )  
+          ),
+          condition=BinaryExprSpec(
+            lhs=VariableExprSpec(
+              vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+            ),
+            op=TokenSpec(token=TokenType.LESS_THAN_EQUAL),
+            rhs=VariableExprSpec(
+              vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b')
+            ),
+          ),
+          loop_expr=UnaryExprSpec(
+            variable=VariableExprSpec(
+              vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+            ),
+            prefix=False,
+            op=TokenSpec(token=TokenType.INCREMENT)
+          ),
+          statement=BlockStmtSpec(
+            stmts=[
+              ExpressionStmtSpec(
+                expr=AssignExprSpec(
+                  l_value=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='result')
+                  ),
+                  r_value=VariableExprSpec(
+                    vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a')
+                  ),
+                  op=TokenSpec(token=TokenType.PLUS_EQUAL)
+                )
+              ),
+            ]
+          )
+        ),
+        ReturnStmtSpec(
+          expr=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='result')
+          )
+        )
+      ]
+  ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='twenty'),
+    initializer=CallExprSpec(
+      callee=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='mul')
+      ),
+      arguments=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.INT_LITERAL, literal=4)
+        ),  
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+        )
+      ]
+    )
+  )
+]

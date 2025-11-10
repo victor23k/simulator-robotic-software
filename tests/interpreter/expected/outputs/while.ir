@@ -1,0 +1,59 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="increment_to_five"),
+      params=[
+        # int x
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="x"),
+        )
+      ],
+      body=[
+          # while;
+          WhileStmtSpec(
+            condition=BinaryExprSpec(
+              lhs=VariableExprSpec(
+                vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+              ),
+              op=TokenSpec(token=TokenType.LESS_THAN),
+              rhs=LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+              ),
+            ),
+            statement=BlockStmtSpec(
+              stmts=[
+                ExpressionStmtSpec(
+                  expr=UnaryExprSpec(
+                    variable=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+                    ),
+                    op=TokenSpec(token=TokenType.INCREMENT),
+                    prefix=False,
+                  )
+                ),
+              ]
+            )
+          ),
+          ReturnStmtSpec(
+            expr=VariableExprSpec(
+              vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+            )
+          )
+      ]
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='five'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='increment_to_five')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+          )
+        ]
+      )
+    )
+]

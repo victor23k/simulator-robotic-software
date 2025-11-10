@@ -19,8 +19,19 @@ from simulator.interpreter.sema.types import (
     types_compatibility,
 )
 
-type Stmt = (BlockStmt | ExpressionStmt | FunctionStmt | ReturnStmt 
-    | VariableStmt | IfStmt | BreakStmt | SwitchStmt | CaseStmt)
+type Stmt = (
+    BlockStmt
+    | ExpressionStmt
+    | FunctionStmt
+    | ReturnStmt
+    | VariableStmt
+    | IfStmt
+    | BreakStmt
+    | SwitchStmt
+    | CaseStmt
+    | WhileStmt
+    | ForStmt
+)
 
 
 @dataclass
@@ -445,6 +456,116 @@ class SwitchStmt:
         if self.default is not None:
             self.default.resolve(scope_chain, diagnostics, fn_type, True)
 
+
+@dataclass
+class WhileStmt:
+    condition: expr.Expr
+    statement: Stmt
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.condition.to_string(ntab + 2, "condition")
+        result += "\n" + self.statement.to_string(ntab + 2, "statement")
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        condition = self.condition.evaluate(environment)
+
+        try:
+            while (condition is not None) and (
+                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                or condition.value != 0
+            ):
+                # try:
+                    self.statement.execute(environment)
+                    condition = self.condition.evaluate(environment)
+                # except ContinueException:
+                #     continue
+
+        except BreakException:
+            pass
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
+        self.condition.resolve(scope_chain, diagnostics)
+        self.statement.resolve(scope_chain, diagnostics, fn_type, True)
+
+
+@dataclass
+class ForStmt:
+    init_expr: expr.Expr | VariableStmt | None
+    condition: expr.Expr | None
+    loop_expr: expr.Expr | None
+    statement: Stmt
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        if self.init_expr is not None:
+            result += "\n" + self.init_expr.to_string(ntab + 2, "init_expr")
+        if self.condition is not None:
+            result += "\n" + self.condition.to_string(ntab + 2, "condition")
+        if self.loop_expr is not None:
+            result += "\n" + self.loop_expr.to_string(ntab + 2, "loop_expr")
+        result += "\n" + self.statement.to_string(ntab + 2, "statement")
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        if isinstance(self.init_expr, VariableStmt):
+            self.init_expr.execute(environment)
+        elif self.init_expr is not None:
+            self.init_expr.evaluate(environment)
+        if self.condition is not None:
+            condition = self.condition.evaluate(environment)
+        else:
+            condition = None
+
+        try:
+            while (condition is None) or (
+                (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                or condition.value != 0
+            ):
+                # try:
+                    self.statement.execute(environment)
+                    if self.loop_expr is not None:
+                        self.loop_expr.evaluate(environment)
+                    if self.condition is not None:
+                        condition = self.condition.evaluate(environment)
+                    else:
+                        condition = None
+                # except ContinueException:
+                #     continue
+
+        except BreakException:
+            pass
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+        if isinstance(self.init_expr, VariableStmt):
+            self.init_expr.resolve(scope_chain, diagnostics, fn_type, breakable)
+        elif self.init_expr is not None:
+            self.init_expr.resolve(scope_chain, diagnostics)
+        if self.condition is not None:
+            self.condition.resolve(scope_chain, diagnostics)
+        if self.loop_expr is not None:
+            self.loop_expr.resolve(scope_chain, diagnostics)
+
+        self.statement.resolve(scope_chain, diagnostics, fn_type, True)
 
 
 class ReturnException(Exception):
