@@ -26,6 +26,7 @@ from simulator.interpreter.ast.stmt import (
     DefaultStmt,
     VariableStmt,
     WhileStmt,
+    DoWhileStmt,
 )
 from simulator.interpreter.lex.token import Token, TokenType
 
@@ -171,6 +172,8 @@ class Parser:
                 return self._while_stmt()
             case TokenType.FOR:
                 return self._for_stmt()
+            case TokenType.DO:
+                return self._do_while_stmt()
             case _:
                 return self._expression_statement()
 
@@ -267,6 +270,18 @@ class Parser:
 
         statement = self._statement()
         return WhileStmt(condition, statement)
+
+    def _do_while_stmt(self) -> DoWhileStmt:
+        self._advance() # DO
+
+        statement = self._statement()
+        self._consume(TokenType.WHILE, "Expect 'while' after do-while statement.")
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+        condition = self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' to close do-while condition.")
+        self._consume(TokenType.SEMICOLON, "Expect ';' after do-while condition.")
+
+        return DoWhileStmt(statement, condition)
 
     def _for_stmt(self) -> ForStmt:
         self._advance() # FOR

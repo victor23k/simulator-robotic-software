@@ -31,6 +31,7 @@ type Stmt = (
     | SwitchStmt
     | CaseStmt
     | WhileStmt
+    | DoWhileStmt
     | ForStmt
 )
 
@@ -522,6 +523,47 @@ class WhileStmt:
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
 
+@dataclass
+class DoWhileStmt:
+    statement: Stmt
+    condition: expr.Expr
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += "\n" + self.statement.to_string(ntab + 2, "statement")
+        result += "\n" + self.condition.to_string(ntab + 2, "condition")
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        try:
+            self.statement.execute(environment)
+            while (
+                (condition := self.condition.evaluate(environment))
+                and 
+                (
+                    (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
+                    or condition.value != 0)
+                ):
+                try:
+                    self.statement.execute(environment)
+                except ContinueException:
+                    continue
+
+        except BreakException:
+            pass
+
+    def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
+                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
+        self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
+        self.condition.resolve(scope_chain, diagnostics)
 
 
 @dataclass

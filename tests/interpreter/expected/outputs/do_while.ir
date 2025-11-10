@@ -1,0 +1,83 @@
+[
+    FunctionStmtSpec(
+      return_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="factorial"),
+      params=[
+        # int n
+        VariableStmtSpec(
+            var_type=TokenSpec(token=TokenType.INT),
+            name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="n"),
+        )
+      ],
+      body=[
+          VariableStmtSpec(
+              var_type=TokenSpec(token=TokenType.INT),
+              name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="i"),
+              initializer=LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+              )
+          ),
+          VariableStmtSpec(
+              var_type=TokenSpec(token=TokenType.INT),
+              name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="fact"),
+              initializer=LiteralExprSpec(
+                value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+              )
+          ),
+          DoWhileStmtSpec(
+            statement=BlockStmtSpec(
+              stmts=[
+                ExpressionStmtSpec(
+                  expr=AssignExprSpec(
+                    l_value=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='fact')
+                    ),
+                    op=TokenSpec(token=TokenType.STAR_EQUAL),
+                    r_value=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+                    ),
+                  )
+                ),
+                ExpressionStmtSpec(
+                  expr=UnaryExprSpec(
+                    variable=VariableExprSpec(
+                      vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+                    ),
+                    op=TokenSpec(token=TokenType.INCREMENT),
+                    prefix=False,
+                  )
+                ),
+              ]
+            ),
+            condition=BinaryExprSpec(
+              lhs=VariableExprSpec(
+                vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+              ),
+              op=TokenSpec(token=TokenType.LESS_THAN_EQUAL),
+              rhs=VariableExprSpec(
+                vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='n')
+              ),
+            )
+          ),
+          ReturnStmtSpec(
+            expr=VariableExprSpec(
+              vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='fact')
+            )
+          )
+      ]
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='five_factorial'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='factorial')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+          )
+        ]
+      )
+    )
+]

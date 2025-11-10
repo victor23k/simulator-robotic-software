@@ -71,6 +71,12 @@ class WhileStmtSpec:
 
 
 @dataclass
+class DoWhileStmtSpec:
+    statement: StmtSpec
+    condition: ExprSpec
+
+
+@dataclass
 class ForStmtSpec:
     init_expr: ExprSpec | VariableStmtSpec | None
     condition: ExprSpec | None
