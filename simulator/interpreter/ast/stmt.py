@@ -6,7 +6,7 @@ from dataclasses import dataclass
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
 
-from simulator.interpreter.sema.resolver import FunctionState, FunctionType
+from simulator.interpreter.sema.resolver import ControlFlowState, FunctionState, FunctionType
 import simulator.interpreter.sema.scope as scope
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
@@ -47,7 +47,8 @@ class BlockStmt:
         del block_env
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable:
+                ControlFlowState):
         scope_chain.begin_scope()
 
         for stmt in self.stmts:
@@ -80,7 +81,7 @@ class ExpressionStmt:
         self.expr.evaluate(env)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, _breakable: bool):
+                list[Diagnostic], _fn_type: FunctionType, _breakable: ControlFlowState):
         self.expr.resolve(scope_chain, diagnostics)
 
     @override
@@ -107,7 +108,7 @@ class ReturnStmt:
         raise ReturnException(value)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
         self.expr.resolve(scope_chain, diagnostics)
         self.ttype = self.expr.ttype
 
@@ -144,8 +145,8 @@ class BreakStmt:
         raise BreakException()
 
     def resolve(self, _scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, breakable: bool):
-        if not breakable:
+                list[Diagnostic], _fn_type: FunctionType, breakable: ControlFlowState):
+        if breakable not in [ControlFlowState.LOOP, ControlFlowState.SWITCH]:
             diag = diagnostic_from_token(
                 "Break statement outside of a loop or switch",
                 self.brk
@@ -210,7 +211,7 @@ class VariableStmt:
             environment.define(self.name.lexeme, None)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], _fn_type: FunctionType, _breakable: bool):
+                list[Diagnostic], _fn_type: FunctionType, _breakable: ControlFlowState):
         if self.initializer:
             self.initializer.resolve(scope_chain, diagnostics)
 
@@ -274,7 +275,7 @@ class IfStmt:
             self.else_branch.execute(environment)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         self.condition.resolve(scope_chain, diagnostics)
         self.then_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
         if self.else_branch is not None:
@@ -294,7 +295,7 @@ class FunctionStmt:
         env.define(self.name.lexeme, fn)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         scope_chain.begin_scope()
 
         self.ttype = token_to_arduino_type(self.return_type)
@@ -364,7 +365,7 @@ class CaseStmt:
             stmt.execute(environment)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         self.label.resolve(scope_chain, diagnostics)
         for stmt in self.stmts:
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
@@ -394,7 +395,7 @@ class DefaultStmt:
             stmt.execute(environment)
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         for stmt in self.stmts:
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
@@ -440,12 +441,15 @@ class SwitchStmt:
             pass
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         self.var.resolve(scope_chain, diagnostics)
+        if breakable is ControlFlowState.NONE:
+            breakable = ControlFlowState.SWITCH
+
         for case in self.cases:
-            case.resolve(scope_chain, diagnostics, fn_type, True)
+            case.resolve(scope_chain, diagnostics, fn_type, breakable)
         if self.default is not None:
-            self.default.resolve(scope_chain, diagnostics, fn_type, True)
+            self.default.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
 @dataclass
@@ -485,9 +489,9 @@ class WhileStmt:
             pass
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, _breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, _breakable: ControlFlowState):
         self.condition.resolve(scope_chain, diagnostics)
-        self.statement.resolve(scope_chain, diagnostics, fn_type, True)
+        self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
 
 @dataclass
@@ -546,7 +550,7 @@ class ForStmt:
             pass
 
     def resolve(self, scope_chain: scope.ScopeChain, diagnostics:
-                list[Diagnostic], fn_type: FunctionType, breakable: bool):
+                list[Diagnostic], fn_type: FunctionType, breakable: ControlFlowState):
         if isinstance(self.init_expr, VariableStmt):
             self.init_expr.resolve(scope_chain, diagnostics, fn_type, breakable)
         elif self.init_expr is not None:
@@ -556,7 +560,7 @@ class ForStmt:
         if self.loop_expr is not None:
             self.loop_expr.resolve(scope_chain, diagnostics)
 
-        self.statement.resolve(scope_chain, diagnostics, fn_type, True)
+        self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
 
 class ReturnException(Exception):

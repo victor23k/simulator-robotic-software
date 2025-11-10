@@ -11,6 +11,16 @@ from simulator.interpreter.sema.scope import ScopeChain
 from simulator.interpreter.sema.types import ArduinoType
 
 
+class ControlFlowState(Enum):
+    """
+    Determines in which control strucutre the program is in. This is useful to
+    check if `break`, `continue` and `goto` are valid statements. 
+    """
+
+    NONE = 1
+    SWITCH = 2
+    LOOP = 3
+
 class FunctionState(Enum):
     NONE = 1
     FUNCTION = 2
@@ -43,4 +53,4 @@ class Resolver:
     def resolve(self, statements: list[Stmt]):
         for statement in statements:
             statement.resolve(self.scope_chain, self.diagnostics,
-                              self.function_type, False)
+                              self.function_type, ControlFlowState.NONE)

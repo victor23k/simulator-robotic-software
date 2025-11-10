@@ -14,6 +14,7 @@ from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.ast.stmt import (
     BlockStmt,
     BreakStmt,
+    ContinueStmt,
     ExpressionStmt,
     ForStmt,
     FunctionStmt,
@@ -160,6 +161,8 @@ class Parser:
                 return self._return_stmt()
             case TokenType.BREAK:
                 return self._break_stmt()
+            case TokenType.CONTINUE:
+                return self._continue_stmt()
             case TokenType.SWITCH:
                 return self._switch_stmt()
             case TokenType.IF:
@@ -179,8 +182,14 @@ class Parser:
 
     def _break_stmt(self):
         brk = self._advance()  # BREAK
-        self._consume(TokenType.SEMICOLON, "Expect ';' after break.")
+        self._consume(TokenType.SEMICOLON, "Expect ';' after 'break'.")
         return BreakStmt(brk)
+
+    def _continue_stmt(self):
+        cont = self._advance()  # CONTINUE
+        self._consume(TokenType.SEMICOLON, "Expect ';' after 'continue'.")
+        return ContinueStmt(cont)
+
 
     def _if_stmt(self):
         self._advance()  # IF
