@@ -11,3 +11,9 @@ int max_of_three(int a, int b, int c) {
 int first  = max_of_three(8, 7, 3);
 int second = max_of_three(5, 7, 3);
 int third  = max_of_three(5, 7, 9);
+
+>>>>
+
+INT first = 8
+INT second = 7
+INT third = 9

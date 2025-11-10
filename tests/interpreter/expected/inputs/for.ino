@@ -10,4 +10,4 @@ int twenty = mul(4, 5);
 
 >>>>>
 
-INT twenty = 21
+INT twenty = 20

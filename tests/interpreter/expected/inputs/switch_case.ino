@@ -12,4 +12,12 @@ int classify(int x) {
   }
 }
 
-int result = classify(1);
+int ten = classify(1);
+int twenty = classify(2);
+int def_ault = classify(150);
+
+>>>>
+
+INT ten = 10
+INT twenty = 20
+INT def_ault = 0

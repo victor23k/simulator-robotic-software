@@ -63,5 +63,22 @@
           ),
         ]
       )
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='m2'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=9)
+          ),  
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+        ]
+      )
     )
 ]

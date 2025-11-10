@@ -58,7 +58,7 @@
     ),
     VariableStmtSpec(
       var_type=TokenSpec(token=TokenType.INT),
-      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='result'),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='ten'),
       initializer=CallExprSpec(
         callee=VariableExprSpec(
             vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='classify')
@@ -69,5 +69,33 @@
           ),
         ]
       )
-    )
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='twenty'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='classify')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+          ),
+        ]
+      )
+    ),
+    VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='def_ault'),
+      initializer=CallExprSpec(
+        callee=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='classify')
+        ),
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=150)
+          ),
+        ]
+      )
+    ),
 ]
