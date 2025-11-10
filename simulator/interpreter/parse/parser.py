@@ -189,16 +189,11 @@ class Parser:
         condition = self._expression()
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
 
-        self._consume(TokenType.LEFT_BRACE, "Expect '{' after if condition.")
-        then_branch = self._block()
+        then_branch = self._statement()
 
         else_branch = None
         if self._match(TokenType.ELSE):
-            if self._check(TokenType.IF):
-                else_branch = self._if_stmt()
-            else:
-                self._consume(TokenType.LEFT_BRACE, "Expect '{' after 'else'.")
-                else_branch = self._block()
+            else_branch = self._statement()
 
         return IfStmt(condition, then_branch, else_branch)
 

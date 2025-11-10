@@ -252,8 +252,8 @@ class VariableStmt:
 @dataclass
 class IfStmt:
     condition: expr.Expr
-    then_branch: BlockStmt
-    else_branch: BlockStmt | None
+    then_branch: Stmt
+    else_branch: Stmt | None
 
     @override
     def __repr__(self):
