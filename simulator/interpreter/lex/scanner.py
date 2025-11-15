@@ -14,6 +14,9 @@ keywords = {
     "switch": TokenType.SWITCH,
     "while": TokenType.WHILE,
     "default": TokenType.DEFAULT,
+    "const": TokenType.CONST,
+    "static": TokenType.STATIC,
+    "volatile": TokenType.VOLATILE,
 }
 
 types = {

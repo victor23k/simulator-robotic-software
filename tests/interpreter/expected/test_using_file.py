@@ -26,6 +26,7 @@ def match_structure(actual: object, spec: object):
     ):
         for key, val in spec.__dict__.items():
             if not hasattr(actual, key):
+                print(actual, key)
                 return False
             if not match_structure(getattr(actual, key), val):
                 print(getattr(actual, key))

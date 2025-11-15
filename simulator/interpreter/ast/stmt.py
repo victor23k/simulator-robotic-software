@@ -14,12 +14,13 @@ from simulator.interpreter.sema.resolver import (
 import simulator.interpreter.sema.scope as scope
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
-from simulator.interpreter.lex.token import Token
+from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
     token_to_arduino_type,
+    type_from_specifier_list,
     types_compatibility,
 )
 
@@ -28,6 +29,7 @@ type Stmt = (
     | ExpressionStmt
     | FunctionStmt
     | ReturnStmt
+    | DeclarationListStmt
     | VariableStmt
     | IfStmt
     | BreakStmt
@@ -220,13 +222,9 @@ class ContinueStmt:
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}()\n"
         return result
 
-
 @dataclass
-class VariableStmt:
-    var_type: Token
-    name: Token
-    initializer: expr.Expr | None
-    ttype: ArduinoType
+class DeclarationListStmt:
+    declarations: list[VariableStmt]
 
     @override
     def __repr__(self):
@@ -237,7 +235,56 @@ class VariableStmt:
             name += "="
 
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
-        result += "\n" + self.var_type.to_string(ntab + 2, "var_type")
+        result += f"{' ' * (ntab + 2)}declarations=[\n"
+        result += ",\n".join([decl.to_string(ntab + 4) for decl in self.declarations])
+        result += f"{' ' * (ntab + 2)}],\n"
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def execute(self, environment: Environment):
+        for decl in self.declarations:
+            decl.execute(environment)
+
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        fn_type: FunctionType,
+        breakable: ControlFlowState,
+    ):
+        for decl in self.declarations:
+            decl.resolve(scope_chain, diagnostics, fn_type, breakable)
+
+
+class VariableStmt:
+    const: bool
+    var_type: Token
+    name: Token
+    initializer: expr.Expr | None
+    ttype: ArduinoType
+
+    def __init__(
+        self,
+        specifiers: list[Token],
+        ident: Token,
+        initializer: expr.Expr | None = None,
+    ):
+        self.name = ident
+        self.initializer = initializer
+        self.var_type = type_from_specifier_list(specifiers)
+        self.const = TokenType.CONST in [spec.token for spec in specifiers]
+        self.ttype = None
+
+    @override
+    def __repr__(self):
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += ",\n" + f"{' ' * (ntab + 2)}var_type={self.var_type}"
         result += ",\n" + self.name.to_string(ntab + 2, "name")
 
         if self.initializer is not None:
@@ -352,13 +399,20 @@ class IfStmt:
             self.else_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-@dataclass
 class FunctionStmt:
     name: Token
     params: list[VariableStmt]
     body: list[Stmt]
     return_type: Token
     ttype: ArduinoType
+
+    def __init__(self, name: Token, params: list[VariableStmt], body:
+                 list[Stmt], specifiers: list[Token]):
+        self.name = name
+        self.params = params
+        self.body = body
+        self.return_type = type_from_specifier_list(specifiers)
+        self.ttype = None
 
     def execute(self, env: Environment):
         fn = Function(self.params, self.body, env)

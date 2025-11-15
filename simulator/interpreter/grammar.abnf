@@ -1,15 +1,49 @@
 keyword = "break" / "case" / "continue" / "do" / "else" / "for" 
 keyword /= "goto" / "if" / "return" / "switch" / "while"
 
-type = "bool" / "boolean" / "byte" / "char" / "double" / "float" / "int"
-type /= "long" / "short" / "size_t" / "void" / "word" 
-
+typeSpecifier = "bool" / "boolean" / "byte" / "char" / "double" / "float" / "int"
+typeSpecifier /= "long" / "short" / "size_t" / "void" / "word" / "unsigned" 
 unsigned_type = "unsigned int" / "unsigned char" / "unsigned long"
 
-declaration  = classDecl
-declaration  = varDecl
-declaration /= fnDecl
-declaration /= statement
+typeQualifier = "const" / "volatile"
+storageClassSpecifier = "static"
+typeSpecifier = type / unsigned_type
+
+; translation unit
+
+sketch = *sketchItem EOF
+
+sketchItem = declaration ";"
+sketchItem /= statement
+
+; declarations
+
+declaration = declSpecifiers declaratorList
+
+declSpecifiers  = storageClassSpecifier [declSpecifiers]
+declSpecifiers /= typeSpecifier [declSpecifiers]
+declSpecifiers /= typeQualifier [declSpecifiers]
+
+declaratorList = declarator *("," declarator)
+
+declarator = [pointer] directDeclarator
+
+directDeclarator  = ident (variableDeclarator / functionDeclarator)
+
+variableDeclarator = *( "[" [int] "]" ) ["=" initializer]
+functionDeclarator = "(" paramList ")" "{" 1*statement "}"
+
+pointer  = "*" [typeQualifierList]
+pointer /= "*" [typeQualifierList] pointer
+
+typeQualifierList = typeQualifier *(typeQualifier)
+
+paramList = param *("," param)
+param = declSpecifiers declarator
+
+initializer = expr
+
+; statements
 
 statement  = exprStmt
 statement /= returnStmt
@@ -38,6 +72,7 @@ forStmt = "for" "(" (varDecl / exprStmt / ";") [expr] ";" [expr] ")" statement
 array_def = "[" +DIGIT "]"
 
 params = *declStart *("," declStart)
+; expressions
 
 expr = binaryExpr
 expr /= unaryExpr
@@ -46,10 +81,16 @@ expr /= variableExpr
 expr /= assignExpr
 expr /= callExpr
 
-callExpr = variableExpr "(" arguments? ")"
+callExpr = variableExpr "(" argList? ")"
 
-arguments = expr *( "," expr )
+argList = expr *( "," expr )
 
 literalExpr = int / str / ident / "true" / "false" / "HIGH" / "LOW"
 assignExpr = ident "=" expr
 variableExpr = ident
+
+int = 1*DIGIT
+str = DQUOTE *(%x20-21 / %x23-7E) DQUOTE
+      ; quoted string of SP and VCHAR
+      ;  without DQUOTE
+ident = ALPHA *(ALPHA / DIGIT / "-" / "_")

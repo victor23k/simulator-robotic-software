@@ -15,6 +15,7 @@ from simulator.interpreter.ast.stmt import (
     BlockStmt,
     BreakStmt,
     ContinueStmt,
+    DeclarationListStmt,
     ExpressionStmt,
     ForStmt,
     FunctionStmt,
@@ -120,39 +121,84 @@ class Parser:
         statements.
         """
 
-        statements: list[Stmt] = []
+        sketch_items: list[Stmt] = []
 
         while not self._is_at_end():
-            stmt = self._declaration()
-            if stmt is not None:
-                statements.append(stmt)
+            item = self._sketch_item()
+            if item is not None:
+                sketch_items.append(item)
 
-        return statements
+        return sketch_items
 
-    def _declaration(self) -> Stmt | None:
+    def _sketch_item(self) -> Stmt | None:
         try:
-            if self._match(*var_ttype):
-                return self._variable_declaration()
+            if self._match(
+                *var_ttype, TokenType.CONST, TokenType.VOLATILE, TokenType.STATIC
+            ):
+                return self._declaration(self.previous)
             else:
                 return self._statement()
         except ParseException:
             self._synchronize()
             return None
 
-    def _variable_declaration(self) -> VariableStmt | FunctionStmt:
-        ttype, identifier = self._declaration_start()
+    def _declaration(self, first_spec=None) -> Stmt | None:
+        specifiers = []
+        if first_spec is not None:
+            specifiers.append(first_spec)
 
+        specifiers.extend(self._decl_specifiers())
+
+        return self._declarator_list(specifiers)
+
+    def _decl_specifiers(self) -> list[Token]:
+        specifiers: list[Token] = []
+        while self._match(*var_ttype, TokenType.CONST, TokenType.VOLATILE,
+                          TokenType.STATIC):
+            if self.previous.token not in [TokenType.VOLATILE, TokenType.STATIC]:
+                specifiers.append(self.previous)
+
+        return specifiers
+
+    def _declarator_list(self, specifiers) -> Stmt:
+        declarator_list = [self._declarator(specifiers)]
+
+        while self._match(TokenType.COMMA):
+            declarator_list.append(self._declarator(specifiers))
+
+
+        if len(declarator_list) == 1:
+            if isinstance(declarator_list[0], VariableStmt):
+                self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
+            return declarator_list[0]
+
+        self._consume(TokenType.SEMICOLON, "Expect ';' after declaration list.")
+        return DeclarationListStmt(declarator_list)
+
+    def _declarator(self, specifiers) -> VariableStmt | FunctionStmt:
+        # if self._match(TokenType.STAR):
+        #     pointer = self._pointer()
+            
+        ident = self._consume(TokenType.IDENTIFIER, "Expect identifier")
+
+        if self._match(TokenType.LEFT_PAREN):
+            return self._function_declaration(specifiers, ident)
+        else:
+            return self._array_declaration(specifiers, ident)
+
+    def _array_declaration(self, specifiers, ident) -> VariableStmt:
+        initializer = None
+        array: list[Token | None] = []
+        while self._match(TokenType.LEFT_BRACE):
+            if self._match(TokenType.RIGHT_BRACE):
+                array.append(None)
+            else:
+                size = self._consume(TokenType.INT_LITERAL, "Expect integer literal in array def.")
+                array.append(size)
         if self._match(TokenType.EQUAL):
             initializer = self._expression()
-            self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-            return VariableStmt(ttype, identifier, initializer, ttype=None)
 
-        elif self._match(TokenType.LEFT_PAREN):
-            return self._function_declaration(ttype, identifier)
-
-        else:
-            self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
-            return VariableStmt(ttype, identifier, initializer=None, ttype=None)
+        return VariableStmt(specifiers, ident, initializer)
 
     def _statement(self) -> Stmt:
         match self._peek().token:
@@ -262,7 +308,7 @@ class Parser:
         stmts: list[Stmt] = []
 
         while (not self._check(TokenType.RIGHT_BRACE)) or self._is_at_end():
-            stmt = self._declaration()
+            stmt = self._sketch_item()
             if stmt is not None:
                 stmts.append(stmt)
 
@@ -301,13 +347,12 @@ class Parser:
             self._advance()
             init_expr = None
         else:
-            if self._match(*var_ttype):
-                init_expr = self._variable_declaration()
-                if not isinstance(init_expr, VariableStmt):
-                    raise self._error(
-                        self.previous,
-                        "For loop init must be a expression or a variable declaration",
-                    )
+            if self._match(*var_ttype, TokenType.CONST, TokenType.VOLATILE,
+                          TokenType.STATIC):
+                init_expr = self._simple_declaration(self.previous)
+                self._consume(
+                    TokenType.SEMICOLON, "Expect ';' after 'for' init declaration"
+                )
             else:
                 init_expr = self._expression()
                 self._consume(
@@ -333,62 +378,53 @@ class Parser:
         statement = self._statement()
         return ForStmt(init_expr, condition, loop_expr, statement)
 
-    def _declaration_start(self):
-        var_type = self.previous
-
-        # if left square bracket, this is an array
-        if self._match(TokenType.LEFT_BRACKET):
-            _number = self._consume(
-                TokenType.NUMBER, "Expect number constant in array declaration."
-            )
-            self._consume(
-                TokenType.RIGHT_BRACKET, "Expect closing ']' in array declaration."
-            )
-
-        identifier = self._consume(
-            TokenType.IDENTIFIER, "Expect identifier in variable declaration."
-        )
-
-        return var_type, identifier
-
-    def _function_declaration(self, fn_type: Token, identifier: Token) -> FunctionStmt:
-        self._advance()  # LEFT_PAREN
+    def _function_declaration(self, fn_specifiers: list[Token], identifier: Token) -> FunctionStmt:
         params = self._parameters()
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
         body: list[Stmt] = []
 
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
-            stmt = self._declaration()
+            stmt = self._sketch_item()
             if stmt is not None:
                 body.append(stmt)
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close function body.")
 
-        return FunctionStmt(identifier, params, body, fn_type, ttype=None)
+        return FunctionStmt(identifier, params, body, fn_specifiers)
 
     def _parameters(self) -> list[VariableStmt]:
         params: list[VariableStmt] = []
 
         if not self._check(TokenType.RIGHT_PAREN):
-            var_type, identifier = self._declaration_start()
-            param = VariableStmt(var_type, identifier, None, None)
+            param = self._simple_declaration()
             params.append(param)
 
         while not self._check(TokenType.RIGHT_PAREN) and self._match(TokenType.COMMA):
             if len(params) > 255:
                 self._error(self._peek(), "Can't have more than 255 parameters.")
 
-            if self._match(*var_ttype):
-                var_type, identifier = self._declaration_start()
-                param = VariableStmt(var_type, identifier, None, None)
-                params.append(param)
-            else:
-                self._error(self._peek(), "Function parameter must have valid type")
+            param = self._simple_declaration()
+            params.append(param)
 
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
 
         return params
+
+    def _simple_declaration(self, first_spec=None) -> VariableStmt:
+        specifiers = []
+        if first_spec is not None:
+            specifiers.append(first_spec)
+
+        specifiers.extend(self._decl_specifiers())
+
+        decl = self._declarator(specifiers)
+        if isinstance(decl, FunctionStmt):
+            raise self._error(
+                decl.name, "Cannot use a function declaration in a simple declaration."
+            )
+
+        return decl
 
     def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()

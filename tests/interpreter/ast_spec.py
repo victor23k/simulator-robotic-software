@@ -36,12 +36,17 @@ class BlockStmtSpec:
 class ExpressionStmtSpec:
     expr: ExprSpec
 
-
 @dataclass
 class VariableStmtSpec:
     var_type: TokenSpec
     name: TokenSpec
+    const: bool = False
     initializer: ExprSpec | None = None
+
+
+@dataclass
+class DeclarationListStmtSpec:
+    declarations: list[VariableStmtSpec]
 
 
 @dataclass

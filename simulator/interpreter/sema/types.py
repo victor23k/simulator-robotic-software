@@ -72,3 +72,8 @@ def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
         return type_a
 
     return ArduinoBuiltinType.ERR
+
+
+def type_from_specifier_list(specifiers: list[Token]):
+    return next(filter(lambda spec: spec.is_var_type(), specifiers))
+
