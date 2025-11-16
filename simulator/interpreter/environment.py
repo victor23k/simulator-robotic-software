@@ -43,6 +43,7 @@ class Environment:
     def __init__(self, enclosing: Self | None):
         self.values = {}
         self.enclosing = enclosing
+        self.non_modifiable = set()
 
     @override
     def __repr__(self) -> str:

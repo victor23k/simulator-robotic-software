@@ -45,9 +45,11 @@ class Scope:
     """
 
     variables: dict[str, Var]
+    non_modifiable: set[str]
 
     def __init__(self):
         self.variables = {}
+        self.non_modifiable = set()
 
     @override
     def __repr__(self) -> str:
@@ -94,8 +96,15 @@ class ScopeChain:
 
     def define(self, name_token: Token):
         for depth in range(0, len(self.scopes)):
-            if self._at_distance(depth).variables.get(name_token.lexeme) is not None:
-                self._at_distance(depth).variables[
+            scope = self._at_distance(depth)
+            if name_token.lexeme in scope.non_modifiable:
+                diag = diagnostic_from_token("Variable cannot be modified.", name_token)
+                self.diagnostics.append(diag)
+                return
+
+            if scope.variables.get(name_token.lexeme) is not None:
+
+                scope.variables[
                     name_token.lexeme
                 ].state = VarState.DEFINED
                 return
@@ -129,3 +138,12 @@ class ScopeChain:
             return var.var_type
 
         return ArduinoBuiltinType.ERR
+
+    def non_modifiable(self, name_token: Token):
+        """
+        Set the variable as non-modifiable in the current scope.
+
+        This will make `define` fail with an error diagnostic.
+        """
+
+        self._at_distance(0).non_modifiable.add(name_token.lexeme)

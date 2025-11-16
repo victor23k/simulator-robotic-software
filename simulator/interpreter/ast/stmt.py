@@ -330,6 +330,9 @@ class VariableStmt:
         if self.initializer:
             scope_chain.define(self.name)
 
+        if self.const:
+            scope_chain.non_modifiable(self.name)
+
     def _compute_type(
         self, _scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]
     ) -> ArduinoType:
