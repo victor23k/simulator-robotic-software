@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from simulator.interpreter.lex.token import TokenType
 
 type StmtSpec = (
-    BlockStmtSpec
+    ArrayDeclStmtSpec
+    | BlockStmtSpec
     | ExpressionStmtSpec
     | VariableStmtSpec
     | FunctionStmtSpec
@@ -25,6 +26,14 @@ class TokenSpec:
     token: TokenType
     lexeme: str | None = None
     literal: object | None = None
+
+
+@dataclass
+class ArrayDeclStmtSpec:
+    array_type: TokenSpec
+    name: TokenSpec
+    dimensions: list[ExprSpec]
+    initializer: ExprSpec | None = None
 
 
 @dataclass
@@ -123,7 +132,7 @@ class BinaryExprSpec:
 class UnaryExprSpec:
     prefix: bool
     op: TokenSpec
-    variable: VariableExprSpec
+    operand: ExprSpec
 
 
 @dataclass
@@ -141,6 +150,12 @@ class CaseStmtSpec:
 @dataclass
 class DefaultStmtSpec:
     stmts: list[StmtSpec]
+
+
+@dataclass
+class ArrayRefExprSpec:
+    primary: ExprSpec
+    index: ExprSpec
 
 
 class BreakStmtSpec:

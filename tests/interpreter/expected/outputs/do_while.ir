@@ -40,7 +40,7 @@
                 ),
                 ExpressionStmtSpec(
                   expr=UnaryExprSpec(
-                    variable=VariableExprSpec(
+                    operand=VariableExprSpec(
                       vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
                     ),
                     op=TokenSpec(token=TokenType.INCREMENT),

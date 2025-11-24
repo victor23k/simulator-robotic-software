@@ -79,7 +79,7 @@ class ExpectedOutputCase(unittest.TestCase):
             f"No error diagnostics for {self.filename} expected but found: {printable_diagnostics(diags, self.code)}",
         )
         self.assertTrue(
-            match_structure(stmts, spec_stmts), f"Match error for {self.filename}"
+            match_structure(stmts, spec_stmts), f"Match error for file '{self.filename}'"
         )
 
 
@@ -124,7 +124,7 @@ class ScannerOutputCase(unittest.TestCase):
             f"No error diagnostics for {self.filename} expected but found: {scanner.diagnostics}",
         )
         self.assertTrue(
-            match_structure(tokens, spec_tokens), f"Match error for {self.filename}"
+            match_structure(tokens, spec_tokens), f"Match error for file '{self.filename}'"
         )
 
 

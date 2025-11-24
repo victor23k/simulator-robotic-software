@@ -1,0 +1,73 @@
+[
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='l'),
+    initializer=LiteralExprSpec(
+      value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+    )
+  ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+    dimensions=[
+      VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='l')
+      )
+    ],
+    initializer=None
+  ),
+  ForStmtSpec(
+    init_expr=VariableStmtSpec(
+      var_type=TokenSpec(token=TokenType.INT),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i'),
+      initializer=
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.INT_LITERAL, literal=0)
+        )  
+    ),
+    condition=BinaryExprSpec(
+      lhs=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+      ),
+      op=TokenSpec(token=TokenType.LESS_THAN),
+      rhs=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='l')
+      ),
+    ),
+    loop_expr=UnaryExprSpec(
+      operand=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+      ),
+      prefix=False,
+      op=TokenSpec(token=TokenType.INCREMENT)
+    ),
+    statement=ExpressionStmtSpec(
+      expr=AssignExprSpec(
+        l_value=ArrayRefExprSpec(
+          primary=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+          ),
+          index=VariableExprSpec(
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+          ),
+        ),
+        r_value=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
+        ),
+        op=TokenSpec(token=TokenType.EQUAL)
+      )
+    ),
+  ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='two'),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+      ),
+    ),
+  ),
+]

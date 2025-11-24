@@ -25,7 +25,7 @@
               stmts=[
                 ExpressionStmtSpec(
                   expr=UnaryExprSpec(
-                    variable=VariableExprSpec(
+                    operand=VariableExprSpec(
                       vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
                     ),
                     op=TokenSpec(token=TokenType.INCREMENT),

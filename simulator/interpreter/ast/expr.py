@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
 from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
@@ -16,6 +15,7 @@ from simulator.interpreter.diagnostic import (
 )
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
+    ArduinoArray,
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
@@ -23,12 +23,68 @@ from simulator.interpreter.sema.types import (
     types_compatibility,
 )
 
-type Expr = AssignExpr | BinaryExpr | CallExpr | VariableExpr | LiteralExpr | UnaryExpr
+type Expr = (
+    ArrayInitExpr
+    | AssignExpr
+    | BinaryExpr
+    | CallExpr
+    | VariableExpr
+    | LiteralExpr
+    | UnaryExpr
+    | ArrayRefExpr
+)
 
 
 class BinaryOpException(Exception):
     pass
 
+
+class ArrayInitExpr:
+    init_list: list[Expr]
+    ttype: ArduinoType
+
+    def __init__(self, init_list: list[Expr]):
+        self.init_list = init_list
+        self.ttype = None
+
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
+        result += ",\n".join([init.to_string(ntab + 2) for init in
+                              self.init_list])
+
+        if self.ttype is not None:
+            result += f"{' ' * (ntab + 2)}ttype={self.ttype}\n"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def evaluate(self, environment: Environment) -> Value:
+        value_list = [expr.evaluate(environment) for expr in self.init_list]
+
+        return Value(self.ttype, value_list)
+
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        ttypes: list[ArduinoType] = []
+
+        for expr in self.init_list:
+            expr.resolve(scope_chain, diagnostics)
+            ttypes.append(expr.ttype)
+
+        if len(set(ttypes)) == 1:
+            inner_type = ttypes[0]
+            self.ttype = ArduinoArray(inner_type)
+        else:
+            self.init_list.gen_diagnostic("Array initializer must be of a single type.")
 
 class AssignExpr:
     """
@@ -91,8 +147,18 @@ class AssignExpr:
         return diagnostic_from_token(message, self.l_value)
 
     def evaluate(self, env: Environment) -> Value | None:
+        # An lvalue expr evaluates to a function that given a value x, will assign
+        # that x value to the resulting expr.
+        #
+        # For a VariableExpr, this is a function that sets value x to the
+        # identifier in the corresponding Environment.
+        # For a simple ArrayRefExpr, like a[0], this is a function that sets value x to the array
+        # slot inside the variable value in the corresponding Environment.
+
         r_value_result = self.r_value.evaluate(env)
         l_value_result = self.l_value.evaluate(env)
+        l_value_assign_fn = self.l_value.evaluate_l(env)
+        assert l_value_assign_fn is not None
 
         op_fn = self.op_table[self.op.lexeme]
         try:
@@ -109,10 +175,7 @@ class AssignExpr:
         #   var name and pos for array
         #   field and var name for struct
 
-        if isinstance(self.l_value, VariableExpr):
-            env.assign(self.l_value.vname.lexeme, Value(self.ttype, result))
-
-        return result
+        return l_value_assign_fn(result)
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.r_value.resolve(scope_chain, diagnostics)
@@ -123,14 +186,19 @@ class AssignExpr:
 
         self.check_type(scope_chain, diagnostics)
 
-    def check_type(self, scope_chain: ScopeChain, diags: list[Diagnostic]):
-        var_type = scope_chain.get_type(self.l_value.vname)
+    def evaluate_l(self, env: Environment):
+        return self.evaluate
 
-        if types_compatibility(var_type, self.l_value.ttype):
-            self.ttype = coerce_types(var_type, self.r_value.ttype)
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.resolve(scope_chain, diagnostics)
+
+    def check_type(self, _scope_chain: ScopeChain, diags: list[Diagnostic]):
+        if types_compatibility(self.l_value.ttype, self.r_value.ttype):
+            self.ttype = coerce_types(self.l_value.ttype, self.r_value.ttype)
         else:
             diag = diagnostic_from_token(
-                "Type of value assigned is not compatible with variable.", self.name
+                "Type of value assigned is not compatible with variable.",
+                self.op
             )
             diags.append(diag)
             self.ttype = ArduinoBuiltinType.ERR
@@ -235,11 +303,17 @@ class BinaryExpr:
         self.rhs.resolve(scope_chain, diagnostics)
         self.check_type(scope_chain, diagnostics)
 
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
 
 class UnaryExpr:
     op: Token
     prefix: bool  # if false, postfix
-    variable: VariableExpr
+    operand: Expr # the operand must be an l-value
     ttype: ArduinoType
 
     op_table = {
@@ -252,10 +326,10 @@ class UnaryExpr:
         "~": lambda x: ~int(x),
     }
 
-    def __init__(self, op: Token, prefix: bool, variable: VariableExpr):
+    def __init__(self, op: Token, prefix: bool, operand: Expr):
         self.op = op
         self.prefix = prefix
-        self.variable = variable
+        self.operand = operand
         self.ttype = None
 
     @override
@@ -263,16 +337,15 @@ class UnaryExpr:
         return self.to_string()
 
     def evaluate(self, env: Environment) -> Value | None:
-        var = self.variable.evaluate(env)
+        var = self.operand.evaluate(env)
+        operand_assign_fn = self.operand.evaluate_l(env)
 
         if var is None:
             raise Exception
 
-        new_var = Value(var.value_type, var.value)
         op_fn = self.op_table[self.op.lexeme]
-        new_var.value = op_fn(var.value)
 
-        env.assign(self.variable.vname.lexeme, new_var)
+        new_var = operand_assign_fn(op_fn(var.value))
 
         if self.prefix:
             return new_var
@@ -280,13 +353,13 @@ class UnaryExpr:
             return var
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
-        self.variable.resolve(scope_chain, diagnostics)
+        self.operand.resolve(scope_chain, diagnostics)
         if (
             self.op.token is TokenType.LOGICAL_NOT
-            and self.variable.ttype is not ArduinoBuiltinType.BOOL
+            and self.operand.ttype is not ArduinoBuiltinType.BOOL
         ):
             diag = diagnostic_from_token(
-                "Type of variable must be 'bool' for logical not.", self.variable.vname
+                "Type of expr must be 'bool' for logical not.", self.op
             )
             diagnostics.append(diag)
             self.ttype = ArduinoBuiltinType.ERR
@@ -294,25 +367,25 @@ class UnaryExpr:
             TokenType.INCREMENT,
             TokenType.DECREMENT,
             TokenType.BITWISE_NOT,
-        ] and self.variable.ttype not in [
+        ] and self.operand.ttype not in [
             ArduinoBuiltinType.INT,
             ArduinoBuiltinType.LONG,
         ]:
             diag = diagnostic_from_token(
-                f"Type of variable must be 'int' or 'long' for {self.op.token}.",
-                self.variable.vname,
+                f"Type of expr must be 'int' or 'long' for {self.op.token}.",
+                self.op,
             )
             diagnostics.append(diag)
             self.ttype = ArduinoBuiltinType.ERR
         else:
-            self.ttype = self.variable.ttype
+            self.ttype = self.operand.ttype
 
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
 
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
-        result += self.variable.to_string(ntab + 2, "variable")
+        result += self.operand.to_string(ntab + 2, "expr")
         result += self.op.to_string(ntab + 2, "op")
         result += f"{' ' * (ntab + 2)}position={'prefix' if self.prefix else 'postfix'}"
 
@@ -321,6 +394,80 @@ class UnaryExpr:
 
         result += f"{' ' * ntab})\n"
         return result
+
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
+
+class ArrayRefExpr:
+    primary: Expr
+    index: Expr
+    ttype: ArduinoType
+
+    def __init__(self, primary: Expr, index: Expr):
+        self.primary = primary
+        self.index = index
+        self.ttype = None
+
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
+        result += self.primary.to_string(ntab + 2, "primary")
+        result += self.index.to_string(ntab + 2, "index")
+
+        if self.ttype is not None:
+            result += f"{' ' * (ntab + 2)}ttype={self.ttype}\n"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def evaluate(self, environment: Environment) -> Value:
+        array_var = self.primary.evaluate(environment)
+        index_val = self.index.evaluate(environment)
+
+        assert array_var is not None
+        assert isinstance(array_var.value, list)
+        assert index_val is not None
+
+        return array_var.value[index_val.value]
+
+    def evaluate_l(self, env: Environment):
+        def set_value(x: object):
+            array_var = self.primary.evaluate(env)
+
+            value = Value(self.ttype, x)
+            array_var.value.__setitem__(self.index.evaluate(env).value, value)
+            return value
+
+        return set_value
+
+    def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
+        array_type = self.primary.ttype
+        self.ttype = array_type.ttype
+
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.primary.resolve(scope_chain, diagnostics)
+        self.index.resolve(scope_chain, diagnostics)
+        if self.index.ttype not in [
+            ArduinoBuiltinType.INT,
+            ArduinoBuiltinType.LONG,
+            ArduinoBuiltinType.SHORT,
+            ]:
+            diag = self.index.gen_diagnostic(
+                    "Array reference expr must be of type integral."
+                   )
+            diagnostics.append(diag)
+        self.check_type(scope_chain, diagnostics)
 
 
 class CallExpr:
@@ -378,6 +525,12 @@ class CallExpr:
         result += f"{' ' * ntab})\n"
         return result
 
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
 
 class LiteralExpr:
     value: Token
@@ -416,6 +569,12 @@ class LiteralExpr:
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.check_type(scope_chain, diagnostics)
 
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
 
 class VariableExpr:
     vname: Token
@@ -448,6 +607,18 @@ class VariableExpr:
     def evaluate(self, env: Environment) -> Value | None:
         value = env.get(self.vname.lexeme, self.scope_distance)
         return value
+
+    def evaluate_l(self, env: Environment):
+        def set_value(x: object):
+            val = Value(self.ttype, x)
+            env.assign(self.vname.lexeme, val)
+            return val
+
+        return set_value
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        scope_chain.define(self.vname)
+        self.check_type(scope_chain, diagnostics)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.vname)

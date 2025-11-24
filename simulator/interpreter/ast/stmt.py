@@ -16,6 +16,7 @@ from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
+    ArduinoArray,
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
@@ -25,7 +26,8 @@ from simulator.interpreter.sema.types import (
 )
 
 type Stmt = (
-    BlockStmt
+    ArrayDeclStmt
+    | BlockStmt
     | ExpressionStmt
     | FunctionStmt
     | ReturnStmt
@@ -254,6 +256,121 @@ class DeclarationListStmt:
     ):
         for decl in self.declarations:
             decl.resolve(scope_chain, diagnostics, fn_type, breakable)
+
+
+class ArrayDeclStmt:
+    const: bool
+    dimensions: list[expr.Expr]
+    array_type: Token
+    name: Token
+    initializer: expr.Expr | None
+    ttype: ArduinoType
+
+    def __init__(
+        self,
+        specifiers: list[Token],
+        dimensions: list[expr.Expr],
+        name: Token,
+        initializer: expr.Expr | None,
+    ):
+        self.dimensions = dimensions
+        self.array_type = type_from_specifier_list(specifiers)
+        self.const = TokenType.CONST in [spec.token for spec in specifiers]
+        self.name = name
+        self.initializer = initializer
+        self.ttype = None
+
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
+        result += ",\n" + f"{' ' * (ntab + 2)}array_type={self.array_type}"
+        result += ",\n" + self.name.to_string(ntab + 2, "name")
+        result += ",\n".join([dim.to_string(ntab + 4) for dim in
+                              self.dimensions])
+
+        if self.initializer is not None:
+            result += ",\n" + self.initializer.to_string(ntab + 2, "initializer")
+
+        if self.ttype is not None:
+            result += ",\n" + f"{' ' * (ntab + 2)}ttype={self.ttype}"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.name)
+
+    def execute(self, environment: Environment):
+        init_value = None
+        dimensions = [dimension.evaluate(environment) for dimension in
+                      self.dimensions]
+
+        if self.initializer is not None and self.initializer.ttype is not None:
+            init_value = self.initializer.evaluate(environment)
+            if (
+                init_value
+                and isinstance(init_value, Value)
+                and init_value.value_type is not self.ttype
+            ):
+                init_value.coerce(self.ttype)
+
+        else:
+            def init_array(dimensions, value=None):
+                if len(dimensions) == 1:
+                    return [value] * dimensions[0].value
+                return [
+                    init_array(dimensions[1:], value)
+                    for _ in range(dimensions[0].value)
+                ]
+
+            init_value = Value(self.ttype, init_array(dimensions)) 
+
+        environment.define(self.name.lexeme, init_value)
+
+    def resolve(
+        self,
+        scope_chain: scope.ScopeChain,
+        diagnostics: list[Diagnostic],
+        _fn_type: FunctionType,
+        _breakable: ControlFlowState,
+    ):
+        if self.initializer:
+            self.initializer.resolve(scope_chain, diagnostics)
+
+        self.ttype = self._compute_type(scope_chain, diagnostics)
+        scope_chain.declare(self.name, self.ttype)
+
+        if self.initializer:
+            scope_chain.define(self.name)
+
+        if self.const:
+            scope_chain.non_modifiable(self.name)
+
+    def _compute_type(
+        self, _scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]
+    ) -> ArduinoType:
+        var_arduino_type = ArduinoArray(token_to_arduino_type(self.array_type))
+
+        if not self.initializer:
+            return var_arduino_type
+
+        if self.initializer and types_compatibility(
+            var_arduino_type, self.initializer.ttype
+        ):
+            return var_arduino_type
+
+        diag = self.gen_diagnostic(
+            "Initializer expression has incompatible types. Initializer: "
+            + f"{self.initializer.ttype}. Array: {var_arduino_type}"
+        )
+        diagnostics.append(diag)
+        return ArduinoBuiltinType.ERR
 
 
 class VariableStmt:

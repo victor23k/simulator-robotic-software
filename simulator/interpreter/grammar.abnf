@@ -41,8 +41,6 @@ typeQualifierList = typeQualifier *(typeQualifier)
 paramList = param *("," param)
 param = declSpecifiers declarator
 
-initializer = expr
-
 ; statements
 
 statement  = exprStmt
@@ -57,7 +55,8 @@ varDecl = declStart ["=" initializer] ";"
 fnDecl  = declStart "(" params ")" "{" +statement "}"
 declStart = (type / unsigned_type) [array_def] identifier
 
-initializer = expr
+initializer  = assignExpr
+initializer /= "{" initializer *("," initializer) [","] "}"
 
 exprStmt = expr ";"
 returnStmt = "return" expr ";"
@@ -85,11 +84,33 @@ callExpr = variableExpr "(" argList? ")"
 
 argList = expr *( "," expr )
 
-literalExpr = int / str / ident / "true" / "false" / "HIGH" / "LOW"
 assignExpr = ident "=" expr
 variableExpr = ident
 
+unaryExpr  = postfixExpr
+unaryExpr /= "++" unaryExpr
+unaryExpr /= "--" unaryExpr
+unaryExpr /= unaryOp castExpr
+unaryExpr /= "sizeof" unaryExpr
+unaryExpr /= "sizeof" "(" typeSpecifier ")"
+
+unaryOp = "&" / "*" / "+" / "-" / "~" / "!"
+
+postfixExpr = primaryExpr *postfixExprP
+
+postfixExprP = *( "[" expr "]" ) ; array access
+postfixExprP = "(" [argList] ")" ; callExpr
+postfixExprP = "--"              ; postfix decrement
+postfixExprP = "++"              ; postfix increment
+
+primaryExpr  = ident
+primaryExpr /= constant
+
+constant = int / str / float
+; literalExpr = int / str / ident / "true" / "false" / "HIGH" / "LOW"
+
 int = 1*DIGIT
+float = 1*DIGIT "." 1*DIGIT
 str = DQUOTE *(%x20-21 / %x23-7E) DQUOTE
       ; quoted string of SP and VCHAR
       ;  without DQUOTE

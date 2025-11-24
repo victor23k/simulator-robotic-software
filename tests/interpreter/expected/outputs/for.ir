@@ -43,7 +43,7 @@
             ),
           ),
           loop_expr=UnaryExprSpec(
-            variable=VariableExprSpec(
+            operand=VariableExprSpec(
               vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i')
             ),
             prefix=False,

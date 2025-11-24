@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import override
 
 from simulator.interpreter.lex.token import Token, TokenType
+
+type ArduinoType = ArduinoArray | ArduinoBuiltinType | ArduinoObjType | None
 
 
 class ArduinoBuiltinType(Enum):
@@ -10,17 +13,24 @@ class ArduinoBuiltinType(Enum):
     BOOL = 1
     CHAR = 2
     UNSIGNED_CHAR = 3
-    INT = 4
-    UNSIGNED_INT = 5
-    LONG = 6
-    UNSIGNED_LONG = 7
-    FLOAT = 8
-    DOUBLE = 9
+    SHORT = 4 
+    INT = 5
+    UNSIGNED_INT = 6
+    LONG = 7
+    UNSIGNED_LONG = 8
+    FLOAT = 9
+    DOUBLE = 10
 
-    VOID = 10
+    VOID = 11
 
 
-type ArduinoType = ArduinoBuiltinType | ArduinoObjType | None
+@dataclass
+class ArduinoArray:
+    ttype: ArduinoType
+
+    @override
+    def __eq__(self, value: object, /) -> bool:
+        return (isinstance(value, ArduinoArray) and self.ttype == value.ttype) 
 
 
 @dataclass
@@ -75,5 +85,7 @@ def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
 
 
 def type_from_specifier_list(specifiers: list[Token]):
-    return next(filter(lambda spec: spec.is_var_type(), specifiers))
-
+    try:
+        return next(filter(lambda spec: spec.is_var_type(), specifiers))
+    except StopIteration:
+        ArduinoBuiltinType.ERR

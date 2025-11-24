@@ -1,5 +1,7 @@
 from simulator.interpreter.parse.associativity import Assoc, get_binary_op_assoc
 from simulator.interpreter.ast.expr import (
+    ArrayInitExpr,
+    ArrayRefExpr,
     AssignExpr,
     CallExpr,
     Expr,
@@ -12,6 +14,7 @@ from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.parse.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.ast.stmt import (
+    ArrayDeclStmt,
     BlockStmt,
     BreakStmt,
     ContinueStmt,
@@ -168,14 +171,14 @@ class Parser:
 
 
         if len(declarator_list) == 1:
-            if isinstance(declarator_list[0], VariableStmt):
+            if not isinstance(declarator_list[0], FunctionStmt):
                 self._consume(TokenType.SEMICOLON, "Expect ';' after declaration.")
             return declarator_list[0]
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after declaration list.")
         return DeclarationListStmt(declarator_list)
 
-    def _declarator(self, specifiers) -> VariableStmt | FunctionStmt:
+    def _declarator(self, specifiers) -> VariableStmt | FunctionStmt | ArrayDeclStmt:
         # if self._match(TokenType.STAR):
         #     pointer = self._pointer()
             
@@ -184,21 +187,44 @@ class Parser:
         if self._match(TokenType.LEFT_PAREN):
             return self._function_declaration(specifiers, ident)
         else:
-            return self._array_declaration(specifiers, ident)
+            return self._variable_declarator(specifiers, ident)
 
-    def _array_declaration(self, specifiers, ident) -> VariableStmt:
+    def _variable_declarator(self, specifiers, ident) -> ArrayDeclStmt | VariableStmt:
         initializer = None
-        array: list[Token | None] = []
-        while self._match(TokenType.LEFT_BRACE):
-            if self._match(TokenType.RIGHT_BRACE):
-                array.append(None)
-            else:
-                size = self._consume(TokenType.INT_LITERAL, "Expect integer literal in array def.")
-                array.append(size)
-        if self._match(TokenType.EQUAL):
-            initializer = self._expression()
 
-        return VariableStmt(specifiers, ident, initializer)
+        if self._match(TokenType.EQUAL):
+            initializer = self._initializer()
+            return VariableStmt(specifiers, ident, initializer)
+
+        dimensions: list[Expr] = []
+
+        while self._match(TokenType.LEFT_BRACKET):
+            if not self._match(TokenType.RIGHT_BRACKET):
+                dimensions.append(self._expression())
+                self._consume(TokenType.RIGHT_BRACKET, "Expect ']' to close array.")
+
+        if self._match(TokenType.EQUAL):
+            initializer = self._initializer()
+
+        return ArrayDeclStmt(specifiers, dimensions, ident, initializer)
+
+    def _initializer(self) -> Expr:
+        if self._match(TokenType.LEFT_BRACE):
+            init_list: list[Expr] = []
+            init_list.append(self._initializer())
+
+            while self._match(TokenType.COMMA) and not self._check(
+                TokenType.RIGHT_BRACE
+            ):
+                init_list.append(self._initializer())
+
+            self._consume(
+                TokenType.RIGHT_BRACE, "Expect '}' to close initializer list."
+            )
+
+            return ArrayInitExpr(init_list)
+
+        return self._expression()
 
     def _statement(self) -> Stmt:
         match self._peek().token:
@@ -484,7 +510,7 @@ class Parser:
                 TokenType.OR_EQUAL,
                 TokenType.XOR_EQUAL,
             ]:
-                if isinstance(lhs, VariableExpr):
+                if isinstance(lhs, VariableExpr) or isinstance(lhs, ArrayRefExpr):
                     lhs = AssignExpr(lhs, curr_token, rhs)
                 else:
                     # lhs = AssignExpr(Token(TokenType.ERROR, "", None, op.line,
@@ -500,28 +526,39 @@ class Parser:
                 expr = self._expression(PrecLevel.MINIMAL)
                 self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
                 return expr
-            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL) as token:
-                self._advance()
-                return LiteralExpr(token)
-            case Token(token=TokenType.IDENTIFIER) as identifier:
-                self._advance()
+            case _:
+                return self._postfix_expr()
 
-                if self._match(TokenType.LEFT_PAREN):
-                    return self._call_expr(identifier)
-                elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
-                    return UnaryExpr(self.previous, False, VariableExpr(identifier))
-                else:
-                    return VariableExpr(identifier)
+    def _postfix_expr(self) -> Expr:
+        primary = self._primary_expr()
+
+        if self._match(TokenType.LEFT_PAREN):
+            return self._call_expr(primary)
+        elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
+            return UnaryExpr(self.previous, False, primary)
+        elif self._match(TokenType.LEFT_BRACKET):
+            expr = self._expression()
+            self._consume(TokenType.RIGHT_BRACKET, "Expect ']' to close array reference.")
+            return ArrayRefExpr(primary, expr)
+        else:
+            return primary
+
+    def _primary_expr(self):
+        match self._advance():
+            case Token(token=TokenType.LEFT_PAREN):
+                expr = self._expression(PrecLevel.MINIMAL)
+                self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
+                return expr
+            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL) as token:
+                return LiteralExpr(token)
+            case Token(token=TokenType.IDENTIFIER) as ident:
+                return VariableExpr(ident)
             case unexpected_token:
-                self._advance()
-                self._error(
+                raise self._error(
                     unexpected_token, "Expected number or expression inside parens."
                 )
-                return LiteralExpr(unexpected_token)
 
-    def _call_expr(self, identifier: Token):
-        fn_name = VariableExpr(identifier)
-
+    def _call_expr(self, fn_name: VariableExpr):
         arguments: list[Expr] = []
 
         if not self._check(TokenType.RIGHT_PAREN):
