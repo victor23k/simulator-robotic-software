@@ -192,8 +192,9 @@ class Parser:
     def _variable_declarator(self, specifiers, ident) -> ArrayDeclStmt | VariableStmt:
         initializer = None
 
-        if self._match(TokenType.EQUAL):
-            initializer = self._initializer()
+        if not self._check(TokenType.LEFT_BRACKET):
+            if self._match(TokenType.EQUAL):
+                initializer = self._initializer()
             return VariableStmt(specifiers, ident, initializer)
 
         dimensions: list[Expr] = []
