@@ -106,6 +106,7 @@ class Scanner:
             return self._produce_empty_token(TokenType.EOF)
 
         self._skip_whitespace()
+        self._skip_comments()
 
         next_token = self._produce_empty_token(TokenType.EOF)
 
@@ -405,21 +406,43 @@ class Scanner:
         return self.source[self.current + 1]
 
     def _skip_whitespace(self):
+        self._skip_newline()
+
+        while self._peek().isspace():
+            if not self._skip_newline():
+                self._advance()
+
+        self.start = self.current
+
+    def _skip_newline(self) -> bool:
         peek_chr = self._peek()
         if peek_chr == "\n" or peek_chr == "\r":
             self.line += 1
             self._advance()
             self.column = 1
+            return True
         elif peek_chr == "\r" and self._peek_next() == "\n":
             self.line += 1
             self._advance()
             self._advance()
             self.column = 1
+            return True
 
-        while self._peek().isspace():
-            self._advance()
+        return False
 
-        self.start = self.current
+    def _skip_comments(self):
+        peek_chr = self._peek()
+        if peek_chr == "/":
+            if self._peek_next() == "/":
+                self._advance()
+                self._advance()
+                while self._peek() not in ["\n", "\r"]:
+                    self._advance()
+            elif self._peek_next() == "*":
+                while self._peek() != "*" and self._peek_next() != "/":
+                    if not self._skip_newline():
+                        self._advance()
+
 
     def _produce_empty_token(self, token_type: TokenType) -> Token:
         return self._produce_token(token_type, None)
@@ -427,5 +450,5 @@ class Scanner:
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
         return Token(
-            token_type, text, literal, self.line - 1, self.column - len(text) - 1
+            token_type, text, literal, self.line, self.column - len(text) - 1
         )
