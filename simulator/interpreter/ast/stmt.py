@@ -260,7 +260,7 @@ class DeclarationListStmt:
 
 class ArrayDeclStmt:
     const: bool
-    dimensions: list[expr.Expr]
+    dimensions: list[expr.Expr | None]
     array_type: Token
     name: Token
     initializer: expr.Expr | None
@@ -269,7 +269,7 @@ class ArrayDeclStmt:
     def __init__(
         self,
         specifiers: list[Token],
-        dimensions: list[expr.Expr],
+        dimensions: list[expr.Expr | None],
         name: Token,
         initializer: expr.Expr | None,
     ):
@@ -308,8 +308,12 @@ class ArrayDeclStmt:
 
     def execute(self, environment: Environment):
         init_value = None
-        dimensions = [dimension.evaluate(environment) for dimension in
-                      self.dimensions]
+        dimensions = []
+        for dimension in self.dimensions:
+            if dimension is not None:
+                dimensions.append(dimension.evaluate(environment))
+            else:
+                dimensions.append(None)
 
         if self.initializer is not None and self.initializer.ttype is not None:
             init_value = self.initializer.evaluate(environment)

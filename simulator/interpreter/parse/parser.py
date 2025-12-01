@@ -197,15 +197,21 @@ class Parser:
                 initializer = self._initializer()
             return VariableStmt(specifiers, ident, initializer)
 
-        dimensions: list[Expr] = []
+        dimensions: list[Expr | None] = []
+        needs_initializer = False
 
         while self._match(TokenType.LEFT_BRACKET):
-            if not self._match(TokenType.RIGHT_BRACKET):
+            if self._match(TokenType.RIGHT_BRACKET):
+                needs_initializer = True
+                dimensions.append(None)
+            else:
                 dimensions.append(self._expression())
                 self._consume(TokenType.RIGHT_BRACKET, "Expect ']' to close array.")
 
         if self._match(TokenType.EQUAL):
             initializer = self._initializer()
+        elif needs_initializer:
+            self._error(ident, "Array declaration without size needs an initializer")
 
         return ArrayDeclStmt(specifiers, dimensions, ident, initializer)
 
