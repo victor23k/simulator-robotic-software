@@ -43,6 +43,133 @@
       ]
     )
   ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str3'),
+    dimensions=[
+      LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=8)
+      )
+    ],
+    initializer=ArrayInitExprSpec(
+      init_list=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('a'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('r'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('d'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('u'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('i'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('n'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('o'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=0)
+        ),
+      ]
+    )
+  ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str4'),
+    dimensions=[None],
+    initializer=ArrayInitExprSpec(
+      init_list=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('a'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('r'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('d'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('u'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('i'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('n'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('o'))
+        ),
+      ]
+    )
+  ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str5'),
+    dimensions=[None],
+    initializer=ArrayInitExprSpec(
+      init_list=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('a'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('r'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('d'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('u'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('i'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('n'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('o'))
+        ),
+      ]
+    )
+  ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str6'),
+    dimensions=[None],
+    initializer=ArrayInitExprSpec(
+      init_list=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('a'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('r'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('d'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('u'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('i'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('n'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('o'))
+        ),
+      ]
+    )
+  ),
   VariableStmtSpec(
     name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
     var_type=TokenSpec(token=TokenType.CHAR),
@@ -52,6 +179,54 @@
       ),
       index=LiteralExprSpec(
         value=TokenSpec(token=TokenType.INT_LITERAL, literal=0)
+      ),
+    )
+  ),
+  VariableStmtSpec(
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='r'),
+    var_type=TokenSpec(token=TokenType.CHAR),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str3')
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=1)
+      ),
+    )
+  ),
+  VariableStmtSpec(
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='d'),
+    var_type=TokenSpec(token=TokenType.CHAR),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str4')
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+      ),
+    )
+  ),
+  VariableStmtSpec(
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='u'),
+    var_type=TokenSpec(token=TokenType.CHAR),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str5')
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=3)
+      ),
+    )
+  ),
+  VariableStmtSpec(
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='i'),
+    var_type=TokenSpec(token=TokenType.CHAR),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str6')
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=4)
       ),
     )
   ),

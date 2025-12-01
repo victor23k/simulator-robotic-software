@@ -438,7 +438,12 @@ class ArrayRefExpr:
         assert isinstance(array_var.value, list)
         assert index_val is not None
 
-        return array_var.value[index_val.value]
+        try:
+            result = array_var.value[index_val.value]
+        except IndexError:
+            self.gen_diagnostic("Index out of array bounds.")
+
+        return result
 
     def evaluate_l(self, env: Environment):
         def set_value(x: object):

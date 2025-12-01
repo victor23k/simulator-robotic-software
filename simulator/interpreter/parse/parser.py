@@ -230,6 +230,10 @@ class Parser:
             )
 
             return ArrayInitExpr(init_list)
+        elif self._check(TokenType.STRING_LITERAL):
+            string = self._advance()
+            init_list = [LiteralExpr(c) for c in string.literal]
+            return ArrayInitExpr(init_list)
 
         return self._expression()
 

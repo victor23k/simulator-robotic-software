@@ -323,6 +323,11 @@ class ArrayDeclStmt:
                 and init_value.value_type is not self.ttype
             ):
                 init_value.coerce(self.ttype)
+            if (self.ttype == ArduinoArray(ArduinoBuiltinType.CHAR) and
+                dimensions[0] is not None and
+                (offset := dimensions[0].value - len(init_value.value)) > 0):
+
+                init_value.value.extend([None] * offset)
 
         else:
             def init_array(dimensions, value=None):

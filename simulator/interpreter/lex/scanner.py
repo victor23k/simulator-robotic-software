@@ -262,26 +262,40 @@ class Scanner:
         return self.current >= len(self.source)
 
     def _char_literal(self) -> Token:
-        char = self._advance()
-        if not self._match("\'"):
-            diag = Diagnostic(
-                message="Char literal must only contain one character between single quotes.",
-                line=self.line,
-                col_start=self.column - (self.current - self.start),
-                col_end=self.column,
-            )
-            self.diagnostics.append(diag)
+        if self._peek() == '\\' and self._peek_next() == '0':
+            char = '\x00'
+            self._advance()
+            self._advance()
+            if not self._match("\'"):
+                diag = Diagnostic(
+                    message="Char literal must only contain one character after escape.",
+                    line=self.line,
+                    col_start=self.column - (self.current - self.start),
+                    col_end=self.column,
+                )
+                self.diagnostics.append(diag)
+        else:
+            char = self._advance()
+            if not self._match("\'"):
+                diag = Diagnostic(
+                    message="Char literal must only contain one character between single quotes.",
+                    line=self.line,
+                    col_start=self.column - (self.current - self.start),
+                    col_end=self.column,
+                )
+                self.diagnostics.append(diag)
+
 
         return self._produce_token(TokenType.CHAR_LITERAL, ord(char))
 
     def _string_literal(self) -> Token:
+        chars: list[Token] = []
         while not self._match('\"'):
             if not self._skip_newline():
-                self._advance()
+                c = self._advance()
+                chars.append(self._produce_token(TokenType.CHAR_LITERAL, ord(c)))
 
-        string = self.source[self.start + 1 : self.current]
-
-        return self._produce_token(TokenType.STRING_LITERAL, string)
+        return self._produce_token(TokenType.STRING_LITERAL, chars)
 
     def _number(self) -> Token:
         while is_decimal(self._peek()):
