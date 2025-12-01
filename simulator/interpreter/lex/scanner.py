@@ -106,7 +106,6 @@ class Scanner:
             return self._produce_empty_token(TokenType.EOF)
 
         self._skip_whitespace()
-        self._skip_comments()
 
         next_token = self._produce_empty_token(TokenType.EOF)
 
@@ -166,7 +165,22 @@ class Scanner:
                 else:
                     next_token = self._produce_empty_token(TokenType.STAR)
             case "/":
-                if self._peek() == "=":
+                if self._peek() == "/":
+                    self._advance()
+                    while self._peek() not in ["\n", "\r"]:
+                        self._advance()
+                    self._skip_newline()
+
+                    self.start = self.current
+                    return self.__next__()
+                elif self._peek() == "*":
+                    while self._peek() != "*" and self._peek_next() != "/":
+                        if not self._skip_newline():
+                            self._advance()
+
+                    self.start = self.current
+                    return self.__next__()
+                elif self._peek() == "=":
                     self._advance()
                     next_token = self._produce_empty_token(TokenType.SLASH_EQUAL)
                 else:
@@ -219,6 +233,10 @@ class Scanner:
                         else:
                             # can be 0 or float with leading 0.
                             next_token = self._number()
+            case "\"":
+                next_token = self._string_literal()
+            case "\'":
+                next_token = self._char_literal()
             case "\x00":
                 pass
             case char:
@@ -242,6 +260,28 @@ class Scanner:
 
     def _is_at_end(self) -> bool:
         return self.current >= len(self.source)
+
+    def _char_literal(self) -> Token:
+        char = self._advance()
+        if not self._match("\'"):
+            diag = Diagnostic(
+                message="Char literal must only contain one character between single quotes.",
+                line=self.line,
+                col_start=self.column - (self.current - self.start),
+                col_end=self.column,
+            )
+            self.diagnostics.append(diag)
+
+        return self._produce_token(TokenType.CHAR_LITERAL, ord(char))
+
+    def _string_literal(self) -> Token:
+        while not self._match('\"'):
+            if not self._skip_newline():
+                self._advance()
+
+        string = self.source[self.start + 1 : self.current]
+
+        return self._produce_token(TokenType.STRING_LITERAL, string)
 
     def _number(self) -> Token:
         while is_decimal(self._peek()):
@@ -429,20 +469,6 @@ class Scanner:
             return True
 
         return False
-
-    def _skip_comments(self):
-        peek_chr = self._peek()
-        if peek_chr == "/":
-            if self._peek_next() == "/":
-                self._advance()
-                self._advance()
-                while self._peek() not in ["\n", "\r"]:
-                    self._advance()
-            elif self._peek_next() == "*":
-                while self._peek() != "*" and self._peek_next() != "/":
-                    if not self._skip_newline():
-                        self._advance()
-
 
     def _produce_empty_token(self, token_type: TokenType) -> Token:
         return self._produce_token(token_type, None)

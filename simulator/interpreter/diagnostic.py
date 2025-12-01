@@ -30,8 +30,8 @@ class Diagnostic:
     def print(self, code: str) -> str:
         return f"""{self.message}
 
-Line {self.line + 1}:
-{code.splitlines()[self.line]}
+Line {self.line}:
+{code.splitlines()[self.line - 1]}
 {" " * self.col_start}{"^" * (self.col_end - self.col_start)}"""
 
 
