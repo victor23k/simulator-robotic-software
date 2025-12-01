@@ -452,7 +452,11 @@ class ArrayRefExpr:
 
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         array_type = self.primary.ttype
-        self.ttype = array_type.ttype
+
+        while isinstance(array_type, ArduinoArray): 
+            array_type = array_type.ttype
+
+        self.ttype = array_type
 
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
@@ -463,11 +467,14 @@ class ArrayRefExpr:
             ArduinoBuiltinType.LONG,
             ArduinoBuiltinType.SHORT,
             ]:
-            diag = self.index.gen_diagnostic(
+            diag = self.gen_diagnostic(
                     "Array reference expr must be of type integral."
                    )
             diagnostics.append(diag)
         self.check_type(scope_chain, diagnostics)
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return self.index.gen_diagnostic(message)
 
 
 class CallExpr:

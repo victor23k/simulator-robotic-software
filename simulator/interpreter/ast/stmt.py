@@ -355,7 +355,10 @@ class ArrayDeclStmt:
     def _compute_type(
         self, _scope_chain: scope.ScopeChain, diagnostics: list[Diagnostic]
     ) -> ArduinoType:
-        var_arduino_type = ArduinoArray(token_to_arduino_type(self.array_type))
+        var_arduino_type = token_to_arduino_type(self.array_type)
+
+        for _dim in self.dimensions:
+            var_arduino_type = ArduinoArray(var_arduino_type)
 
         if not self.initializer:
             return var_arduino_type

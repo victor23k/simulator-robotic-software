@@ -537,11 +537,18 @@ class Parser:
         elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
             return UnaryExpr(self.previous, False, primary)
         elif self._match(TokenType.LEFT_BRACKET):
-            expr = self._expression()
-            self._consume(TokenType.RIGHT_BRACKET, "Expect ']' to close array reference.")
-            return ArrayRefExpr(primary, expr)
+            return self._array_ref_expr(primary)
         else:
             return primary
+
+    def _array_ref_expr(self, primary: Expr):
+        expr = self._expression()
+        self._consume(TokenType.RIGHT_BRACKET, "Expect ']' to close array reference.")
+        if self._match(TokenType.LEFT_BRACKET):
+            arrexpr = self._array_ref_expr(ArrayRefExpr(primary, expr))
+            return arrexpr
+
+        return ArrayRefExpr(primary, expr)
 
     def _primary_expr(self):
         match self._advance():

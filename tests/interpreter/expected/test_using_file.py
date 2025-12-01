@@ -148,7 +148,7 @@ class InterpretCase(unittest.TestCase):
                 with self.subTest(f"{self.filename}: {line}"):
                     value = interpreter.environment.get(results["identifier"], 0)
 
-                    assert isinstance(value, Value)
+                    self.assertIsInstance(value, Value)
                     self.assertEqual(value.value.__str__(), results["value"])
                     self.assertEqual(
                         value.value_type, ArduinoBuiltinType[results["type"]]

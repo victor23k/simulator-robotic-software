@@ -32,6 +32,10 @@ class ArduinoArray:
     def __eq__(self, value: object, /) -> bool:
         return (isinstance(value, ArduinoArray) and self.ttype == value.ttype) 
 
+    @override
+    def __hash__(self) -> int:
+        return self.ttype.__hash__()
+
 
 @dataclass
 class ArduinoObjType:
