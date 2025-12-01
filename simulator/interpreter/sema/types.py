@@ -48,6 +48,8 @@ def token_to_arduino_type(token: Token) -> ArduinoType:
             return ArduinoBuiltinType.INT
         case TokenType.FLOAT | TokenType.FLOAT_LITERAL:
             return ArduinoBuiltinType.FLOAT
+        case TokenType.CHAR | TokenType.CHAR_LITERAL:
+            return ArduinoBuiltinType.CHAR
         case TokenType.DOUBLE:
             return ArduinoBuiltinType.DOUBLE
         case TokenType.BOOL | TokenType.TRUE | TokenType.FALSE:

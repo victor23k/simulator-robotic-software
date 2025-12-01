@@ -1,0 +1,58 @@
+[
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str1'),
+    dimensions=[
+      LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=15)
+      )
+    ],
+    initializer=None
+  ),
+  ArrayDeclStmtSpec(
+    array_type=TokenSpec(token=TokenType.CHAR),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str2'),
+    dimensions=[
+      LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=8)
+      )
+    ],
+    initializer=ArrayInitExprSpec(
+      init_list=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('a'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('r'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('d'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('u'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('i'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('n'))
+        ),
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.CHAR_LITERAL, literal=ord('o'))
+        ),
+      ]
+    )
+  ),
+  VariableStmtSpec(
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+    var_type=TokenSpec(token=TokenType.CHAR),
+    initializer=ArrayRefExprSpec(
+      primary=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='str2')
+      ),
+      index=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=0)
+      ),
+    )
+  ),
+]

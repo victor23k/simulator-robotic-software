@@ -563,7 +563,8 @@ class Parser:
                 expr = self._expression(PrecLevel.MINIMAL)
                 self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
                 return expr
-            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL) as token:
+            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL |
+                TokenType.CHAR_LITERAL) as token:
                 return LiteralExpr(token)
             case Token(token=TokenType.IDENTIFIER) as ident:
                 return VariableExpr(ident)

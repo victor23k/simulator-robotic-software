@@ -17,7 +17,7 @@ type StmtSpec = (
     | ForStmtSpec
 )
 type ExprSpec = (
-    AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
+    ArrayInitExprSpec | AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
 )
 
 
@@ -96,6 +96,11 @@ class ForStmtSpec:
     condition: ExprSpec | None
     loop_expr: ExprSpec | None
     statement: StmtSpec
+
+
+@dataclass
+class ArrayInitExprSpec:
+    init_list: list[ExprSpec]
 
 
 @dataclass

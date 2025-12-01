@@ -105,11 +105,12 @@ class TokenType(Enum):
     EOF = 100
     ERROR = 101
 
-    # numeric literals
     FLOAT_LITERAL = 110
     INT_LITERAL = 111
+    CHAR_LITERAL = 112
+    STRING_LITERAL = 113
 
-    COLON = 112
+    COLON = 120
 
 
 @dataclass
