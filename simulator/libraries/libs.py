@@ -40,6 +40,7 @@ class LibraryManager:
             serial.get_name(): serial.get_not_implemented(),
             string.get_name(): string.get_not_implemented(),
         }
+        self.available_libs: list[str] = []
 
     def get_libraries(self):
         """
@@ -49,6 +50,14 @@ class LibraryManager:
         for key in self.libraries:
             list_libs.append(key)
         return list_libs
+
+    def get_available_libs(self):
+        """
+        Gets the list of available libraries for the sketch.
+        Returns:
+            list of string with library names.
+        """
+        return self.available_libs
 
     def find(self, library, method):
         """
@@ -80,6 +89,7 @@ class LibraryManager:
         """
         lib: str = library[0:-2]
         if lib in self.libraries:
+            self.available_libs.append(lib)
             self.library_methods[lib] = self.libraries[lib][0]
             self.library_not_impl[lib] = self.libraries[lib][1]
         else:
