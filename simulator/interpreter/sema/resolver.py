@@ -59,3 +59,6 @@ class Resolver:
                 self.function_type,
                 ControlFlowState.NONE,
             )
+
+    def define_library_fn(self, fn_name: str, return_type: ArduinoType):
+        self.scope_chain.define_lib(fn_name, return_type)

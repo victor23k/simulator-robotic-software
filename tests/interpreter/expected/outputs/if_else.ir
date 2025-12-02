@@ -1,7 +1,7 @@
 [
     FunctionStmtSpec(
       return_type=TokenSpec(token=TokenType.INT),
-      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="max"),
+      name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="mymax"),
       params=[
         # int a
         VariableStmtSpec(
@@ -52,7 +52,7 @@
       name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='m'),
       initializer=CallExprSpec(
         callee=VariableExprSpec(
-            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max')
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='mymax')
         ),
         arguments=[
           LiteralExprSpec(
@@ -69,7 +69,7 @@
       name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='m2'),
       initializer=CallExprSpec(
         callee=VariableExprSpec(
-            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='max')
+            vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='mymax')
         ),
         arguments=[
           LiteralExprSpec(

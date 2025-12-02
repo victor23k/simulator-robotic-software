@@ -110,12 +110,14 @@ class Parser:
     current: Token
     previous: Token
     diagnostics: list[Diagnostic]
+    type_names: set[str]
 
     def __init__(self, source: str, diagnostics: list[Diagnostic]):
         self.source = source
         self.scanner = Scanner(source)
         self.diagnostics = diagnostics
         self.current = Token(TokenType.EOF, "", None, 0, 0)
+        self.type_names = set()
         self._advance()
 
     def parse(self) -> list[Stmt]:
@@ -133,12 +135,24 @@ class Parser:
 
         return sketch_items
 
+    def add_type_name(self, type_name: str):
+        """
+        Adds a type name to differentiate between regular identifiers and user
+        defined type identifiers.
+
+        In our Arduino implementation these can only come from classes.
+        """
+        self.type_names.add(type_name)
+
     def _sketch_item(self) -> Stmt | None:
         try:
-            if self._match(
-                *var_ttype, TokenType.CONST, TokenType.VOLATILE, TokenType.STATIC
+            if (
+                self._check(
+                    *var_ttype, TokenType.CONST, TokenType.VOLATILE, TokenType.STATIC
+                )
+                or self._is_type_name_identifier()
             ):
-                return self._declaration(self.previous)
+                return self._declaration(self._advance())
             else:
                 return self._statement()
         except ParseException:
@@ -156,12 +170,23 @@ class Parser:
 
     def _decl_specifiers(self) -> list[Token]:
         specifiers: list[Token] = []
-        while self._match(*var_ttype, TokenType.CONST, TokenType.VOLATILE,
-                          TokenType.STATIC):
-            if self.previous.token not in [TokenType.VOLATILE, TokenType.STATIC]:
-                specifiers.append(self.previous)
+        while (
+            self._check(
+                *var_ttype, TokenType.CONST, TokenType.VOLATILE, TokenType.STATIC
+            )
+            or self._is_type_name_identifier()
+        ):
+            tok = self._advance()
+            if not self._check(TokenType.VOLATILE, TokenType.STATIC):
+                specifiers.append(tok)
 
         return specifiers
+
+    def _is_type_name_identifier(self):
+        return (
+            self._check(TokenType.IDENTIFIER) 
+            and self._peek().lexeme in self.type_names
+        )
 
     def _declarator_list(self, specifiers) -> Stmt:
         declarator_list = [self._declarator(specifiers)]
@@ -577,7 +602,7 @@ class Parser:
                     unexpected_token, "Expected number or expression inside parens."
                 )
 
-    def _call_expr(self, fn_name: VariableExpr):
+    def _call_expr(self, fn_expr: Expr):
         arguments: list[Expr] = []
 
         if not self._check(TokenType.RIGHT_PAREN):
@@ -593,7 +618,7 @@ class Parser:
 
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments.")
 
-        return CallExpr(fn_name, arguments)
+        return CallExpr(fn_expr, arguments)
 
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if not self._check(token_type):
@@ -602,15 +627,14 @@ class Parser:
         return self._advance()
 
     def _match(self, *token_types: TokenType) -> bool:
-        for token_type in token_types:
-            if self._check(token_type):
-                self._advance()
-                return True
+        if self._check(*token_types):
+            self._advance()
+            return True
 
         return False
 
-    def _check(self, token_type: TokenType) -> bool:
-        return self._peek().token == token_type
+    def _check(self, *token_types: TokenType) -> bool:
+        return self._peek().token in token_types
 
     def _is_at_end(self) -> bool:
         return self._peek().token == TokenType.EOF

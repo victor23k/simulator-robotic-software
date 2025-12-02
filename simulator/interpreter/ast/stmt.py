@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 from dataclasses import dataclass
+from ast import Module
 
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
@@ -931,7 +932,7 @@ class Function:
     body: list[Stmt]
     closure: Environment
 
-    def arity(self) -> int:
+    def get_arity(self) -> int:
         "Returns the function's number of parameters"
 
         return len(self.params)
@@ -951,3 +952,20 @@ class Function:
             return ret.value
 
         return None
+
+class LibFn:
+    fn_name: str
+    module: Module
+    arity: int
+
+    def __init__(self, module, fn_name, fn_args: list[str]) -> None:
+        self.module = module
+        self.fn_name = fn_name
+        self.arity = len(fn_args)
+
+    def call(self, arguments: list[object]) -> Value | None:
+        method = getattr(self.module, self.fn_name)
+        return method(*arguments)
+
+    def get_arity(self) -> int:
+        return self.arity

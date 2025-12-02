@@ -1,4 +1,4 @@
-int max(int a, int b) {
+int mymax(int a, int b) {
   if (a > b) {
     return a;
   } else {
@@ -6,8 +6,8 @@ int max(int a, int b) {
   }
 }
 
-int m = max(5, 7);
-int m2 = max(9, 7);
+int m = mymax(5, 7);
+int m2 = mymax(9, 7);
 
 >>>>>
 

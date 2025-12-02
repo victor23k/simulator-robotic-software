@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.environment import Environment
 
-from simulator.interpreter.ast.stmt import Function
+from simulator.interpreter.ast.stmt import Function, LibFn
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import (
     ArduinoRuntimeError,
@@ -483,13 +483,13 @@ class ArrayRefExpr:
 
 
 class CallExpr:
-    callee: VariableExpr
+    callee: Expr
     # callee can be the function name (VariableExpr) and a method call on an
     # object (GetExpr). The latter is not implemented yet.
     arguments: list[Expr]
     ttype: ArduinoType
 
-    def __init__(self, callee: VariableExpr, arguments: list[Expr]):
+    def __init__(self, callee: Expr, arguments: list[Expr]):
         self.callee = callee
         self.arguments = arguments
         self.ttype = None
@@ -497,23 +497,34 @@ class CallExpr:
     def evaluate(self, env: Environment) -> Value | None:
         fn = self.callee.evaluate(env)
 
-        if not isinstance(fn, Function):
-            raise ArduinoRuntimeError("Can only call functions.")
+        if isinstance(fn, Function):
+            if len(self.arguments) != fn.get_arity():
+                raise ArduinoRuntimeError(
+                    f"Expected {fn.get_arity()} arguments but got {len(self.arguments)}."
+                )
 
-        if len(self.arguments) != fn.arity():
-            raise ArduinoRuntimeError(
-                f"Expected {fn.arity()} arguments but got {len(self.arguments)}."
-            )
+            fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
 
-        fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
+            return fn.call(fn_args)
+        elif isinstance(fn, LibFn):
+            if len(self.arguments) != fn.get_arity():
+                raise ArduinoRuntimeError(
+                    f"Expected {fn.get_arity()} arguments but got {len(self.arguments)}."
+                )
 
-        return fn.call(fn_args)
+            fn_args = list(map(
+                lambda fn_arg: fn_arg.value if fn_arg is not None else fn_arg,  
+                [fn_arg.evaluate(env) for fn_arg in self.arguments]
+            ))
+
+            value_obj = fn.call(fn_args)
+            return Value(self.ttype, value_obj)
 
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = self.callee.ttype
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
-        self.callee.check_type(scope_chain, diagnostics)
+        self.callee.resolve(scope_chain, diagnostics)
         for call_arg in self.arguments:
             call_arg.resolve(scope_chain, diagnostics)
         self.check_type(scope_chain, diagnostics)

@@ -11,17 +11,18 @@ class ArduinoBuiltinType(Enum):
     ERR = 0
 
     BOOL = 1
-    CHAR = 2
-    UNSIGNED_CHAR = 3
-    SHORT = 4 
-    INT = 5
-    UNSIGNED_INT = 6
-    LONG = 7
-    UNSIGNED_LONG = 8
-    FLOAT = 9
-    DOUBLE = 10
+    BYTE = 2
+    CHAR = 3
+    UNSIGNED_CHAR = 4
+    SHORT = 5
+    INT = 6
+    UNSIGNED_INT = 7
+    LONG = 8
+    UNSIGNED_LONG = 9
+    FLOAT = 10
+    DOUBLE = 11
 
-    VOID = 11
+    VOID = 12
 
 
 @dataclass
@@ -41,6 +42,24 @@ class ArduinoArray:
 class ArduinoObjType:
     classname: str
 
+def str_to_arduino_type(type_name: str) -> ArduinoType:
+    match type_name:
+        case "int":
+            return ArduinoBuiltinType.INT
+        case "uint":
+            return ArduinoBuiltinType.UNSIGNED_INT
+        case "float":
+            return ArduinoBuiltinType.FLOAT
+        case "char":
+            return ArduinoBuiltinType.CHAR
+        case "double":
+            return ArduinoBuiltinType.DOUBLE
+        case "bool":
+            return ArduinoBuiltinType.BOOL
+        case "byte":
+            return ArduinoBuiltinType.BYTE
+        case _:
+            return ArduinoObjType(type_name)
 
 def token_to_arduino_type(token: Token) -> ArduinoType:
     match token.token:

@@ -1,13 +1,14 @@
 import logging
 from typing import override
 
-from simulator.interpreter.ast.stmt import Function, Stmt
+from simulator.interpreter.ast.stmt import Function, Stmt, LibFn
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.environment import Environment
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
 
+from simulator.interpreter.sema.types import str_to_arduino_type, token_to_arduino_type
 import simulator.libraries.standard as standard
 import simulator.libraries.serial as serial
 import simulator.robot_components.robot_state as state
@@ -46,6 +47,9 @@ class Interpreter(Arduino):
         serial.cons = console
 
         statements = self.parser.parse()
+
+        self._setup_libraries()
+
         self.resolver.resolve(statements)
 
         self.statements = statements
@@ -126,3 +130,8 @@ class Interpreter(Arduino):
     def _log_diagnostics(self):
         for diag in self.diagnostics:
             logger.error(diag)
+
+    def _setup_libraries(self):
+        for fn_name, fn in standard.get_methods().items():
+            self.resolver.define_library_fn(fn_name, str_to_arduino_type(fn[0]))
+            self.environment.define(fn_name, LibFn(standard, fn[1], fn[2]))

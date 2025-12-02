@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, override, Self
 from dataclasses import dataclass
-from typing import Self, override
+
+if TYPE_CHECKING:
+    from simulator.interpreter.interpreter import LibFn
+    from simulator.interpreter.ast.stmt import Function
 
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType
 
@@ -27,6 +33,7 @@ class Value:
             and self.value == value.value
         )
 
+type EnvValue = Value | Function | LibFn | None
 
 class Environment:
     """
@@ -35,9 +42,11 @@ class Environment:
     An environment can have an enclosing environment. This forms a tree
     structure where each scope has an environment where its variables can live
     in.
+
+    Values stored in an environment can be of type Value, Function or LibFn.
     """
 
-    values: dict[str, Value | None]
+    values: dict[str, EnvValue]
     enclosing: Self | None
 
     def __init__(self, enclosing: Self | None):
@@ -49,7 +58,7 @@ class Environment:
     def __repr__(self) -> str:
         return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
-    def define(self, name: str, value: Value | None):
+    def define(self, name: str, value: EnvValue):
         """
         Defines a variable by its `name` and `value`.
 
@@ -63,7 +72,7 @@ class Environment:
         # if shadowing is not allowed, use depth to get the env to define
         self.values[name] = value
 
-    def assign(self, name: str, value: Value | None):
+    def assign(self, name: str, value: EnvValue):
         if name in self.values:
             self.values[name] = value
             return
@@ -75,7 +84,7 @@ class Environment:
         # should be unreachable, checked in the Resolver
         return None
 
-    def get(self, name: str, distance: int) -> Value | None:
+    def get(self, name: str, distance: int) -> EnvValue:
         env = self._ancestor(distance)
 
         if name in env.values:

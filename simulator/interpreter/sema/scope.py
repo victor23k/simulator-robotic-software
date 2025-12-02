@@ -112,6 +112,10 @@ class ScopeChain:
         diag = diagnostic_from_token("Variable defined before declaration", name_token)
         self.diagnostics.append(diag)
 
+    def define_lib(self, fn_name: str, return_type: ArduinoType):
+        scope = self._at_distance(0)
+        scope.variables[fn_name] = Var(return_type, VarState.DEFINED)
+
     def use(self, name_token: Token) -> int:
         for depth in range(0, len(self.scopes)):
             var = self._at_distance(depth).variables.get(name_token.lexeme)
