@@ -6,11 +6,9 @@ if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.environment import Environment
 
-from simulator.interpreter.ast.stmt import (
+from simulator.interpreter.runtime.classes import (
     ArduinoClass,
     ArduinoInstance,
-    Function,
-    LibFn,
 )
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import (

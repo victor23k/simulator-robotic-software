@@ -1,15 +1,21 @@
-import logging
-from typing import override
+from __future__ import annotations
 
-from simulator.interpreter.ast.stmt import ArduinoClass, Function, Stmt, LibFn
+import logging
+from typing import TYPE_CHECKING, override
+
+if TYPE_CHECKING:
+    from simulator.interpreter.ast.stmt import Stmt
+
+from simulator.arduino import Arduino
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.preprocessor import Preprocessor
 from simulator.interpreter.sema.resolver import Resolver
-from simulator.arduino import Arduino
-
 from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
+from simulator.interpreter.runtime.classes import ArduinoClass
+from simulator.interpreter.runtime.functions import Function, LibFn
+
 from simulator.libraries.libs import LibraryManager
 import simulator.libraries.string as string
 import simulator.libraries.servo as servo

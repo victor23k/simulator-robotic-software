@@ -12,6 +12,7 @@ from simulator.interpreter.sema.resolver import (
     FunctionType,
 )
 import simulator.interpreter.sema.scope as scope
+from simulator.interpreter.runtime.functions import Function, ReturnException
 from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
@@ -912,140 +913,9 @@ class ForStmt:
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
 
-class ReturnException(Exception):
-    value: Value | None
-
-    def __init__(self, ret_value: Value | None):
-        super().__init__()
-        self.value = ret_value
-
-
 class BreakException(Exception):
     pass
 
 
 class ContinueException(Exception):
     pass
-
-
-@dataclass
-class Function:
-    """
-    Function in the Arduino language.
-    """
-
-    params: list[VariableStmt]
-    body: list[Stmt]
-    closure: Environment
-
-    def arity(self) -> int:
-        "Returns the function's number of parameters"
-
-        return len(self.params)
-
-    def call(self, arguments: list[Value | None], _ret_type) -> Value | None:
-        "Call the function and return."
-
-        fn_env = Environment(self.closure)
-
-        for param, arg in zip(self.params, arguments):
-            fn_env.define(param.name.lexeme, arg)
-
-        try:
-            for stmt in self.body:
-                stmt.execute(fn_env)
-        except ReturnException as ret:
-            return ret.value
-
-        return None
-
-
-class LibFn:
-    module: type
-    fn_name: str
-    fn_arity: int
-
-    @override
-    def __repr__(self) -> str:
-        return f"LibFn(module={self.module}, fn_name={self.fn_name}, fn_arity={self.fn_arity})"
-
-    def __init__(self, module: type, fn_name: str, fn_arity: int) -> None:
-        self.module = module
-        self.fn_name = fn_name
-        self.fn_arity = fn_arity
-
-    def call(self, arguments: list[Value], return_type: ArduinoType) -> Value | None:
-        call_args = []
-        for arg in arguments:
-            arg_val = arg.value
-            arg_val = arg_val.value if isinstance(arg_val, Value) else arg_val
-            call_args.append(arg_val)
-
-        if self.fn_name == "__init__":
-            return Value(return_type, self.module(*call_args))
-
-        method = getattr(self.module, self.fn_name)
-        return Value(return_type, method(*call_args))
-
-    def arity(self) -> int:
-        return self.fn_arity
-
-
-class ArduinoClass:
-    name: str
-    python_class: type
-    methods: dict[str, Value]
-    constructor_arity: int
-    constructor_args: list[str]
-
-    def __init__(
-        self, python_class: type, name: str, methods: dict[str, Value], args
-    ) -> None:
-        self.python_class = python_class
-        self.name = name
-        self.methods = methods
-        self.constructor_arity = len(args)
-        self.constructor_args = args
-
-    def arity(self):
-        return self.constructor_arity
-
-    def call(self, arguments: list[Value], return_type: ArduinoType) -> ArduinoInstance:
-        constructor = LibFn(self.python_class, "__init__", self.constructor_args)
-        obj = constructor.call(list(arguments), return_type)
-        return ArduinoInstance(self, obj)
-
-    def find_method(self, method_name: str) -> Value:
-        return self.methods[method_name]
-
-    @override
-    def __repr__(self) -> str:
-        return f"ArduinoClass: name={self.name}, python_class={self.python_class}, constructor_arity={self.constructor_arity}, constructor_args={self.constructor_args}"
-
-
-class ArduinoInstance:
-    klass: ArduinoClass
-    value: Value
-    fields: dict[str, Value]
-
-    def __init__(self, klass: ArduinoClass, value: Value):
-        self.klass = klass
-        self.fields = dict()
-        self.value = value
-
-    @override
-    def __repr__(self) -> str:
-        return f"ArduinoInstance(klass={self.klass}, value={self.value})"
-
-    def get(self, name: Token) -> Value:
-        if name.lexeme in self.fields:
-            return self.fields[name.lexeme]
-        else:
-            method = self.klass.find_method(name.lexeme)
-            return Value(
-                method.value_type,
-                LibFn(self.value.value, name.lexeme, method.value.arity()),
-            )
-
-    def set(self, name: Token, value: Value):
-        self.fields[name.lexeme] = value

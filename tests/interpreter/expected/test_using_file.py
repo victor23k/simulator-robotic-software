@@ -1,10 +1,9 @@
 import os
-from pprint import pprint
 import unittest
 import fnmatch
 import re
 
-from simulator.interpreter.ast.stmt import ArduinoInstance
+from simulator.interpreter.runtime.classes import ArduinoInstance
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.diagnostic import printable_diagnostics
 from simulator.interpreter.environment import Value
