@@ -23,6 +23,7 @@ from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
+    coerce_value,
     token_to_arduino_type,
     types_compatibility,
 )
@@ -174,11 +175,6 @@ class AssignExpr:
             raise BinaryOpException(
                 f"{l_value_result} and {r_value_result} not compatible"
             ) from e
-
-        # assign name:
-        #   var name for VariableExpr
-        #   var name and pos for array
-        #   field and var name for struct
 
         return l_value_assign_fn(result)
 
@@ -683,7 +679,7 @@ class VariableExpr:
 
     def evaluate_l(self, env: Environment):
         def set_value(x: object):
-            val = Value(self.ttype, x)
+            val = Value(self.ttype, coerce_value(self.ttype, x))
             env.assign(self.vname.lexeme, val)
             return val
 

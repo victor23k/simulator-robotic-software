@@ -112,6 +112,21 @@ def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
 
     return ArduinoBuiltinType.ERR
 
+def coerce_value(arduino_type: ArduinoType, value: object) -> object:
+    match arduino_type:
+        case (
+            ArduinoBuiltinType.INT
+            | ArduinoBuiltinType.SHORT
+            | ArduinoBuiltinType.BYTE
+            | ArduinoBuiltinType.CHAR 
+        ):
+            return int(value)
+        case ArduinoBuiltinType.FLOAT | ArduinoBuiltinType.DOUBLE:
+            return float(value)
+        case ArduinoBuiltinType.BOOL:
+            return bool(value)
+
+
 
 def type_from_specifier_list(specifiers: list[Token]) -> Token | None:
     try:
