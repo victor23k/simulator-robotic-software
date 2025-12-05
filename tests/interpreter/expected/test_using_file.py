@@ -36,7 +36,7 @@ def match_structure(actual: object, spec: object):
 
 
 results_pattern = re.compile(
-    r"^(?P<type>[A-Za-z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*?\"(?P<value>.+)?\"$"
+    r"^(?P<type>[A-Za-z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<paren>\"?)(?P<value>.+)(?P=paren)$"
 )
 
 
@@ -144,7 +144,7 @@ class InterpretCase(unittest.TestCase):
                     value = value.value if isinstance(value, ArduinoInstance) else value
                     self.assertIsInstance(value, Value)
                     self.assertEqual(str(value.value), results["value"])
-                    if results["type"] in ArduinoBuiltinType:
+                    if results["type"] in ArduinoBuiltinType.__members__:
                         expected_result = ArduinoBuiltinType[results["type"]]
                     else:
                         expected_result = ArduinoObjType(results["type"])

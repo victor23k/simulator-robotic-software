@@ -1,0 +1,51 @@
+[
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String'),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='welcome'),
+    initializer=CallExprSpec(
+      callee=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String')
+      ),
+      arguments=[
+        LiteralExprSpec(value=TokenSpec(token=TokenType.STRING_LITERAL))
+      ]
+    )
+  ),
+  ExpressionStmtSpec(
+    expr=CallExprSpec(
+      callee=GetExprSpec(
+        obj=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme="welcome")
+        ),
+        name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="concat"),
+      ),
+      arguments=[LiteralExprSpec(value=TokenSpec(token=TokenType.STRING_LITERAL))]
+    )
+  ),
+  ExpressionStmtSpec(
+    expr=CallExprSpec(
+      callee=GetExprSpec(
+        obj=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme="welcome")
+        ),
+        name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="concat"),
+      ),
+      arguments=[LiteralExprSpec(value=TokenSpec(token=TokenType.STRING_LITERAL))]
+    )
+  ),
+  ExpressionStmtSpec(
+    expr=CallExprSpec(
+      callee=GetExprSpec(
+        obj=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme="welcome")
+        ),
+        name=TokenSpec(token=TokenType.IDENTIFIER, lexeme="concat"),
+      ),
+      arguments=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.INT_LITERAL, literal=2)
+        )
+      ]
+    )
+  ),
+]

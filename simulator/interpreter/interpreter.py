@@ -5,10 +5,12 @@ from simulator.interpreter.ast.stmt import ArduinoClass, Function, Stmt, LibFn
 from simulator.interpreter.diagnostic import Diagnostic
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.parse.parser import Parser
+from simulator.interpreter.preprocessor import Preprocessor
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
 
 from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
+from simulator.libraries.libs import LibraryManager
 import simulator.libraries.string as string
 import simulator.libraries.servo as servo
 import simulator.libraries.standard as standard
@@ -24,22 +26,20 @@ class Interpreter(Arduino):
     """
 
     code: str
-    parser: Parser
     diagnostics: list[Diagnostic]
-    resolver: Resolver
     statements: list[Stmt]
     environment: Environment
+    libraryManager: LibraryManager
     globals: Environment
     valid: bool
 
     def __init__(self, code: str):
         self.code = code
         self.diagnostics = []
-        self.parser = Parser(code, self.diagnostics)
-        self.resolver = Resolver(self.diagnostics)
         self.globals = Environment(None)
         self.environment = self.globals
         self.statements = []
+        self.libraryManager = LibraryManager()
         self.valid = False
 
     @override
@@ -48,13 +48,16 @@ class Interpreter(Arduino):
         standard.state = state.State()
         serial.cons = console
 
-        self._setup_libraries()
+        preprocessor = Preprocessor(self.code)
+        self.code = preprocessor.process(self.libraryManager)
 
-        statements = self.parser.parse()
+        parser = Parser(self.code, self.diagnostics)
+        resolver = Resolver(self.diagnostics)
+        self._setup_libraries(parser, resolver)
+        self.statements = parser.parse()
 
-        self.resolver.resolve(statements)
+        resolver.resolve(self.statements)
 
-        self.statements = statements
         self._log_diagnostics()
 
         self.valid = len(self.diagnostics) == 0  # change to only errors
@@ -115,28 +118,14 @@ class Interpreter(Arduino):
             while True:
                 loop_fn.call([])
 
-    def _check_program(self) -> bool:
-        """
-        Checks the loaded Arduino sketch for errors and returns a boolean
-        indicating if the program is correct.
-
-        If there are any errors, prints them to standard error output.
-        """
-
-        statements = self.parser.parse()
-        self.resolver.resolve(statements)
-        self._log_diagnostics()
-
-        return len(self.diagnostics) == 0
-
     def _log_diagnostics(self):
         for diag in self.diagnostics:
             logger.error(diag)
 
-    def _setup_libraries(self):
+    def _setup_libraries(self, parser: Parser, resolver: Resolver):
         for fn_name, fn in standard.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
-            self.resolver.define_library_fn(fn_name, fn_return_type)
+            resolver.define_library_fn(fn_name, fn_return_type)
             self.environment.define(
                 fn_name, Value(fn_return_type, LibFn(standard, fn[1], len(fn[2])))
             )
@@ -153,9 +142,9 @@ class Interpreter(Arduino):
             string.String, string_classname, string_methods, ["val"]
         )
         string_classtype = ArduinoObjType(string_classname)
-        self.resolver.define_library_fn(string_classname, string_classtype)
+        resolver.define_library_fn(string_classname, string_classtype)
         self.environment.define(string_classname, Value(string_classtype, string_class))
-        self.parser.add_type_name(string_classname)
+        parser.add_type_name(string_classname)
 
         servo_methods: dict[str, Value] = dict()
         for fn_name, fn in servo.get_methods().items():
@@ -163,8 +152,8 @@ class Interpreter(Arduino):
 
         servo_classname = servo.get_name()
         servo_class = ArduinoClass(servo.Servo, servo_classname, servo_methods, [])
-        self.resolver.define_library_fn(
+        resolver.define_library_fn(
             servo_classname, ArduinoObjType(servo_classname)
         )
         self.environment.define(servo_classname, servo_class)
-        self.parser.add_type_name(servo_classname)
+        parser.add_type_name(servo_classname)

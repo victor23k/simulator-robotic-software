@@ -611,7 +611,6 @@ class Parser:
                 )
 
     def _call_expr(self, expr: Expr):
-        # callExpr = primaryExpr *( "(" argList? ")" / "." IDENTIFIER )
         while True:
             if self._match(TokenType.LEFT_PAREN):
                 expr = self._finish_call_expr(expr)
