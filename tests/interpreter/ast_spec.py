@@ -17,7 +17,13 @@ type StmtSpec = (
     | ForStmtSpec
 )
 type ExprSpec = (
-    ArrayInitExprSpec | AssignExprSpec | CallExprSpec | VariableExprSpec | BinaryExprSpec | LiteralExprSpec
+    ArrayInitExprSpec
+    | AssignExprSpec
+    | BinaryExprSpec
+    | CallExprSpec
+    | GetExprSpec
+    | LiteralExprSpec
+    | VariableExprSpec
 )
 
 
@@ -114,6 +120,12 @@ class AssignExprSpec:
 class CallExprSpec:
     callee: ExprSpec
     arguments: list[ExprSpec]
+
+
+@dataclass
+class GetExprSpec:
+    obj: ExprSpec
+    name: TokenSpec
 
 
 @dataclass

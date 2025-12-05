@@ -4,14 +4,12 @@ import unittest
 import fnmatch
 import re
 
-from simulator.interpreter.parse.parser import Parser
-from simulator.interpreter.sema.resolver import Resolver
+from simulator.interpreter.ast.stmt import ArduinoInstance
 from simulator.interpreter.lex.scanner import Scanner
-from simulator.interpreter.lex.token import TokenType
-from simulator.interpreter.diagnostic import Diagnostic, printable_diagnostics
+from simulator.interpreter.diagnostic import printable_diagnostics
 from simulator.interpreter.environment import Value
 from simulator.interpreter.interpreter import Interpreter
-from simulator.interpreter.sema.types import ArduinoBuiltinType
+from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoObjType
 
 from tests.interpreter.ast_spec import *
 
@@ -38,7 +36,7 @@ def match_structure(actual: object, spec: object):
 
 
 results_pattern = re.compile(
-    r"^(?P<type>[A-Z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<value>.+)$"
+    r"^(?P<type>[A-Za-z_]+)\s+(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*?\"(?P<value>.+)?\"$"
 )
 
 
@@ -65,13 +63,12 @@ class ExpectedOutputCase(unittest.TestCase):
         self.filename: str = filename
 
     def runTest(self):
-        diags: list[Diagnostic] = []
-        parser = Parser(self.code, diags)
-        stmts = parser.parse()
-        spec_stmts: list[StmtSpec] = eval(self.ir)
+        interpreter = Interpreter(self.code)
+        interpreter.compile(None, None)
+        stmts = interpreter.statements
+        diags = interpreter.diagnostics
 
-        resolver = Resolver(diags)
-        resolver.resolve(stmts)
+        spec_stmts: list[StmtSpec] = eval(self.ir)
 
         self.assertEqual(
             len(diags),
@@ -91,12 +88,9 @@ class ExpectedFailureCase(unittest.TestCase):
         self.filename: str = filename
 
     def runTest(self):
-        diags: list[Diagnostic] = []
-        parser = Parser(self.code, diags)
-        stmts = parser.parse()
-
-        resolver = Resolver(diags)
-        resolver.resolve(stmts)
+        interpreter = Interpreter(self.code)
+        interpreter.compile(None, None)
+        diags = interpreter.diagnostics
 
         self.assertNotEqual(
             len(diags),
@@ -147,12 +141,14 @@ class InterpretCase(unittest.TestCase):
                 results = matches.groupdict()
                 with self.subTest(f"{self.filename}: {line}"):
                     value = interpreter.environment.get(results["identifier"], 0)
-
+                    value = value.value if isinstance(value, ArduinoInstance) else value
                     self.assertIsInstance(value, Value)
-                    self.assertEqual(value.value.__str__(), results["value"])
-                    self.assertEqual(
-                        value.value_type, ArduinoBuiltinType[results["type"]]
-                    )
+                    self.assertEqual(str(value.value), results["value"])
+                    if results["type"] in ArduinoBuiltinType:
+                        expected_result = ArduinoBuiltinType[results["type"]]
+                    else:
+                        expected_result = ArduinoObjType(results["type"])
+                    self.assertEqual(value.value_type, expected_result)
 
 
 def load_tests(loader, tests, pattern):

@@ -80,7 +80,7 @@ expr /= variableExpr
 expr /= assignExpr
 expr /= callExpr
 
-callExpr = variableExpr "(" argList? ")"
+callExpr = primaryExpr *( "(" argList? ")" / "." IDENTIFIER )
 
 argList = expr *( "," expr )
 

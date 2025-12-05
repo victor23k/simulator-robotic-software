@@ -233,9 +233,9 @@ class Scanner:
                         else:
                             # can be 0 or float with leading 0.
                             next_token = self._number()
-            case "\"":
+            case '"':
                 next_token = self._string_literal()
-            case "\'":
+            case "'":
                 next_token = self._char_literal()
             case "\x00":
                 pass
@@ -262,11 +262,11 @@ class Scanner:
         return self.current >= len(self.source)
 
     def _char_literal(self) -> Token:
-        if self._peek() == '\\' and self._peek_next() == '0':
-            char = '\x00'
+        if self._peek() == "\\" and self._peek_next() == "0":
+            char = "\x00"
             self._advance()
             self._advance()
-            if not self._match("\'"):
+            if not self._match("'"):
                 diag = Diagnostic(
                     message="Char literal must only contain one character after escape.",
                     line=self.line,
@@ -276,7 +276,7 @@ class Scanner:
                 self.diagnostics.append(diag)
         else:
             char = self._advance()
-            if not self._match("\'"):
+            if not self._match("'"):
                 diag = Diagnostic(
                     message="Char literal must only contain one character between single quotes.",
                     line=self.line,
@@ -285,15 +285,15 @@ class Scanner:
                 )
                 self.diagnostics.append(diag)
 
-
         return self._produce_token(TokenType.CHAR_LITERAL, ord(char))
 
     def _string_literal(self) -> Token:
         chars: list[Token] = []
-        while not self._match('\"'):
+        while not self._match('"'):
             if not self._skip_newline():
                 c = self._advance()
                 chars.append(self._produce_token(TokenType.CHAR_LITERAL, ord(c)))
+                self.start = self.current
 
         return self._produce_token(TokenType.STRING_LITERAL, chars)
 
@@ -489,6 +489,4 @@ class Scanner:
 
     def _produce_token(self, token_type: TokenType, literal: object) -> Token:
         text = self.source[self.start : self.current]
-        return Token(
-            token_type, text, literal, self.line, self.column - len(text) - 1
-        )
+        return Token(token_type, text, literal, self.line, self.column - len(text) - 1)

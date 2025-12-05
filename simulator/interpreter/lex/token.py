@@ -165,7 +165,7 @@ class Token:
             TokenType.OR_EQUAL,
             TokenType.XOR_EQUAL,
         ]
-    
+
     def is_var_type(self) -> bool:
         return self.token in [
             TokenType.BOOL,
@@ -183,8 +183,8 @@ class Token:
             TokenType.WORD,
             TokenType.UNSIGNED_CHAR,
             TokenType.UNSIGNED_LONG,
+            TokenType.IDENTIFIER,
         ]
-
 
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":

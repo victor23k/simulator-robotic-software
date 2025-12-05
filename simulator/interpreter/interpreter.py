@@ -1,14 +1,16 @@
 import logging
 from typing import override
 
-from simulator.interpreter.ast.stmt import Function, Stmt, LibFn
+from simulator.interpreter.ast.stmt import ArduinoClass, Function, Stmt, LibFn
 from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.environment import Environment
+from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.arduino import Arduino
 
-from simulator.interpreter.sema.types import str_to_arduino_type, token_to_arduino_type
+from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
+import simulator.libraries.string as string
+import simulator.libraries.servo as servo
 import simulator.libraries.standard as standard
 import simulator.libraries.serial as serial
 import simulator.robot_components.robot_state as state
@@ -46,9 +48,9 @@ class Interpreter(Arduino):
         standard.state = state.State()
         serial.cons = console
 
-        statements = self.parser.parse()
-
         self._setup_libraries()
+
+        statements = self.parser.parse()
 
         self.resolver.resolve(statements)
 
@@ -133,5 +135,36 @@ class Interpreter(Arduino):
 
     def _setup_libraries(self):
         for fn_name, fn in standard.get_methods().items():
-            self.resolver.define_library_fn(fn_name, str_to_arduino_type(fn[0]))
-            self.environment.define(fn_name, LibFn(standard, fn[1], fn[2]))
+            fn_return_type = str_to_arduino_type(fn[0])
+            self.resolver.define_library_fn(fn_name, fn_return_type)
+            self.environment.define(
+                fn_name, Value(fn_return_type, LibFn(standard, fn[1], len(fn[2])))
+            )
+
+        string_methods: dict[str, Value] = dict()
+        for fn_name, fn in string.get_methods().items():
+            fn_return_type = str_to_arduino_type(fn[0])
+            string_methods[fn_name] = Value(
+                fn_return_type, LibFn(string, fn[1], len(fn[2]))
+            )
+
+        string_classname = string.get_name()
+        string_class = ArduinoClass(
+            string.String, string_classname, string_methods, ["val"]
+        )
+        string_classtype = ArduinoObjType(string_classname)
+        self.resolver.define_library_fn(string_classname, string_classtype)
+        self.environment.define(string_classname, Value(string_classtype, string_class))
+        self.parser.add_type_name(string_classname)
+
+        servo_methods: dict[str, Value] = dict()
+        for fn_name, fn in servo.get_methods().items():
+            servo_methods[fn_name] = LibFn(servo, fn[1], len(fn[2]))
+
+        servo_classname = servo.get_name()
+        servo_class = ArduinoClass(servo.Servo, servo_classname, servo_methods, [])
+        self.resolver.define_library_fn(
+            servo_classname, ArduinoObjType(servo_classname)
+        )
+        self.environment.define(servo_classname, servo_class)
+        self.parser.add_type_name(servo_classname)

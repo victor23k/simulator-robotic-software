@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 from dataclasses import dataclass
-from ast import Module
 
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
@@ -225,6 +224,7 @@ class ContinueStmt:
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}()\n"
         return result
 
+
 @dataclass
 class DeclarationListStmt:
     declarations: list[VariableStmt]
@@ -292,8 +292,7 @@ class ArrayDeclStmt:
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}("
         result += ",\n" + f"{' ' * (ntab + 2)}array_type={self.array_type}"
         result += ",\n" + self.name.to_string(ntab + 2, "name")
-        result += ",\n".join([dim.to_string(ntab + 4) for dim in
-                              self.dimensions])
+        result += ",\n".join([dim.to_string(ntab + 4) for dim in self.dimensions])
 
         if self.initializer is not None:
             result += ",\n" + self.initializer.to_string(ntab + 2, "initializer")
@@ -324,13 +323,15 @@ class ArrayDeclStmt:
                 and init_value.value_type is not self.ttype
             ):
                 init_value.coerce(self.ttype)
-            if (self.ttype == ArduinoArray(ArduinoBuiltinType.CHAR) and
-                dimensions[0] is not None and
-                (offset := dimensions[0].value - len(init_value.value)) > 0):
-
+            if (
+                self.ttype == ArduinoArray(ArduinoBuiltinType.CHAR)
+                and dimensions[0] is not None
+                and (offset := dimensions[0].value - len(init_value.value)) > 0
+            ):
                 init_value.value.extend([None] * offset)
 
         else:
+
             def init_array(dimensions, value=None):
                 if len(dimensions) == 1:
                     return [value] * dimensions[0].value
@@ -339,7 +340,7 @@ class ArrayDeclStmt:
                     for _ in range(dimensions[0].value)
                 ]
 
-            init_value = Value(self.ttype, init_array(dimensions)) 
+            init_value = Value(self.ttype, init_array(dimensions))
 
         environment.define(self.name.lexeme, init_value)
 
@@ -539,8 +540,13 @@ class FunctionStmt:
     return_type: Token
     ttype: ArduinoType
 
-    def __init__(self, name: Token, params: list[VariableStmt], body:
-                 list[Stmt], specifiers: list[Token]):
+    def __init__(
+        self,
+        name: Token,
+        params: list[VariableStmt],
+        body: list[Stmt],
+        specifiers: list[Token],
+    ):
         self.name = name
         self.params = params
         self.body = body
@@ -549,7 +555,7 @@ class FunctionStmt:
 
     def execute(self, env: Environment):
         fn = Function(self.params, self.body, env)
-        env.define(self.name.lexeme, fn)
+        env.define(self.name.lexeme, Value(self.ttype, fn))
 
     def resolve(
         self,
@@ -932,12 +938,12 @@ class Function:
     body: list[Stmt]
     closure: Environment
 
-    def get_arity(self) -> int:
+    def arity(self) -> int:
         "Returns the function's number of parameters"
 
         return len(self.params)
 
-    def call(self, arguments: list[Value | None]) -> Value | None:
+    def call(self, arguments: list[Value | None], _ret_type) -> Value | None:
         "Call the function and return."
 
         fn_env = Environment(self.closure)
@@ -953,19 +959,93 @@ class Function:
 
         return None
 
-class LibFn:
-    fn_name: str
-    module: Module
-    arity: int
 
-    def __init__(self, module, fn_name, fn_args: list[str]) -> None:
+class LibFn:
+    module: type
+    fn_name: str
+    fn_arity: int
+
+    @override
+    def __repr__(self) -> str:
+        return f"LibFn(module={self.module}, fn_name={self.fn_name}, fn_arity={self.fn_arity})"
+
+    def __init__(self, module: type, fn_name: str, fn_arity: int) -> None:
         self.module = module
         self.fn_name = fn_name
-        self.arity = len(fn_args)
+        self.fn_arity = fn_arity
 
-    def call(self, arguments: list[object]) -> Value | None:
+    def call(self, arguments: list[Value], return_type: ArduinoType) -> Value | None:
+        call_args = []
+        for arg in arguments:
+            arg_val = arg.value
+            arg_val = arg_val.value if isinstance(arg_val, Value) else arg_val
+            call_args.append(arg_val)
+
+        if self.fn_name == "__init__":
+            return Value(return_type, self.module(*call_args))
+
         method = getattr(self.module, self.fn_name)
-        return method(*arguments)
+        return Value(return_type, method(*call_args))
 
-    def get_arity(self) -> int:
-        return self.arity
+    def arity(self) -> int:
+        return self.fn_arity
+
+
+class ArduinoClass:
+    name: str
+    python_class: type
+    methods: dict[str, Value]
+    constructor_arity: int
+    constructor_args: list[str]
+
+    def __init__(
+        self, python_class: type, name: str, methods: dict[str, Value], args
+    ) -> None:
+        self.python_class = python_class
+        self.name = name
+        self.methods = methods
+        self.constructor_arity = len(args)
+        self.constructor_args = args
+
+    def arity(self):
+        return self.constructor_arity
+
+    def call(self, arguments: list[Value], return_type: ArduinoType) -> ArduinoInstance:
+        constructor = LibFn(self.python_class, "__init__", self.constructor_args)
+        obj = constructor.call(list(arguments), return_type)
+        return ArduinoInstance(self, obj)
+
+    def find_method(self, method_name: str) -> Value:
+        return self.methods[method_name]
+
+    @override
+    def __repr__(self) -> str:
+        return f"ArduinoClass: name={self.name}, python_class={self.python_class}, constructor_arity={self.constructor_arity}, constructor_args={self.constructor_args}"
+
+
+class ArduinoInstance:
+    klass: ArduinoClass
+    value: Value
+    fields: dict[str, Value]
+
+    def __init__(self, klass: ArduinoClass, value: Value):
+        self.klass = klass
+        self.fields = dict()
+        self.value = value
+
+    @override
+    def __repr__(self) -> str:
+        return f"ArduinoInstance(klass={self.klass}, value={self.value})"
+
+    def get(self, name: Token) -> Value:
+        if name.lexeme in self.fields:
+            return self.fields[name.lexeme]
+        else:
+            method = self.klass.find_method(name.lexeme)
+            return Value(
+                method.value_type,
+                LibFn(self.value.value, name.lexeme, method.value.arity()),
+            )
+
+    def set(self, name: Token, value: Value):
+        self.fields[name.lexeme] = value

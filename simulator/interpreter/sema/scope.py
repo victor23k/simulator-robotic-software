@@ -103,10 +103,7 @@ class ScopeChain:
                 return
 
             if scope.variables.get(name_token.lexeme) is not None:
-
-                scope.variables[
-                    name_token.lexeme
-                ].state = VarState.DEFINED
+                scope.variables[name_token.lexeme].state = VarState.DEFINED
                 return
 
         diag = diagnostic_from_token("Variable defined before declaration", name_token)

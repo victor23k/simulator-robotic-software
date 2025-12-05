@@ -4,6 +4,7 @@ from simulator.interpreter.ast.expr import (
     ArrayRefExpr,
     AssignExpr,
     CallExpr,
+    GetExpr,
     Expr,
     BinaryExpr,
     LiteralExpr,
@@ -184,8 +185,7 @@ class Parser:
 
     def _is_type_name_identifier(self):
         return (
-            self._check(TokenType.IDENTIFIER) 
-            and self._peek().lexeme in self.type_names
+            self._check(TokenType.IDENTIFIER) and self._peek().lexeme in self.type_names
         )
 
     def _declarator_list(self, specifiers) -> Stmt:
@@ -193,7 +193,6 @@ class Parser:
 
         while self._match(TokenType.COMMA):
             declarator_list.append(self._declarator(specifiers))
-
 
         if len(declarator_list) == 1:
             if not isinstance(declarator_list[0], FunctionStmt):
@@ -206,7 +205,7 @@ class Parser:
     def _declarator(self, specifiers) -> VariableStmt | FunctionStmt | ArrayDeclStmt:
         # if self._match(TokenType.STAR):
         #     pointer = self._pointer()
-            
+
         ident = self._consume(TokenType.IDENTIFIER, "Expect identifier")
 
         if self._match(TokenType.LEFT_PAREN):
@@ -409,8 +408,9 @@ class Parser:
             self._advance()
             init_expr = None
         else:
-            if self._match(*var_ttype, TokenType.CONST, TokenType.VOLATILE,
-                          TokenType.STATIC):
+            if self._match(
+                *var_ttype, TokenType.CONST, TokenType.VOLATILE, TokenType.STATIC
+            ):
                 init_expr = self._simple_declaration(self.previous)
                 self._consume(
                     TokenType.SEMICOLON, "Expect ';' after 'for' init declaration"
@@ -440,7 +440,9 @@ class Parser:
         statement = self._statement()
         return ForStmt(init_expr, condition, loop_expr, statement)
 
-    def _function_declaration(self, fn_specifiers: list[Token], identifier: Token) -> FunctionStmt:
+    def _function_declaration(
+        self, fn_specifiers: list[Token], identifier: Token
+    ) -> FunctionStmt:
         params = self._parameters()
 
         self._consume(TokenType.LEFT_BRACE, "Expect '{' before function body.")
@@ -568,7 +570,7 @@ class Parser:
     def _postfix_expr(self) -> Expr:
         primary = self._primary_expr()
 
-        if self._match(TokenType.LEFT_PAREN):
+        if self._check(TokenType.LEFT_PAREN, TokenType.DOT):
             return self._call_expr(primary)
         elif self._match(TokenType.DECREMENT, TokenType.INCREMENT):
             return UnaryExpr(self.previous, False, primary)
@@ -592,8 +594,14 @@ class Parser:
                 expr = self._expression(PrecLevel.MINIMAL)
                 self._consume(TokenType.RIGHT_PAREN, "Unmatched '('")
                 return expr
-            case Token(token=TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL |
-                TokenType.CHAR_LITERAL) as token:
+            case (
+                Token(
+                    token=TokenType.INT_LITERAL
+                    | TokenType.FLOAT_LITERAL
+                    | TokenType.CHAR_LITERAL
+                    | TokenType.STRING_LITERAL
+                ) as token
+            ):
                 return LiteralExpr(token)
             case Token(token=TokenType.IDENTIFIER) as ident:
                 return VariableExpr(ident)
@@ -602,7 +610,20 @@ class Parser:
                     unexpected_token, "Expected number or expression inside parens."
                 )
 
-    def _call_expr(self, fn_expr: Expr):
+    def _call_expr(self, expr: Expr):
+        # callExpr = primaryExpr *( "(" argList? ")" / "." IDENTIFIER )
+        while True:
+            if self._match(TokenType.LEFT_PAREN):
+                expr = self._finish_call_expr(expr)
+            elif self._match(TokenType.DOT):
+                name = self._consume(TokenType.IDENTIFIER, "Expect method after '.'.")
+                expr = GetExpr(expr, name)
+            else:
+                break
+
+        return expr
+
+    def _finish_call_expr(self, callee: Expr) -> CallExpr:
         arguments: list[Expr] = []
 
         if not self._check(TokenType.RIGHT_PAREN):
@@ -618,7 +639,14 @@ class Parser:
 
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments.")
 
-        return CallExpr(fn_expr, arguments)
+        return CallExpr(callee, arguments)
+
+    def _get_expr(self, obj: Expr):
+        name = self._consume(
+            TokenType.IDENTIFIER, "Expect method or attribute name after '.'."
+        )
+
+        return GetExpr(obj, name)
 
     def _consume(self, token_type: TokenType, message: str) -> Token:
         if not self._check(token_type):

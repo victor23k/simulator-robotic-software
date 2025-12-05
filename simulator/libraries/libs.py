@@ -40,7 +40,8 @@ class LibraryManager:
             serial.get_name(): serial.get_not_implemented(),
             string.get_name(): string.get_not_implemented(),
         }
-        self.available_libs: list[str] = []
+        self.available_libs: list[str] = [std.get_name(), string.get_name(),
+                                          serial.get_name()]
 
     def get_libraries(self):
         """

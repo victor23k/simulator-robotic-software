@@ -31,7 +31,7 @@ class ArduinoArray:
 
     @override
     def __eq__(self, value: object, /) -> bool:
-        return (isinstance(value, ArduinoArray) and self.ttype == value.ttype) 
+        return isinstance(value, ArduinoArray) and self.ttype == value.ttype
 
     @override
     def __hash__(self) -> int:
@@ -41,6 +41,7 @@ class ArduinoArray:
 @dataclass
 class ArduinoObjType:
     classname: str
+
 
 def str_to_arduino_type(type_name: str) -> ArduinoType:
     match type_name:
@@ -61,6 +62,7 @@ def str_to_arduino_type(type_name: str) -> ArduinoType:
         case _:
             return ArduinoObjType(type_name)
 
+
 def token_to_arduino_type(token: Token) -> ArduinoType:
     match token.token:
         case TokenType.INT | TokenType.INT_LITERAL:
@@ -69,6 +71,8 @@ def token_to_arduino_type(token: Token) -> ArduinoType:
             return ArduinoBuiltinType.FLOAT
         case TokenType.CHAR | TokenType.CHAR_LITERAL:
             return ArduinoBuiltinType.CHAR
+        case TokenType.STRING_LITERAL:
+            return ArduinoObjType("String")
         case TokenType.DOUBLE:
             return ArduinoBuiltinType.DOUBLE
         case TokenType.BOOL | TokenType.TRUE | TokenType.FALSE:
@@ -109,8 +113,8 @@ def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
     return ArduinoBuiltinType.ERR
 
 
-def type_from_specifier_list(specifiers: list[Token]):
+def type_from_specifier_list(specifiers: list[Token]) -> Token | None:
     try:
         return next(filter(lambda spec: spec.is_var_type(), specifiers))
     except StopIteration:
-        ArduinoBuiltinType.ERR
+        return None

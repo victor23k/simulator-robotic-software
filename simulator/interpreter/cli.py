@@ -34,7 +34,7 @@ def main():
         arduino.run()
 
     elif args.command == "check":
-        if arduino.check():
+        if arduino.compile(None, None):
             print("All good!!")
         else:
             print("Found some errors :(")

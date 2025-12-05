@@ -6,7 +6,12 @@ if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.environment import Environment
 
-from simulator.interpreter.ast.stmt import Function, LibFn
+from simulator.interpreter.ast.stmt import (
+    ArduinoClass,
+    ArduinoInstance,
+    Function,
+    LibFn,
+)
 from simulator.interpreter.environment import Value
 from simulator.interpreter.diagnostic import (
     ArduinoRuntimeError,
@@ -16,6 +21,7 @@ from simulator.interpreter.diagnostic import (
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
     ArduinoArray,
+    ArduinoObjType,
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
@@ -28,6 +34,7 @@ type Expr = (
     | AssignExpr
     | BinaryExpr
     | CallExpr
+    | GetExpr
     | VariableExpr
     | LiteralExpr
     | UnaryExpr
@@ -56,8 +63,7 @@ class ArrayInitExpr:
             name += "="
 
         result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
-        result += ",\n".join([init.to_string(ntab + 2) for init in
-                              self.init_list])
+        result += ",\n".join([init.to_string(ntab + 2) for init in self.init_list])
 
         if self.ttype is not None:
             result += f"{' ' * (ntab + 2)}ttype={self.ttype}\n"
@@ -85,6 +91,7 @@ class ArrayInitExpr:
             self.ttype = ArduinoArray(inner_type)
         else:
             self.init_list.gen_diagnostic("Array initializer must be of a single type.")
+
 
 class AssignExpr:
     """
@@ -197,8 +204,7 @@ class AssignExpr:
             self.ttype = coerce_types(self.l_value.ttype, self.r_value.ttype)
         else:
             diag = diagnostic_from_token(
-                "Type of value assigned is not compatible with variable.",
-                self.op
+                "Type of value assigned is not compatible with variable.", self.op
             )
             diags.append(diag)
             self.ttype = ArduinoBuiltinType.ERR
@@ -264,13 +270,13 @@ class BinaryExpr:
         return Diagnostic(message, self.op.line, self.op.column, self.op.column)
 
     def evaluate(self, env: Environment):
-        left_value = self.lhs.evaluate(env)
-        right_value = self.rhs.evaluate(env)
+        left = self.lhs.evaluate(env)
+        right = self.rhs.evaluate(env)
 
-        if left_value is not None:
-            left_value = left_value.value
-        if right_value is not None:
-            right_value = right_value.value
+        if left is not None:
+            left_value = left.value
+        if right is not None:
+            right_value = right.value
 
         op_fn = self.op_table[self.op.lexeme]
         try:
@@ -313,7 +319,7 @@ class BinaryExpr:
 class UnaryExpr:
     op: Token
     prefix: bool  # if false, postfix
-    operand: Expr # the operand must be an l-value
+    operand: Expr  # the operand must be an l-value
     ttype: ArduinoType
 
     op_table = {
@@ -458,11 +464,10 @@ class ArrayRefExpr:
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         array_type = self.primary.ttype
 
-        while isinstance(array_type, ArduinoArray): 
+        while isinstance(array_type, ArduinoArray):
             array_type = array_type.ttype
 
         self.ttype = array_type
-
 
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.primary.resolve(scope_chain, diagnostics)
@@ -471,15 +476,65 @@ class ArrayRefExpr:
             ArduinoBuiltinType.INT,
             ArduinoBuiltinType.LONG,
             ArduinoBuiltinType.SHORT,
-            ]:
-            diag = self.gen_diagnostic(
-                    "Array reference expr must be of type integral."
-                   )
+        ]:
+            diag = self.gen_diagnostic("Array reference expr must be of type integral.")
             diagnostics.append(diag)
         self.check_type(scope_chain, diagnostics)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return self.index.gen_diagnostic(message)
+
+
+class GetExpr:
+    obj: Expr
+    name: Token
+    ttype: ArduinoType
+
+    def __init__(self, obj: Expr, name: Token) -> None:
+        self.obj = obj
+        self.name = name
+        self.ttype = None
+
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def evaluate(self, env: Environment) -> Value | None:
+        obj = self.obj.evaluate(env)
+        if isinstance(obj, ArduinoInstance):
+            method = obj.get(self.name)
+        elif isinstance(obj, ArduinoClass):
+            method = obj.find_method(self.name.lexeme)
+        else:
+            raise ArduinoRuntimeError(f"Expected object or class name.")
+        return method
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.obj.resolve(scope_chain, diagnostics)
+        self.ttype = self.obj.ttype
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return diagnostic_from_token(message, self.name)
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
+        result += self.obj.to_string(ntab + 2, "obj")
+        result += self.name.to_string(ntab + 2, "name")
+
+        if self.ttype is not None:
+            result += f"{' ' * (ntab + 2)}ttype={self.ttype}\n"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
 
 
 class CallExpr:
@@ -494,31 +549,22 @@ class CallExpr:
         self.arguments = arguments
         self.ttype = None
 
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
     def evaluate(self, env: Environment) -> Value | None:
-        fn = self.callee.evaluate(env)
+        callee = self.callee.evaluate(env)
 
-        if isinstance(fn, Function):
-            if len(self.arguments) != fn.get_arity():
-                raise ArduinoRuntimeError(
-                    f"Expected {fn.get_arity()} arguments but got {len(self.arguments)}."
-                )
+        if len(self.arguments) != callee.value.arity():
+            raise ArduinoRuntimeError(
+                f"Expected {callee.value.arity()} arguments but got {len(self.arguments)}."
+            )
 
-            fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
+        fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
 
-            return fn.call(fn_args)
-        elif isinstance(fn, LibFn):
-            if len(self.arguments) != fn.get_arity():
-                raise ArduinoRuntimeError(
-                    f"Expected {fn.get_arity()} arguments but got {len(self.arguments)}."
-                )
-
-            fn_args = list(map(
-                lambda fn_arg: fn_arg.value if fn_arg is not None else fn_arg,  
-                [fn_arg.evaluate(env) for fn_arg in self.arguments]
-            ))
-
-            value_obj = fn.call(fn_args)
-            return Value(self.ttype, value_obj)
+        val = callee.value.call(fn_args, callee.value_type)
+        return val
 
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = self.callee.ttype
@@ -581,6 +627,12 @@ class LiteralExpr:
         return result
 
     def evaluate(self, _env: Environment) -> Value:
+        if self.ttype == ArduinoObjType("String"):
+            string_value = "".join(
+                map(lambda tok: chr(tok.literal), self.value.literal)
+            )
+            return Value(self.ttype, string_value)
+
         return Value(self.ttype, self.value.literal)
 
     def gen_diagnostic(self, message: str) -> Diagnostic:

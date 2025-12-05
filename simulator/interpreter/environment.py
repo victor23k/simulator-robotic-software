@@ -3,10 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override, Self
 from dataclasses import dataclass
 
-if TYPE_CHECKING:
-    from simulator.interpreter.interpreter import LibFn
-    from simulator.interpreter.ast.stmt import Function
-
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType
 
 
@@ -33,7 +29,6 @@ class Value:
             and self.value == value.value
         )
 
-type EnvValue = Value | Function | LibFn | None
 
 class Environment:
     """
@@ -46,7 +41,7 @@ class Environment:
     Values stored in an environment can be of type Value, Function or LibFn.
     """
 
-    values: dict[str, EnvValue]
+    values: dict[str, Value]
     enclosing: Self | None
 
     def __init__(self, enclosing: Self | None):
@@ -58,7 +53,7 @@ class Environment:
     def __repr__(self) -> str:
         return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
-    def define(self, name: str, value: EnvValue):
+    def define(self, name: str, value: Value):
         """
         Defines a variable by its `name` and `value`.
 
@@ -72,7 +67,7 @@ class Environment:
         # if shadowing is not allowed, use depth to get the env to define
         self.values[name] = value
 
-    def assign(self, name: str, value: EnvValue):
+    def assign(self, name: str, value: Value):
         if name in self.values:
             self.values[name] = value
             return
@@ -84,7 +79,7 @@ class Environment:
         # should be unreachable, checked in the Resolver
         return None
 
-    def get(self, name: str, distance: int) -> EnvValue:
+    def get(self, name: str, distance: int) -> Value | None:
         env = self._ancestor(distance)
 
         if name in env.values:
