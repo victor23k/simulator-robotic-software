@@ -33,6 +33,7 @@ type Expr = (
     | AssignExpr
     | BinaryExpr
     | CallExpr
+    | CastExpr
     | GetExpr
     | VariableExpr
     | LiteralExpr
@@ -275,7 +276,8 @@ class BinaryExpr:
         op_fn = self.op_table[self.op.lexeme]
         try:
             result = op_fn(left_value, right_value)
-            return Value(self.ttype, result)
+            val = Value(self.ttype, result)
+            return val
         except TypeError as e:
             raise BinaryOpException(
                 f"{left_value} and {right_value} not compatible"
@@ -287,7 +289,6 @@ class BinaryExpr:
                 self.ttype = ArduinoBuiltinType.BOOL
             else:
                 self.ttype = coerce_types(self.lhs.ttype, self.rhs.ttype)
-                self.ttype = self.lhs.ttype
         else:
             diag = diagnostic_from_token(
                 f"Types not compatible for this operation. Left operand: \
@@ -595,6 +596,54 @@ class CallExpr:
         pass
 
 
+class CastExpr:
+    cast_type: Token
+    value: Expr
+    ttype: ArduinoType
+
+    def __init__(self, cast_type: Token, value: Expr):
+        self.cast_type = cast_type
+        self.value = value
+        self.ttype = None
+
+    @override
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def evaluate(self, env: Environment) -> Value | None:
+        value = self.value.evaluate(env)
+        if value is not None:
+            value.coerce(self.ttype)
+        return value
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        self.value.resolve(scope_chain, diagnostics)
+        self.ttype = token_to_arduino_type(self.cast_type)
+
+    def gen_diagnostic(self, message: str) -> Diagnostic:
+        return self.value.gen_diagnostic(message)
+
+    def to_string(self, ntab: int = 0, name: str = "") -> str:
+        if name != "":
+            name += "="
+
+        result: str = f"{' ' * ntab}{name}{self.__class__.__name__}(\n"
+        result += self.cast_type.to_string(ntab + 2, "cast_type")
+        result += self.value.to_string(ntab + 2, "value")
+
+        if self.ttype is not None:
+            result += f"{' ' * (ntab + 2)}ttype={self.ttype}\n"
+
+        result += f"{' ' * ntab})\n"
+        return result
+
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve_l(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
+
 class LiteralExpr:
     value: Token
     ttype: ArduinoType
@@ -679,7 +728,8 @@ class VariableExpr:
 
     def evaluate_l(self, env: Environment):
         def set_value(x: object):
-            val = Value(self.ttype, coerce_value(self.ttype, x))
+            val = Value(self.ttype, x)
+            val.coerce(self.ttype)
             env.assign(self.vname.lexeme, val)
             return val
 

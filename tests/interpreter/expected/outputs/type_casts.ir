@@ -1,0 +1,38 @@
+[
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.FLOAT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x'),
+    initializer=LiteralExprSpec(
+      value=TokenSpec(token=TokenType.FLOAT_LITERAL, literal=5.5)
+    )
+  ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='a'),
+    initializer=BinaryExprSpec(
+      lhs=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=10)
+      ),
+      op=TokenSpec(token=TokenType.SLASH),
+      rhs=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+      ),
+    )
+  ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.INT),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='b'),
+    initializer=BinaryExprSpec(
+      lhs=LiteralExprSpec(
+        value=TokenSpec(token=TokenType.INT_LITERAL, literal=10)
+      ),
+      op=TokenSpec(token=TokenType.SLASH),
+      rhs=CastExprSpec(
+        cast_type=TokenSpec(token=TokenType.INT),
+        value=VariableExprSpec(
+          vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='x')
+        ),
+      )
+    )
+  )
+]

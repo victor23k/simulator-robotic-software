@@ -123,6 +123,12 @@ class CallExprSpec:
 
 
 @dataclass
+class CastExprSpec:
+    cast_type: TokenSpec
+    value: ExprSpec
+
+
+@dataclass
 class GetExprSpec:
     obj: ExprSpec
     name: TokenSpec

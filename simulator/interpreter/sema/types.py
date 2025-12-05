@@ -110,7 +110,7 @@ def coerce_types(type_a: ArduinoType, type_b: ArduinoType) -> ArduinoType:
     ]:
         return type_a
 
-    return ArduinoBuiltinType.ERR
+    return type_a
 
 def coerce_value(arduino_type: ArduinoType, value: object) -> object:
     match arduino_type:
@@ -125,6 +125,8 @@ def coerce_value(arduino_type: ArduinoType, value: object) -> object:
             return float(value)
         case ArduinoBuiltinType.BOOL:
             return bool(value)
+        case _:
+            return value
 
 
 

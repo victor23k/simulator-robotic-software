@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override, Self
 from dataclasses import dataclass
 
-from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType
+from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_value
 
 
 @dataclass
@@ -13,13 +13,7 @@ class Value:
 
     def coerce(self, arduino_type: ArduinoType):
         self.value_type = arduino_type
-
-        if arduino_type is ArduinoBuiltinType.FLOAT:
-            self.value = float(self.value)
-        elif arduino_type is ArduinoBuiltinType.INT:
-            self.value = int(self.value)
-        else:
-            pass
+        self.value = coerce_value(self.value_type, self.value)
 
     @override
     def __eq__(self, value: object, /) -> bool:

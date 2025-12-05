@@ -438,7 +438,6 @@ class VariableStmt:
             if (
                 init_value
                 and isinstance(init_value, Value)
-                and init_value.value_type is not self.ttype
             ):
                 init_value.coerce(self.ttype)
 

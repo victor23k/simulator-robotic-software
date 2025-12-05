@@ -4,6 +4,7 @@ from simulator.interpreter.ast.expr import (
     ArrayRefExpr,
     AssignExpr,
     CallExpr,
+    CastExpr,
     GetExpr,
     Expr,
     BinaryExpr,
@@ -497,7 +498,7 @@ class Parser:
         return stmt
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:
-        if self._match(
+        if self._check(
             TokenType.DECREMENT,
             TokenType.INCREMENT,
             TokenType.LOGICAL_NOT,
@@ -508,7 +509,7 @@ class Parser:
         return self._parse_binary_expr(min_prec)
 
     def _unary_expr(self) -> UnaryExpr:
-        op = self.previous
+        op = self._advance()
 
         self._consume(TokenType.IDENTIFIER, "Expect identifier after prefix expression")
 
@@ -605,6 +606,11 @@ class Parser:
                 return LiteralExpr(token)
             case Token(token=TokenType.IDENTIFIER) as ident:
                 return VariableExpr(ident)
+            case Token() as token if token.is_var_type():
+                self._consume(TokenType.LEFT_PAREN, "Expect '(' after type to cast.")
+                expr = self._expression()
+                self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression to cast.")
+                return CastExpr(token, expr)
             case unexpected_token:
                 raise self._error(
                     unexpected_token, "Expected number or expression inside parens."
