@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+from types import ModuleType
 from typing import TYPE_CHECKING, override
+from inspect import signature
 
 if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt
@@ -13,7 +15,7 @@ from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.preprocessor import Preprocessor
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
-from simulator.interpreter.runtime.classes import ArduinoClass
+from simulator.interpreter.runtime.classes import ArduinoClass, ArduinoInstance
 from simulator.interpreter.runtime.functions import Function, LibFn
 
 from simulator.libraries.libs import LibraryManager
@@ -79,17 +81,19 @@ class Interpreter(Arduino):
             statement.execute(self.environment)
 
         setup_fn = self.environment.get("setup", 0)
-        assert isinstance(setup_fn, Function)
+        assert isinstance(setup_fn, Value)
+        assert isinstance(setup_fn.value, Function)
 
-        setup_fn.call([])
+        setup_fn.value.call([], setup_fn.value_type)
 
     @override
     def loop(self):
         loop_fn = self.environment.get("loop", 0)
-        assert isinstance(loop_fn, Function)
+        assert isinstance(loop_fn, Value)
+        assert isinstance(loop_fn.value, Function)
 
         while True:
-            loop_fn.call([])
+            loop_fn.value.call([], loop_fn.value_type)
 
     @override
     def run(self):
@@ -129,6 +133,16 @@ class Interpreter(Arduino):
             logger.error(diag)
 
     def _setup_libraries(self, parser: Parser, resolver: Resolver):
+        self._setup_standard_library_functions(resolver)
+
+        library_modules = self.libraryManager.get_available_libs()
+        for library_module in library_modules:
+            if library_module.get_name() == "Serial": 
+                self._setup_singleton(library_module, resolver)
+            else:
+                self._setup_library_class(library_module, parser, resolver)
+
+    def _setup_standard_library_functions(self, resolver: Resolver):
         for fn_name, fn in standard.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
             resolver.define_library_fn(fn_name, fn_return_type)
@@ -136,30 +150,49 @@ class Interpreter(Arduino):
                 fn_name, Value(fn_return_type, LibFn(standard, fn[1], len(fn[2])))
             )
 
-        string_methods: dict[str, Value] = dict()
-        for fn_name, fn in string.get_methods().items():
+    def _setup_singleton(self, library_class: ModuleType, resolver: Resolver):
+        lib_methods: dict[str, Value] = dict()
+        for fn_name, fn in library_class.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
-            string_methods[fn_name] = Value(
+            lib_methods[fn_name] = Value(
+                fn_return_type, LibFn(library_class, fn[1], len(fn[2]))
+            )
+
+        lib_classname = library_class.get_name()
+        lib_class = getattr(library_class, lib_classname)
+        init_method = getattr(lib_class, "__init__")
+        lib_init_params = signature(init_method).parameters
+        parameters = list(
+            filter(lambda p: p not in ["self", "args", "kwargs"], lib_init_params)
+        )
+        lib_class = ArduinoClass(lib_class, lib_classname, lib_methods, parameters)
+        lib_classtype = ArduinoObjType(lib_classname)
+
+        lib_singleton = lib_class.call([], lib_classtype)
+        resolver.define_library_fn(lib_classname, lib_classtype)
+        self.environment.define(lib_classname, Value(lib_classtype, lib_singleton))
+
+
+    def _setup_library_class(
+        self, library_class: ModuleType, parser: Parser, resolver: Resolver
+    ):
+        lib_methods: dict[str, Value] = dict()
+        for fn_name, fn in library_class.get_methods().items():
+            fn_return_type = str_to_arduino_type(fn[0])
+            lib_methods[fn_name] = Value(
                 fn_return_type, LibFn(string, fn[1], len(fn[2]))
             )
 
-        string_classname = string.get_name()
-        string_class = ArduinoClass(
-            string.String, string_classname, string_methods, ["val"]
+        lib_classname = library_class.get_name()
+        lib_class = getattr(library_class, lib_classname)
+        init_method = getattr(lib_class, "__init__")
+        lib_init_params = signature(init_method).parameters
+        parameters = list(
+            filter(lambda p: p not in ["self", "args", "kwargs"], lib_init_params)
         )
-        string_classtype = ArduinoObjType(string_classname)
-        resolver.define_library_fn(string_classname, string_classtype)
-        self.environment.define(string_classname, Value(string_classtype, string_class))
-        parser.add_type_name(string_classname)
+        lib_class = ArduinoClass(lib_class, lib_classname, lib_methods, parameters)
 
-        servo_methods: dict[str, Value] = dict()
-        for fn_name, fn in servo.get_methods().items():
-            servo_methods[fn_name] = LibFn(servo, fn[1], len(fn[2]))
-
-        servo_classname = servo.get_name()
-        servo_class = ArduinoClass(servo.Servo, servo_classname, servo_methods, [])
-        resolver.define_library_fn(
-            servo_classname, ArduinoObjType(servo_classname)
-        )
-        self.environment.define(servo_classname, servo_class)
-        parser.add_type_name(servo_classname)
+        lib_classtype = ArduinoObjType(lib_classname)
+        resolver.define_library_fn(lib_classname, lib_classtype)
+        self.environment.define(lib_classname, Value(lib_classtype, lib_class))
+        parser.add_type_name(lib_classname)

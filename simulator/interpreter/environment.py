@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override, Self
 from dataclasses import dataclass
 
-from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoType, coerce_value
+from simulator.interpreter.sema.types import (
+    ArduinoBuiltinType,
+    ArduinoType,
+    coerce_value,
+)
 
 
 @dataclass

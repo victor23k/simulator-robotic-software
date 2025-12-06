@@ -609,7 +609,9 @@ class Parser:
             case Token() as token if token.is_var_type():
                 self._consume(TokenType.LEFT_PAREN, "Expect '(' after type to cast.")
                 expr = self._expression()
-                self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression to cast.")
+                self._consume(
+                    TokenType.RIGHT_PAREN, "Expect ')' after expression to cast."
+                )
                 return CastExpr(token, expr)
             case unexpected_token:
                 raise self._error(

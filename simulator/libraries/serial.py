@@ -12,12 +12,26 @@ NOT_IMPL_WARNING = -2
 
 cons: console.Console = None
 
+class Serial:
+    """
+    Serial is implemented as a singleton object from a class specific to the
+    board. This class uses all available methods defined in this module to
+    inject them into instances. Only one instance must be created by the
+    client that implements the singleton.
+    """
+
+    def __init__(self):
+        methods = get_methods()
+        for fn_name in get_methods():
+            _, name, _, _ = methods[fn_name]
+            self.__setattr__(fn_name, globals()[name])
+
 
 def get_name():
     return "Serial"
 
 
-def get_methods():
+def get_methods() -> dict[str, tuple[str, str, list[str], int]]:
     """
     Returns the methods of the library as a dict, whose
     key is the naming in Arduino and whose value is the

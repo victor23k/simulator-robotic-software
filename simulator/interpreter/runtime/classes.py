@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
+
 if TYPE_CHECKING:
     from simulator.interpreter.lex.token import Token
 
@@ -8,27 +9,28 @@ from simulator.interpreter.environment import Value
 from simulator.interpreter.sema.types import ArduinoType
 from simulator.interpreter.runtime.functions import LibFn
 
+
 class ArduinoClass:
     name: str
     python_class: type
     methods: dict[str, Value]
     constructor_arity: int
-    constructor_args: list[str]
+    constructor_params: list[str]
 
     def __init__(
-        self, python_class: type, name: str, methods: dict[str, Value], args
+        self, python_class: type, name: str, methods: dict[str, Value], params
     ) -> None:
         self.python_class = python_class
         self.name = name
         self.methods = methods
-        self.constructor_arity = len(args)
-        self.constructor_args = args
+        self.constructor_arity = len(params)
+        self.constructor_params = params
 
     def arity(self):
         return self.constructor_arity
 
     def call(self, arguments: list[Value], return_type: ArduinoType) -> ArduinoInstance:
-        constructor = LibFn(self.python_class, "__init__", self.constructor_args)
+        constructor = LibFn(self.python_class, "__init__", self.constructor_arity)
         obj = constructor.call(list(arguments), return_type)
         return ArduinoInstance(self, obj)
 
@@ -37,7 +39,7 @@ class ArduinoClass:
 
     @override
     def __repr__(self) -> str:
-        return f"ArduinoClass: name={self.name}, python_class={self.python_class}, constructor_arity={self.constructor_arity}, constructor_args={self.constructor_args}"
+        return f"ArduinoClass: name={self.name}, python_class={self.python_class}, constructor_arity={self.constructor_arity}, constructor_params={self.constructor_params}"
 
 
 class ArduinoInstance:

@@ -435,10 +435,7 @@ class VariableStmt:
         init_value = None
         if self.initializer is not None and self.initializer.ttype is not None:
             init_value = self.initializer.evaluate(environment)
-            if (
-                init_value
-                and isinstance(init_value, Value)
-            ):
+            if init_value and isinstance(init_value, Value):
                 init_value.coerce(self.ttype)
 
             environment.define(self.name.lexeme, init_value)

@@ -7,6 +7,7 @@ Those libraries are:
     - Servo
     - Keyboard
 """
+from types import ModuleType
 import simulator.libraries.standard as std
 import simulator.libraries.serial as serial
 import simulator.libraries.servo as servo
@@ -35,13 +36,19 @@ class LibraryManager:
             servo.get_name(): (servo.get_methods(), string.get_not_implemented()),
             keyboard.get_name(): (keyboard.get_methods(), string.get_not_implemented())
         }
+        self.library_modules = {
+            std.get_name(): std,
+            serial.get_name(): serial,
+            string.get_name(): string,
+            servo.get_name(): servo,
+            keyboard.get_name(): keyboard
+        }
         self.library_not_impl = {
             std.get_name(): std.get_not_implemented(),
             serial.get_name(): serial.get_not_implemented(),
             string.get_name(): string.get_not_implemented(),
         }
-        self.available_libs: list[str] = [std.get_name(), string.get_name(),
-                                          serial.get_name()]
+        self.available_libs: list[str] = [string.get_name(), serial.get_name()]
 
     def get_libraries(self):
         """
@@ -52,13 +59,14 @@ class LibraryManager:
             list_libs.append(key)
         return list_libs
 
-    def get_available_libs(self):
+    def get_available_libs(self) -> list[ModuleType]:
         """
         Gets the list of available libraries for the sketch.
         Returns:
-            list of string with library names.
+            library modules.
         """
-        return self.available_libs
+        return [self.library_modules[lib] for lib in self.available_libs]
+            
 
     def find(self, library, method):
         """
@@ -73,6 +81,9 @@ class LibraryManager:
             if method in self.library_methods[library]:
                 return self.library_methods[library][method]
         return None
+
+    def get_library_module(self, library_name: str) -> ModuleType:
+        return self.library_modules[library_name]
 
     def not_implemented(self, library, method):
         message = ""
