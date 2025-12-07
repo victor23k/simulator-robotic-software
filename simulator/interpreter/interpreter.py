@@ -19,13 +19,12 @@ from simulator.interpreter.runtime.classes import ArduinoClass, ArduinoInstance
 from simulator.interpreter.runtime.functions import Function, LibFn
 
 from simulator.libraries.libs import LibraryManager
-import simulator.libraries.string as string
-import simulator.libraries.servo as servo
 import simulator.libraries.standard as standard
 import simulator.libraries.serial as serial
 import simulator.robot_components.robot_state as state
 
-logger = logging.getLogger("SketchLogger")
+sketch_logger = logging.getLogger("SketchLogger")
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
 class Interpreter(Arduino):
@@ -77,6 +76,8 @@ class Interpreter(Arduino):
 
     @override
     def setup(self):
+
+        logging.debug("Execute top level")
         for statement in self.statements:
             statement.execute(self.environment)
 
@@ -84,6 +85,7 @@ class Interpreter(Arduino):
         assert isinstance(setup_fn, Value)
         assert isinstance(setup_fn.value, Function)
 
+        logging.debug("Execute setup()")
         setup_fn.value.call([], setup_fn.value_type)
 
     @override
@@ -92,8 +94,8 @@ class Interpreter(Arduino):
         assert isinstance(loop_fn, Value)
         assert isinstance(loop_fn.value, Function)
 
-        while True:
-            loop_fn.value.call([], loop_fn.value_type)
+        logging.debug("Execute loop()")
+        loop_fn.value.call([], loop_fn.value_type)
 
     @override
     def run(self):
@@ -130,7 +132,7 @@ class Interpreter(Arduino):
 
     def _log_diagnostics(self):
         for diag in self.diagnostics:
-            logger.error(diag)
+            sketch_logger.error(diag)
 
     def _setup_libraries(self, parser: Parser, resolver: Resolver):
         self._setup_standard_library_functions(resolver)

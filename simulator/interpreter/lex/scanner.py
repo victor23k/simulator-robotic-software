@@ -17,6 +17,9 @@ keywords = {
     "const": TokenType.CONST,
     "static": TokenType.STATIC,
     "volatile": TokenType.VOLATILE,
+    "INPUT": TokenType.INPUT,
+    "INPUT_PULLUP": TokenType.INPUT_PULLUP,
+    "OUTPUT": TokenType.OUTPUT,
 }
 
 types = {

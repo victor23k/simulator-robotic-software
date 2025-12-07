@@ -4,6 +4,7 @@ import simulator.graphics.layers as layers
 import simulator.output.console as console
 import simulator.output.console_gamification as console_gamification
 import simulator.graphics.screen_updater as screen_updater
+import logging
 
 from simulator.arduino import Arduino
 
@@ -39,6 +40,7 @@ class RobotsController:
     def drawing_loop(self):
         screen_updater.refresh()
         if not self.view.keys_used:
+            logging.debug("Loop from drawing controller")
             self.arduino.loop()
         self.view.identifier = self.view.after(10, self.drawing_loop)
 

@@ -601,6 +601,9 @@ class Parser:
                     | TokenType.FLOAT_LITERAL
                     | TokenType.CHAR_LITERAL
                     | TokenType.STRING_LITERAL
+                    | TokenType.INPUT_PULLUP
+                    | TokenType.INPUT
+                    | TokenType.OUTPUT
                 ) as token
             ):
                 return LiteralExpr(token)
