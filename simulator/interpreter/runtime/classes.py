@@ -14,24 +14,36 @@ class ArduinoClass:
     name: str
     python_class: type
     methods: dict[str, Value]
-    constructor_arity: int
+    constructor_arity: range
     constructor_params: list[str]
+    constructor: LibFn
 
     def __init__(
-        self, python_class: type, name: str, methods: dict[str, Value], params
+        self,
+        python_class: type,
+        name: str,
+        methods: dict[str, Value],
+        params: list[str],
+        constructor: LibFn | None = None,
     ) -> None:
         self.python_class = python_class
         self.name = name
         self.methods = methods
-        self.constructor_arity = len(params)
+        self.constructor_arity = range(len(params), len(params) + 1)
         self.constructor_params = params
+        self.constructor = constructor or LibFn(
+            self.python_class, "__init__", self.constructor_arity
+        )
 
-    def arity(self):
+    def arity(self) -> range:
         return self.constructor_arity
 
-    def call(self, arguments: list[Value], return_type: ArduinoType) -> ArduinoInstance:
-        constructor = LibFn(self.python_class, "__init__", self.constructor_arity)
-        obj = constructor.call(list(arguments), return_type)
+    def call(
+        self,
+        arguments: list[Value],
+        return_type: ArduinoType,
+    ) -> ArduinoInstance:
+        obj = self.constructor.call(list(arguments), return_type)
         return ArduinoInstance(self, obj)
 
     def find_method(self, method_name: str) -> Value:

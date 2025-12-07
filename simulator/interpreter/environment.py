@@ -51,7 +51,7 @@ class Environment:
     def __repr__(self) -> str:
         return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
-    def define(self, name: str, value: Value):
+    def define(self, name: str, value: Value | None):
         """
         Defines a variable by its `name` and `value`.
 

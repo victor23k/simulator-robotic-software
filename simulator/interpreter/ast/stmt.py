@@ -6,19 +6,21 @@ from dataclasses import dataclass
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
 
+from simulator.interpreter.runtime.classes import ArduinoClass
 from simulator.interpreter.sema.resolver import (
     ControlFlowState,
     FunctionState,
     FunctionType,
 )
 import simulator.interpreter.sema.scope as scope
-from simulator.interpreter.runtime.functions import Function, ReturnException
-from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
+from simulator.interpreter.runtime.functions import Function, LibFn, ReturnException
+from simulator.interpreter.diagnostic import ArduinoRuntimeError, Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
     ArduinoArray,
     ArduinoBuiltinType,
+    ArduinoObjType,
     ArduinoType,
     coerce_types,
     token_to_arduino_type,
@@ -433,9 +435,20 @@ class VariableStmt:
 
     def execute(self, environment: Environment):
         init_value = None
-        if self.initializer is not None and self.initializer.ttype is not None:
+        if self.initializer is None and isinstance(self.ttype, ArduinoObjType):
+            if (fn := environment.get(self.ttype.classname, 0)) is None:
+                raise ArduinoRuntimeError("Trying to initialize an object without default constructor or outside of top level scope.")
+            elif isinstance(fn.value, ArduinoClass):
+                init_value = fn.value.call([], self.ttype)
+                init_value = Value(self.ttype, init_value)
+            else:
+                init_value = None
+
+            environment.define(self.name.lexeme, init_value)
+
+        elif self.initializer is not None and self.initializer.ttype is not None:
             init_value = self.initializer.evaluate(environment)
-            if init_value and isinstance(init_value, Value):
+            if init_value:
                 init_value.coerce(self.ttype)
 
             environment.define(self.name.lexeme, init_value)

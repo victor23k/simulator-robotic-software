@@ -137,7 +137,7 @@ class Interpreter(Arduino):
 
         library_modules = self.libraryManager.get_available_libs()
         for library_module in library_modules:
-            if library_module.get_name() == "Serial": 
+            if library_module.get_name() == "Serial":
                 self._setup_singleton(library_module, resolver)
             else:
                 self._setup_library_class(library_module, parser, resolver)
@@ -145,17 +145,19 @@ class Interpreter(Arduino):
     def _setup_standard_library_functions(self, resolver: Resolver):
         for fn_name, fn in standard.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
+            arity = self._compute_fn_arity(fn[2])
             resolver.define_library_fn(fn_name, fn_return_type)
             self.environment.define(
-                fn_name, Value(fn_return_type, LibFn(standard, fn[1], len(fn[2])))
+                fn_name, Value(fn_return_type, LibFn(standard, fn[1], arity))
             )
 
     def _setup_singleton(self, library_class: ModuleType, resolver: Resolver):
         lib_methods: dict[str, Value] = dict()
         for fn_name, fn in library_class.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
+            arity = self._compute_fn_arity(fn[2])
             lib_methods[fn_name] = Value(
-                fn_return_type, LibFn(library_class, fn[1], len(fn[2]))
+                fn_return_type, LibFn(library_class, fn[1], arity)
             )
 
         lib_classname = library_class.get_name()
@@ -172,15 +174,15 @@ class Interpreter(Arduino):
         resolver.define_library_fn(lib_classname, lib_classtype)
         self.environment.define(lib_classname, Value(lib_classtype, lib_singleton))
 
-
     def _setup_library_class(
         self, library_class: ModuleType, parser: Parser, resolver: Resolver
     ):
         lib_methods: dict[str, Value] = dict()
         for fn_name, fn in library_class.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
+            arity = self._compute_fn_arity(fn[2])
             lib_methods[fn_name] = Value(
-                fn_return_type, LibFn(string, fn[1], len(fn[2]))
+                fn_return_type, LibFn(library_class, fn[1], arity)
             )
 
         lib_classname = library_class.get_name()
@@ -190,9 +192,27 @@ class Interpreter(Arduino):
         parameters = list(
             filter(lambda p: p not in ["self", "args", "kwargs"], lib_init_params)
         )
-        lib_class = ArduinoClass(lib_class, lib_classname, lib_methods, parameters)
 
+        constructor_fn_name = f"__{lib_classname}_constructor"
+        if constructor_fn_name in lib_methods:
+            constructor = lib_methods.pop(constructor_fn_name).value
+        else:
+            constructor = None
+
+        lib_class = ArduinoClass(
+            lib_class, lib_classname, lib_methods, parameters, constructor
+        )
         lib_classtype = ArduinoObjType(lib_classname)
         resolver.define_library_fn(lib_classname, lib_classtype)
         self.environment.define(lib_classname, Value(lib_classtype, lib_class))
         parser.add_type_name(lib_classname)
+
+    def _compute_fn_arity(self, parameters: list[str]) -> int | range:
+        max_arity = len(parameters)
+        optional_parameters = len(
+            list(
+                filter(lambda param: param[:1] == "(" and param[-1:] == ")", parameters)
+            )
+        )
+
+        return range(max_arity - optional_parameters, max_arity + 1)

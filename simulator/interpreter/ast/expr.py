@@ -496,9 +496,9 @@ class GetExpr:
 
     def evaluate(self, env: Environment) -> Value | None:
         obj = self.obj.evaluate(env)
-        if isinstance(obj.value, ArduinoInstance):
+        if obj and isinstance(obj.value, ArduinoInstance):
             method = obj.value.get(self.name)
-        elif isinstance(obj.value, ArduinoClass):
+        elif obj and isinstance(obj.value, ArduinoClass):
             method = obj.value.find_method(self.name.lexeme)
         else:
             raise ArduinoRuntimeError(f"Expected object or class name.")
@@ -551,7 +551,7 @@ class CallExpr:
     def evaluate(self, env: Environment) -> Value | None:
         callee = self.callee.evaluate(env)
 
-        if len(self.arguments) != callee.value.arity():
+        if len(self.arguments) not in callee.value.arity():
             raise ArduinoRuntimeError(
                 f"Error calling {callee.value}. Expected {callee.value.arity()} arguments but got {len(self.arguments)}."
             )

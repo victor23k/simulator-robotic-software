@@ -1,3 +1,4 @@
+from simulator.libraries import standard
 import simulator.robot_components.boards as boards
 
 
@@ -14,6 +15,7 @@ def get_methods():
         A dict with the methods
     """
     methods = {}
+    methods[f"__{get_name()}_constructor"] = ("Servo", "servo_constructor", [], -1)
     methods["attach"] = ("void", "attach", ['int', '(int)', '(int)'], -1)
     methods["write"] = ("void", "write", ['int'], -1)
     methods["writeMicroseconds"] = ("void", "write_microseconds", ['int'], -1)
@@ -26,6 +28,8 @@ def get_methods():
 def get_not_implemented():
     return []
 
+def servo_constructor():
+    return Servo(standard.board)
 
 class Servo:
     """

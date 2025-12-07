@@ -20,10 +20,10 @@ class Function:
     body: list[Stmt]
     closure: Environment
 
-    def arity(self) -> int:
+    def arity(self) -> range:
         "Returns the function's number of parameters"
 
-        return len(self.params)
+        return range(len(self.params), len(self.params) + 1)
 
     def call(self, arguments: list[Value | None], _ret_type) -> Value | None:
         "Call the function and return."
@@ -53,13 +53,13 @@ class ReturnException(Exception):
 class LibFn:
     module: type
     fn_name: str
-    fn_arity: int
+    fn_arity: range
 
     @override
     def __repr__(self) -> str:
         return f"LibFn(module={self.module}, fn_name={self.fn_name}, fn_arity={self.fn_arity})"
 
-    def __init__(self, module: type, fn_name: str, fn_arity: int) -> None:
+    def __init__(self, module: type, fn_name: str, fn_arity: range) -> None:
         self.module = module
         self.fn_name = fn_name
         self.fn_arity = fn_arity
@@ -77,5 +77,5 @@ class LibFn:
         method = getattr(self.module, self.fn_name)
         return Value(return_type, method(*call_args))
 
-    def arity(self) -> int:
+    def arity(self) -> range:
         return self.fn_arity
