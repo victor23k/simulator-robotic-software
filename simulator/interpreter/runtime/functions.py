@@ -51,7 +51,7 @@ class ReturnException(Exception):
 
 
 class LibFn:
-    module: type
+    module: type | object
     fn_name: str
     fn_arity: range
 
@@ -68,7 +68,9 @@ class LibFn:
         call_args = []
         for arg in arguments:
             arg_val = arg.value
-            arg_val = arg_val.value if isinstance(arg_val, Value) else arg_val
+            # Checking the ArduinoInstance type with isinstance would cause a circular import
+            if hasattr(arg_val, 'instance'): 
+                arg_val = arg_val.instance
             call_args.append(arg_val)
 
         if self.fn_name == "__init__":

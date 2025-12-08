@@ -157,14 +157,20 @@ class InterpretCase(unittest.TestCase):
                 results = matches.groupdict()
                 with self.subTest(f"{self.filename}: {line}"):
                     value = interpreter.environment.get(results["identifier"], 0)
-                    value = value.value if isinstance(value, ArduinoInstance) else value
                     self.assertIsInstance(value, Value)
-                    self.assertEqual(str(value.value), results["value"])
+
                     if results["type"] in ArduinoBuiltinType.__members__:
-                        expected_result = ArduinoBuiltinType[results["type"]]
+                        expected_result_type = ArduinoBuiltinType[results["type"]]
                     else:
-                        expected_result = ArduinoObjType(results["type"])
-                    self.assertEqual(value.value_type, expected_result)
+                        expected_result_type = ArduinoObjType(results["type"])
+
+                    self.assertEqual(value.value_type, expected_result_type)
+
+                    if isinstance(value.value, ArduinoInstance):
+                        instance = value.value.instance
+                        self.assertEqual(str(instance), results["value"])
+                    else:
+                        self.assertEqual(str(value.value), results["value"])
 
 
 def load_tests(loader, tests, pattern):

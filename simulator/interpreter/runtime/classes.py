@@ -44,7 +44,7 @@ class ArduinoClass:
         return_type: ArduinoType,
     ) -> ArduinoInstance:
         obj = self.constructor.call(list(arguments), return_type)
-        return ArduinoInstance(self, obj)
+        return ArduinoInstance(self, obj.value)
 
     def find_method(self, method_name: str) -> Value:
         return self.methods[method_name]
@@ -56,17 +56,17 @@ class ArduinoClass:
 
 class ArduinoInstance:
     klass: ArduinoClass
-    value: Value
+    instance: object
     fields: dict[str, Value]
 
-    def __init__(self, klass: ArduinoClass, value: Value):
+    def __init__(self, klass: ArduinoClass, instance: object):
         self.klass = klass
         self.fields = dict()
-        self.value = value
+        self.instance = instance
 
     @override
     def __repr__(self) -> str:
-        return f"ArduinoInstance(klass={self.klass}, value={self.value})"
+        return f"ArduinoInstance(klass={self.klass}, instance={self.instance})"
 
     def get(self, name: Token) -> Value:
         if name.lexeme in self.fields:
@@ -75,7 +75,7 @@ class ArduinoInstance:
             method = self.klass.find_method(name.lexeme)
             return Value(
                 method.value_type,
-                LibFn(self.value.value, name.lexeme, method.value.arity()),
+                LibFn(self.instance, name.lexeme, method.value.arity()),
             )
 
     def set(self, name: Token, value: Value):

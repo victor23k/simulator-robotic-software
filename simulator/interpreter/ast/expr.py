@@ -558,6 +558,8 @@ class CallExpr:
         fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
 
         val = callee.value.call(fn_args, callee.value_type)
+        if not isinstance(val, Value):
+            val = Value(self.ttype, val)
         return val
 
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
