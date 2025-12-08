@@ -1,4 +1,5 @@
 import os
+from typing import override
 import unittest
 import fnmatch
 import re
@@ -61,6 +62,10 @@ class ExpectedOutputCase(unittest.TestCase):
         self.ir: str = ir
         self.filename: str = filename
 
+    @override
+    def shortDescription(self) -> str | None:
+        return f"Compare AST for sketch '{self.filename}'"
+
     def runTest(self):
         interpreter = Interpreter(self.code)
         interpreter.compile(None, None)
@@ -86,6 +91,10 @@ class ExpectedFailureCase(unittest.TestCase):
         self.code: str = code
         self.filename: str = filename
 
+    @override
+    def shortDescription(self) -> str | None:
+        return f"Expect faiilure for sketch '{self.filename}'"
+
     def runTest(self):
         interpreter = Interpreter(self.code)
         interpreter.compile(None, None)
@@ -105,6 +114,10 @@ class ScannerOutputCase(unittest.TestCase):
         self.code: str = code
         self.tok: str = tok
         self.filename: str = filename
+
+    @override
+    def shortDescription(self) -> str | None:
+        return f"Compare scanner output for sketch '{self.filename}'"
 
     def runTest(self):
         scanner = Scanner(self.code)
@@ -128,6 +141,10 @@ class InterpretCase(unittest.TestCase):
         self.code: str = code
         self.expected_results: str = expected
         self.filename: str = filename
+
+    @override
+    def shortDescription(self) -> str | None:
+        return f"Interpret sketch '{self.filename}'"
 
     def runTest(self):
         interpreter = Interpreter(self.code)
