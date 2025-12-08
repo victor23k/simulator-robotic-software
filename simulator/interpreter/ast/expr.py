@@ -23,7 +23,6 @@ from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoType,
     coerce_types,
-    coerce_value,
     token_to_arduino_type,
     types_compatibility,
 )

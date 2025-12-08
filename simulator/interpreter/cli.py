@@ -35,12 +35,12 @@ def main():
 
     elif args.command == "check":
         if arduino.compile(None, None):
-            print("All good!!")
+            logging.info("All good!!")
         else:
-            print("Found some errors :(")
+            logging.info("Found some errors :(")
 
     elif args.command == "debug":
-        print("Debug not implemented yet")
+        logging.warning("Debug not implemented yet")
         pass
 
 

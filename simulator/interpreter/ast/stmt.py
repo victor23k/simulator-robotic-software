@@ -13,7 +13,7 @@ from simulator.interpreter.sema.resolver import (
     FunctionType,
 )
 import simulator.interpreter.sema.scope as scope
-from simulator.interpreter.runtime.functions import Function, LibFn, ReturnException
+from simulator.interpreter.runtime.functions import Function, ReturnException
 from simulator.interpreter.diagnostic import ArduinoRuntimeError, Diagnostic, diagnostic_from_token
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
@@ -22,7 +22,6 @@ from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoObjType,
     ArduinoType,
-    coerce_types,
     token_to_arduino_type,
     type_from_specifier_list,
     types_compatibility,

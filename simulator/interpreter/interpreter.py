@@ -15,7 +15,7 @@ from simulator.interpreter.parse.parser import Parser
 from simulator.interpreter.preprocessor import Preprocessor
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
-from simulator.interpreter.runtime.classes import ArduinoClass, ArduinoInstance
+from simulator.interpreter.runtime.classes import ArduinoClass
 from simulator.interpreter.runtime.functions import Function, LibFn
 
 from simulator.libraries.libs import LibraryManager

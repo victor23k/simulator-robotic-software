@@ -10,7 +10,6 @@ from simulator.interpreter.lex.token import Token
 from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,
     ArduinoType,
-    token_to_arduino_type,
 )
 
 
