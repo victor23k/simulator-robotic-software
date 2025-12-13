@@ -6,6 +6,7 @@ from dataclasses import dataclass
 if TYPE_CHECKING:
     import simulator.interpreter.ast.expr as expr
 
+from simulator.interpreter.debugger.adb import Action, DebugState
 from simulator.interpreter.runtime.classes import ArduinoClass
 from simulator.interpreter.sema.resolver import (
     ControlFlowState,
@@ -14,7 +15,11 @@ from simulator.interpreter.sema.resolver import (
 )
 import simulator.interpreter.sema.scope as scope
 from simulator.interpreter.runtime.functions import Function, ReturnException
-from simulator.interpreter.diagnostic import ArduinoRuntimeError, Diagnostic, diagnostic_from_token
+from simulator.interpreter.diagnostic import (
+    ArduinoRuntimeError,
+    Diagnostic,
+    diagnostic_from_token,
+)
 from simulator.interpreter.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
@@ -27,34 +32,69 @@ from simulator.interpreter.sema.types import (
     types_compatibility,
 )
 
-type Stmt = (
-    ArrayDeclStmt
-    | BlockStmt
-    | ExpressionStmt
-    | FunctionStmt
-    | ReturnStmt
-    | DeclarationListStmt
-    | VariableStmt
-    | IfStmt
-    | BreakStmt
-    | ContinueStmt
-    | SwitchStmt
-    | CaseStmt
-    | WhileStmt
-    | DoWhileStmt
-    | ForStmt
-)
+
+class Stmt:
+    def __init__(self) -> None:
+        pass
+
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn: str = "execute",
+        expr_eval_fn: str = "evaluate",
+        *eval_args,
+    ) -> Value | None:
+        """
+        Evaluation wrapper.
+        """
+
+        pass
+
+    def to_string(self, ntab: int, name: str = "") -> str:
+        return ""
+
+    def debug(self, env: Environment, dbg_state: DebugState) -> Value | None:
+        dbg_state.current_node = self
+
+        match dbg_state.action:
+            case Action.STEP | Action.NEXT:
+                dbg_state.lock.release()
+            case _:
+                pass
+
+        self.run(env, "debug", "debug", dbg_state)
+
+    def execute(self, env: Environment):
+        self.run(env)
+
+
+def evaluate(expr, expr_eval_fn, env, *eval_args):
+    expr_eval = getattr(expr, expr_eval_fn)
+    value = expr_eval(env, *eval_args)
+    return value
+
+
+def execute(stmt, stmt_exec_fn, env, *eval_args):
+    stmt_exec = getattr(stmt, stmt_exec_fn)
+    stmt_exec(env, *eval_args)
 
 
 @dataclass
-class BlockStmt:
+class BlockStmt(Stmt):
     stmts: list[Stmt]
 
-    def execute(self, env: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         block_env = Environment(enclosing=env)
 
         for stmt in self.stmts:
-            stmt.execute(block_env)
+            execute(stmt, stmt_exec_fn, block_env, *eval_args)
 
         del block_env
 
@@ -76,6 +116,7 @@ class BlockStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -90,11 +131,18 @@ class BlockStmt:
 
 
 @dataclass
-class ExpressionStmt:
+class ExpressionStmt(Stmt):
     expr: expr.Expr
 
-    def execute(self, env: Environment):
-        self.expr.evaluate(env)
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
+        evaluate(self.expr, expr_eval_fn, env, *eval_args)
 
     def resolve(
         self,
@@ -109,6 +157,7 @@ class ExpressionStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -120,12 +169,20 @@ class ExpressionStmt:
 
 
 @dataclass
-class ReturnStmt:
+class ReturnStmt(Stmt):
     expr: expr.Expr
     ttype: ArduinoType
 
-    def execute(self, env: Environment):
-        value = self.expr.evaluate(env)
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
+        value = evaluate(self.expr, expr_eval_fn, env, *eval_args)
+
         raise ReturnException(value)
 
     def resolve(
@@ -151,6 +208,7 @@ class ReturnStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -166,10 +224,17 @@ class ReturnStmt:
 
 
 @dataclass
-class BreakStmt:
+class BreakStmt(Stmt):
     brk: Token
 
-    def execute(self, _env: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         raise BreakException()
 
     def resolve(
@@ -189,6 +254,7 @@ class BreakStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -197,10 +263,17 @@ class BreakStmt:
 
 
 @dataclass
-class ContinueStmt:
+class ContinueStmt(Stmt):
     cont: Token
 
-    def execute(self, _env: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         raise ContinueException()
 
     def resolve(
@@ -220,6 +293,7 @@ class ContinueStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -228,13 +302,14 @@ class ContinueStmt:
 
 
 @dataclass
-class DeclarationListStmt:
+class DeclarationListStmt(Stmt):
     declarations: list[VariableStmt]
 
     @override
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -246,9 +321,16 @@ class DeclarationListStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         for decl in self.declarations:
-            decl.execute(environment)
+            execute(decl, stmt_exec_fn, env, *eval_args)
 
     def resolve(
         self,
@@ -261,7 +343,7 @@ class DeclarationListStmt:
             decl.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-class ArrayDeclStmt:
+class ArrayDeclStmt(Stmt):
     const: bool
     dimensions: list[expr.Expr | None]
     array_type: Token
@@ -287,6 +369,7 @@ class ArrayDeclStmt:
     def __repr__(self) -> str:
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -308,17 +391,24 @@ class ArrayDeclStmt:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         init_value = None
         dimensions = []
         for dimension in self.dimensions:
             if dimension is not None:
-                dimensions.append(dimension.evaluate(environment))
+                dimensions.append(evaluate(dimension, expr_eval_fn, env, *eval_args))
             else:
                 dimensions.append(None)
 
         if self.initializer is not None and self.initializer.ttype is not None:
-            init_value = self.initializer.evaluate(environment)
+            init_value = evaluate(self.initializer, expr_eval_fn, env, *eval_args)
             if (
                 init_value
                 and isinstance(init_value, Value)
@@ -344,7 +434,7 @@ class ArrayDeclStmt:
 
             init_value = Value(self.ttype, init_array(dimensions))
 
-        environment.define(self.name.lexeme, init_value)
+        env.define(self.name.lexeme, init_value)
 
     def resolve(
         self,
@@ -389,7 +479,7 @@ class ArrayDeclStmt:
         return ArduinoBuiltinType.ERR
 
 
-class VariableStmt:
+class VariableStmt(Stmt):
     const: bool
     var_type: Token
     name: Token
@@ -412,6 +502,7 @@ class VariableStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -432,27 +523,36 @@ class VariableStmt:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         init_value = None
         if self.initializer is None and isinstance(self.ttype, ArduinoObjType):
-            if (fn := environment.get(self.ttype.classname, 0)) is None:
-                raise ArduinoRuntimeError("Trying to initialize an object without default constructor or outside of top level scope.")
+            if (fn := env.get(self.ttype.classname, 0)) is None:
+                raise ArduinoRuntimeError(
+                    "Trying to initialize an object without default constructor or outside of top level scope."
+                )
             elif isinstance(fn.value, ArduinoClass):
                 init_value = fn.value.call([], self.ttype)
                 init_value = Value(self.ttype, init_value)
             else:
                 init_value = None
 
-            environment.define(self.name.lexeme, init_value)
+            env.define(self.name.lexeme, init_value)
 
         elif self.initializer is not None and self.initializer.ttype is not None:
-            init_value = self.initializer.evaluate(environment)
+            init_value = evaluate(self.initializer, expr_eval_fn, env, *eval_args)
             if init_value:
                 init_value.coerce(self.ttype)
 
-            environment.define(self.name.lexeme, init_value)
+            env.define(self.name.lexeme, init_value)
         else:
-            environment.define(self.name.lexeme, None)
+            env.define(self.name.lexeme, None)
 
     def resolve(
         self,
@@ -495,7 +595,7 @@ class VariableStmt:
 
 
 @dataclass
-class IfStmt:
+class IfStmt(Stmt):
     condition: expr.Expr
     then_branch: Stmt
     else_branch: Stmt | None
@@ -504,6 +604,7 @@ class IfStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -518,16 +619,23 @@ class IfStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
-        condition_value = self.condition.evaluate(environment)
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
+        condition_value = evaluate(self.condition, expr_eval_fn, env, *eval_args)
         if (
             isinstance(condition_value, Value)
             and condition_value.value_type == ArduinoBuiltinType.BOOL
             and condition_value.value
         ):
-            self.then_branch.execute(environment)
+            execute(self.then_branch, stmt_exec_fn, env, *eval_args)
         elif self.else_branch is not None:
-            self.else_branch.execute(environment)
+            execute(self.else_branch, stmt_exec_fn, env, *eval_args)
 
     def resolve(
         self,
@@ -542,7 +650,7 @@ class IfStmt:
             self.else_branch.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-class FunctionStmt:
+class FunctionStmt(Stmt):
     name: Token
     params: list[VariableStmt]
     body: list[Stmt]
@@ -562,7 +670,14 @@ class FunctionStmt:
         self.return_type = type_from_specifier_list(specifiers)
         self.ttype = None
 
-    def execute(self, env: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         fn = Function(self.params, self.body, env)
         env.define(self.name.lexeme, Value(self.ttype, fn))
 
@@ -593,6 +708,7 @@ class FunctionStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -617,7 +733,7 @@ class FunctionStmt:
 
 
 @dataclass
-class CaseStmt:
+class CaseStmt(Stmt):
     label: expr.LiteralExpr | expr.VariableExpr
     stmts: list[Stmt]
 
@@ -625,6 +741,7 @@ class CaseStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -637,9 +754,16 @@ class CaseStmt:
         result += f"{' ' * ntab})"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         for stmt in self.stmts:
-            stmt.execute(environment)
+            execute(stmt, stmt_exec_fn, env, *eval_args)
 
     def resolve(
         self,
@@ -654,13 +778,14 @@ class CaseStmt:
 
 
 @dataclass
-class DefaultStmt:
+class DefaultStmt(Stmt):
     stmts: list[Stmt]
 
     @override
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -672,9 +797,16 @@ class DefaultStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         for stmt in self.stmts:
-            stmt.execute(environment)
+            execute(stmt, stmt_exec_fn, env, *eval_args)
 
     def resolve(
         self,
@@ -688,7 +820,7 @@ class DefaultStmt:
 
 
 @dataclass
-class SwitchStmt:
+class SwitchStmt(Stmt):
     var: expr.LiteralExpr | expr.VariableExpr
     cases: list[CaseStmt]
     default: DefaultStmt | None
@@ -697,6 +829,7 @@ class SwitchStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -709,25 +842,32 @@ class SwitchStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
-        var = self.var.evaluate(environment)
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
+        var = evaluate(self.var, expr_eval_fn, env, *eval_args)
 
         matching_case_idx = next(
             (
                 idx
                 for (idx, case) in enumerate(self.cases)
-                if case.label.evaluate(environment) == var
+                if evaluate(case.label, expr_eval_fn, env, *eval_args) == var
             ),
             None,
         )
 
         try:
             if matching_case_idx is None and self.default is not None:
-                self.default.execute(environment)
+                execute(self.default, stmt_exec_fn, env, *eval_args)
             else:
                 for case in self.cases[matching_case_idx:]:
                     for stmt in case.stmts:
-                        stmt.execute(environment)
+                        execute(stmt, stmt_exec_fn, env, *eval_args)
 
         except BreakException:
             pass
@@ -750,7 +890,7 @@ class SwitchStmt:
 
 
 @dataclass
-class WhileStmt:
+class WhileStmt(Stmt):
     condition: expr.Expr
     statement: Stmt
 
@@ -758,6 +898,7 @@ class WhileStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -768,14 +909,23 @@ class WhileStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         try:
-            while (condition := self.condition.evaluate(environment)) and (
+            while (
+                condition := evaluate(self.condition, expr_eval_fn, env, *eval_args)
+            ) and (
                 (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
                 or condition.value != 0
             ):
                 try:
-                    self.statement.execute(environment)
+                    execute(self.statement, stmt_exec_fn, env, *eval_args)
                 except ContinueException:
                     continue
 
@@ -794,7 +944,7 @@ class WhileStmt:
 
 
 @dataclass
-class DoWhileStmt:
+class DoWhileStmt(Stmt):
     statement: Stmt
     condition: expr.Expr
 
@@ -802,6 +952,7 @@ class DoWhileStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -812,15 +963,24 @@ class DoWhileStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         try:
-            self.statement.execute(environment)
-            while (condition := self.condition.evaluate(environment)) and (
+            execute(self.statement, stmt_exec_fn, env, *eval_args)
+            while (
+                condition := evaluate(self.condition, expr_eval_fn, env, *eval_args)
+            ) and (
                 (condition.value_type is ArduinoBuiltinType.BOOL and condition.value)
                 or condition.value != 0
             ):
                 try:
-                    self.statement.execute(environment)
+                    execute(self.statement, stmt_exec_fn, env, *eval_args)
                 except ContinueException:
                     continue
 
@@ -839,7 +999,7 @@ class DoWhileStmt:
 
 
 @dataclass
-class ForStmt:
+class ForStmt(Stmt):
     init_expr: expr.Expr | VariableStmt | None
     condition: expr.Expr | None
     loop_expr: expr.Expr | None
@@ -849,6 +1009,7 @@ class ForStmt:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -864,19 +1025,28 @@ class ForStmt:
         result += f"{' ' * ntab})\n"
         return result
 
-    def execute(self, environment: Environment):
+    @override
+    def run(
+        self,
+        env: Environment,
+        stmt_exec_fn="execute",
+        expr_eval_fn="evaluate",
+        *eval_args,
+    ):
         if isinstance(self.init_expr, VariableStmt):
-            self.init_expr.execute(environment)
+            execute(self.init_expr, stmt_exec_fn, env, *eval_args)
         elif self.init_expr is not None:
-            self.init_expr.evaluate(environment)
+            evaluate(self.init_expr, expr_eval_fn, env, *eval_args)
 
         try:
             if self.condition is None:
-                self._infinite_loop(environment)
+                self._infinite_loop(env, stmt_exec_fn, *eval_args)
             else:
-                condition = self.condition.evaluate(environment)
+                condition = evaluate(self.condition, expr_eval_fn, env, *eval_args)
 
-                while (condition := self.condition.evaluate(environment)) and (
+                while (
+                    condition := evaluate(self.condition, expr_eval_fn, env, *eval_args)
+                ) and (
                     (
                         condition.value_type is ArduinoBuiltinType.BOOL
                         and condition.value
@@ -884,21 +1054,21 @@ class ForStmt:
                     or condition.value != 0
                 ):
                     try:
-                        self.statement.execute(environment)
+                        execute(self.statement, stmt_exec_fn, env, *eval_args)
                         if self.loop_expr is not None:
-                            self.loop_expr.evaluate(environment)
+                            evaluate(self.loop_expr, expr_eval_fn, env, *eval_args)
                     except ContinueException:
                         if self.loop_expr is not None:
-                            self.loop_expr.evaluate(environment)
+                            evaluate(self.loop_expr, expr_eval_fn, env, *eval_args)
                         continue
 
         except BreakException:
             pass
 
-    def _infinite_loop(self, environment: Environment):
+    def _infinite_loop(self, env: Environment, stmt_exec_fn: str, *eval_args):
         while True:
             try:
-                self.statement.execute(environment)
+                execute(self.statement, stmt_exec_fn, env, *eval_args)
             except ContinueException:
                 continue
 

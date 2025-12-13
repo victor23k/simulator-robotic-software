@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
     from simulator.interpreter.environment import Environment
 
+from simulator.interpreter.debugger.adb import Action, DebugState
 from simulator.interpreter.runtime.classes import (
     ArduinoClass,
     ArduinoInstance,
@@ -27,29 +29,60 @@ from simulator.interpreter.sema.types import (
     types_compatibility,
 )
 
-type Expr = (
-    ArrayInitExpr
-    | AssignExpr
-    | BinaryExpr
-    | CallExpr
-    | CastExpr
-    | GetExpr
-    | VariableExpr
-    | LiteralExpr
-    | UnaryExpr
-    | ArrayRefExpr
-)
-
 
 class BinaryOpException(Exception):
     pass
 
 
-class ArrayInitExpr:
+class Expr:
+    def __init__(self) -> None:
+        pass
+
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        """
+        Evaluation wrapper.
+        """
+
+        pass
+
+    def to_string(self, ntab: int, name: str = "") -> str:
+        return ""
+
+    def evaluate_l(self, env: Environment):
+        pass
+
+    def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
+        pass
+
+    def debug(self, env: Environment, dbg_state: DebugState) -> Value | None:
+        dbg_state.current_node = self
+
+        match dbg_state.action:
+            case Action.STEP:
+                dbg_state.lock.release()
+            case _:
+                pass
+
+        return self.run(env, "debug", dbg_state)
+
+    def evaluate(self, env: Environment) -> Value | None:
+        return self.run(env)
+
+
+def evaluate(expr, env, expr_eval_fn, *eval_args) -> Value | None:
+    expr_eval = getattr(expr, expr_eval_fn)
+    value = expr_eval(env, *eval_args)
+    return value
+
+
+class ArrayInitExpr(Expr):
     init_list: list[Expr]
     ttype: ArduinoType
 
     def __init__(self, init_list: list[Expr]):
+        super().__init__()
         self.init_list = init_list
         self.ttype = None
 
@@ -57,6 +90,7 @@ class ArrayInitExpr:
     def __repr__(self) -> str:
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -70,14 +104,21 @@ class ArrayInitExpr:
         result += f"{' ' * ntab})\n"
         return result
 
-    def evaluate(self, environment: Environment) -> Value:
-        value_list = [expr.evaluate(environment) for expr in self.init_list]
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value:
+        value_list = [
+            evaluate(expr, env, expr_eval_fn, *eval_args) for expr in self.init_list
+        ]
 
         return Value(self.ttype, value_list)
 
+    @override
     def evaluate_l(self, env: Environment):
         pass
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         ttypes: list[ArduinoType] = []
 
@@ -92,7 +133,7 @@ class ArrayInitExpr:
             self.init_list.gen_diagnostic("Array initializer must be of a single type.")
 
 
-class AssignExpr:
+class AssignExpr(Expr):
     """
     An assignment expression takes the right-hand operand and assigns it to the
     l-value.
@@ -125,6 +166,7 @@ class AssignExpr:
     }
 
     def __init__(self, l_value: Expr, op: Token, r_value: Expr):
+        super().__init__()
         self.l_value = l_value
         self.op = op
         self.r_value = r_value
@@ -134,6 +176,7 @@ class AssignExpr:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -152,7 +195,10 @@ class AssignExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.l_value)
 
-    def evaluate(self, env: Environment) -> Value | None:
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
         # An lvalue expr evaluates to a function that given a value x, will assign
         # that x value to the resulting expr.
         #
@@ -161,8 +207,8 @@ class AssignExpr:
         # For a simple ArrayRefExpr, like a[0], this is a function that sets value x to the array
         # slot inside the variable value in the corresponding Environment.
 
-        r_value_result = self.r_value.evaluate(env)
-        l_value_result = self.l_value.evaluate(env)
+        r_value_result = evaluate(self.r_value, env, expr_eval_fn, *eval_args)
+        l_value_result = evaluate(self.l_value, env, expr_eval_fn, *eval_args)
         l_value_assign_fn = self.l_value.evaluate_l(env)
         assert l_value_assign_fn is not None
 
@@ -178,6 +224,7 @@ class AssignExpr:
 
         return l_value_assign_fn(result)
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.r_value.resolve(scope_chain, diagnostics)
         self.l_value.resolve(scope_chain, diagnostics)
@@ -187,6 +234,7 @@ class AssignExpr:
 
         self.check_type(scope_chain, diagnostics)
 
+    @override
     def evaluate_l(self, env: Environment):
         return self.evaluate
 
@@ -204,7 +252,7 @@ class AssignExpr:
             self.ttype = ArduinoBuiltinType.ERR
 
 
-class BinaryExpr:
+class BinaryExpr(Expr):
     lhs: Expr
     op: Token
     rhs: Expr
@@ -236,6 +284,7 @@ class BinaryExpr:
     }
 
     def __init__(self, lhs: Expr, op: Token, rhs: Expr):
+        super().__init__()
         self.lhs = lhs
         self.op = op
         self.rhs = rhs
@@ -245,6 +294,7 @@ class BinaryExpr:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -263,9 +313,12 @@ class BinaryExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return Diagnostic(message, self.op.line, self.op.column, self.op.column)
 
-    def evaluate(self, env: Environment):
-        left = self.lhs.evaluate(env)
-        right = self.rhs.evaluate(env)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        left = evaluate(self.lhs, env, expr_eval_fn, *eval_args)
+        right = evaluate(self.rhs, env, expr_eval_fn, *eval_args)
 
         if left is not None:
             left_value = left.value
@@ -298,11 +351,13 @@ class BinaryExpr:
             diagnostics.append(diag)
             self.ttype = ArduinoBuiltinType.ERR
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.lhs.resolve(scope_chain, diagnostics)
         self.rhs.resolve(scope_chain, diagnostics)
         self.check_type(scope_chain, diagnostics)
 
+    @override
     def evaluate_l(self, env: Environment):
         pass
 
@@ -310,7 +365,7 @@ class BinaryExpr:
         pass
 
 
-class UnaryExpr:
+class UnaryExpr(Expr):
     op: Token
     prefix: bool  # if false, postfix
     operand: Expr  # the operand must be an l-value
@@ -327,6 +382,7 @@ class UnaryExpr:
     }
 
     def __init__(self, op: Token, prefix: bool, operand: Expr):
+        super().__init__()
         self.op = op
         self.prefix = prefix
         self.operand = operand
@@ -336,8 +392,11 @@ class UnaryExpr:
     def __repr__(self):
         return self.to_string()
 
-    def evaluate(self, env: Environment) -> Value | None:
-        var = self.operand.evaluate(env)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        var = evaluate(self.operand, env, expr_eval_fn, *eval_args)
         operand_assign_fn = self.operand.evaluate_l(env)
 
         if var is None:
@@ -352,6 +411,7 @@ class UnaryExpr:
         else:
             return var
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.operand.resolve(scope_chain, diagnostics)
         if (
@@ -402,12 +462,13 @@ class UnaryExpr:
         pass
 
 
-class ArrayRefExpr:
+class ArrayRefExpr(Expr):
     primary: Expr
     index: Expr
     ttype: ArduinoType
 
     def __init__(self, primary: Expr, index: Expr):
+        super().__init__()
         self.primary = primary
         self.index = index
         self.ttype = None
@@ -416,6 +477,7 @@ class ArrayRefExpr:
     def __repr__(self) -> str:
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -430,9 +492,12 @@ class ArrayRefExpr:
         result += f"{' ' * ntab})\n"
         return result
 
-    def evaluate(self, environment: Environment) -> Value:
-        array_var = self.primary.evaluate(environment)
-        index_val = self.index.evaluate(environment)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        array_var = evaluate(self.primary, env, expr_eval_fn, *eval_args)
+        index_val = evaluate(self.index, env, expr_eval_fn, *eval_args)
 
         assert array_var is not None
         assert isinstance(array_var.value, list)
@@ -463,6 +528,7 @@ class ArrayRefExpr:
 
         self.ttype = array_type
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.primary.resolve(scope_chain, diagnostics)
         self.index.resolve(scope_chain, diagnostics)
@@ -479,12 +545,13 @@ class ArrayRefExpr:
         return self.index.gen_diagnostic(message)
 
 
-class GetExpr:
+class GetExpr(Expr):
     obj: Expr
     name: Token
     ttype: ArduinoType
 
     def __init__(self, obj: Expr, name: Token) -> None:
+        super().__init__()
         self.obj = obj
         self.name = name
         self.ttype = None
@@ -493,8 +560,11 @@ class GetExpr:
     def __repr__(self) -> str:
         return self.to_string()
 
-    def evaluate(self, env: Environment) -> Value | None:
-        obj = self.obj.evaluate(env)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        obj = evaluate(self.obj, env, expr_eval_fn, *eval_args)
         if obj and isinstance(obj.value, ArduinoInstance):
             method = obj.value.get(self.name)
         elif obj and isinstance(obj.value, ArduinoClass):
@@ -503,6 +573,7 @@ class GetExpr:
             raise ArduinoRuntimeError(f"Expected object or class name.")
         return method
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.obj.resolve(scope_chain, diagnostics)
         self.ttype = self.obj.ttype
@@ -531,7 +602,7 @@ class GetExpr:
         pass
 
 
-class CallExpr:
+class CallExpr(Expr):
     callee: Expr
     # callee can be the function name (VariableExpr) and a method call on an
     # object (GetExpr). The latter is not implemented yet.
@@ -539,6 +610,7 @@ class CallExpr:
     ttype: ArduinoType
 
     def __init__(self, callee: Expr, arguments: list[Expr]):
+        super().__init__()
         self.callee = callee
         self.arguments = arguments
         self.ttype = None
@@ -547,8 +619,11 @@ class CallExpr:
     def __repr__(self) -> str:
         return self.to_string()
 
-    def evaluate(self, env: Environment) -> Value | None:
-        callee = self.callee.evaluate(env)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        callee = evaluate(self.callee, env, expr_eval_fn, *eval_args)
 
         if len(self.arguments) not in callee.value.arity():
             raise ArduinoRuntimeError(
@@ -565,6 +640,7 @@ class CallExpr:
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = self.callee.ttype
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.callee.resolve(scope_chain, diagnostics)
         for call_arg in self.arguments:
@@ -574,6 +650,7 @@ class CallExpr:
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return self.callee.gen_diagnostic(message)
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -590,6 +667,7 @@ class CallExpr:
         result += f"{' ' * ntab})\n"
         return result
 
+    @override
     def evaluate_l(self, env: Environment):
         pass
 
@@ -597,12 +675,13 @@ class CallExpr:
         pass
 
 
-class CastExpr:
+class CastExpr(Expr):
     cast_type: Token
     value: Expr
     ttype: ArduinoType
 
     def __init__(self, cast_type: Token, value: Expr):
+        super().__init__()
         self.cast_type = cast_type
         self.value = value
         self.ttype = None
@@ -611,12 +690,16 @@ class CastExpr:
     def __repr__(self) -> str:
         return self.to_string()
 
-    def evaluate(self, env: Environment) -> Value | None:
-        value = self.value.evaluate(env)
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
+        value = evaluate(self.value, env, expr_eval_fn, *eval_args)
         if value is not None:
             value.coerce(self.ttype)
         return value
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.value.resolve(scope_chain, diagnostics)
         self.ttype = token_to_arduino_type(self.cast_type)
@@ -645,11 +728,12 @@ class CastExpr:
         pass
 
 
-class LiteralExpr:
+class LiteralExpr(Expr):
     value: Token
     ttype: ArduinoType
 
     def __init__(self, token: Token):
+        super().__init__()
         self.value = token
         self.ttype = None
 
@@ -657,6 +741,7 @@ class LiteralExpr:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -670,7 +755,10 @@ class LiteralExpr:
         result += f"{' ' * ntab})\n"
         return result
 
-    def evaluate(self, _env: Environment) -> Value:
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
         if self.ttype == ArduinoObjType("String"):
             string_value = "".join(
                 map(lambda tok: chr(tok.literal), self.value.literal)
@@ -685,9 +773,11 @@ class LiteralExpr:
     def check_type(self, _scope_chain: ScopeChain, _diags: list[Diagnostic]):
         self.ttype = token_to_arduino_type(self.value)
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.check_type(scope_chain, diagnostics)
 
+    @override
     def evaluate_l(self, env: Environment):
         pass
 
@@ -695,12 +785,13 @@ class LiteralExpr:
         pass
 
 
-class VariableExpr:
+class VariableExpr(Expr):
     vname: Token
     ttype: ArduinoType
     scope_distance: int
 
     def __init__(self, token: Token):
+        super().__init__()
         self.vname = token
         self.ttype = None
         self.scope_distance = 0
@@ -709,6 +800,7 @@ class VariableExpr:
     def __repr__(self):
         return self.to_string()
 
+    @override
     def to_string(self, ntab: int = 0, name: str = "") -> str:
         if name != "":
             name += "="
@@ -723,10 +815,14 @@ class VariableExpr:
         result += f"{' ' * ntab})\n"
         return result
 
-    def evaluate(self, env: Environment) -> Value | None:
+    @override
+    def run(
+        self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
+    ) -> Value | None:
         value = env.get(self.vname.lexeme, self.scope_distance)
         return value
 
+    @override
     def evaluate_l(self, env: Environment):
         def set_value(x: object):
             val = Value(self.ttype, x)
@@ -746,6 +842,7 @@ class VariableExpr:
     def check_type(self, scope_chain: ScopeChain, _diagnostics: list[Diagnostic]):
         self.ttype = scope_chain.get_type_at(self.vname, self.scope_distance)
 
+    @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.scope_distance = scope_chain.use(self.vname)
         self.check_type(scope_chain, diagnostics)
