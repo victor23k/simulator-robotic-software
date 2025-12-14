@@ -53,6 +53,9 @@ class Stmt:
     def to_string(self, ntab: int, name: str = "") -> str:
         return ""
 
+    def set_breakpoint(self, line_number: int) -> bool:
+        return False
+
     def debug(self, env: Environment, dbg_state: DebugState) -> Value | None:
         dbg_state.current_node = self
 
@@ -62,7 +65,10 @@ class Stmt:
                 dbg_state.input_event.clear()
                 dbg_state.input_event.wait()
             case _:
-                pass
+                if self.breakpoint:
+                    dbg_state.stopped.set()
+                    dbg_state.input_event.clear()
+                    dbg_state.input_event.wait()
 
         self.run(env, "debug", "debug", dbg_state)
 
@@ -81,9 +87,16 @@ def execute(stmt, stmt_exec_fn, env, *eval_args):
     stmt_exec(env, *eval_args)
 
 
-@dataclass
 class BlockStmt(Stmt):
     stmts: list[Stmt]
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, stmts: list[Stmt], line_number: int) -> None:
+        super().__init__()
+        self.stmts = stmts
+        self.line_number = line_number
+        self.breakpoint = False
 
     @override
     def run(
@@ -99,6 +112,17 @@ class BlockStmt(Stmt):
             execute(stmt, stmt_exec_fn, block_env, *eval_args)
 
         del block_env
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        else:
+            for stmt in self.stmts:
+                if stmt.set_breakpoint(line_number):
+                    return True
+
+        return False
 
     def resolve(
         self,
@@ -132,9 +156,16 @@ class BlockStmt(Stmt):
         return result
 
 
-@dataclass
 class ExpressionStmt(Stmt):
     expr: expr.Expr
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, expr: expr.Expr, line_number: int) -> None:
+        super().__init__()
+        self.expr = expr
+        self.line_number = line_number
+        self.breakpoint = False
 
     @override
     def run(
@@ -145,6 +176,13 @@ class ExpressionStmt(Stmt):
         *eval_args,
     ):
         evaluate(self.expr, expr_eval_fn, env, *eval_args)
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     def resolve(
         self,
@@ -170,10 +208,18 @@ class ExpressionStmt(Stmt):
         return result
 
 
-@dataclass
 class ReturnStmt(Stmt):
     expr: expr.Expr
     ttype: ArduinoType
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, expr: expr.Expr, line_number: int) -> None:
+        super().__init__()
+        self.expr = expr
+        self.ttype = None
+        self.line_number = line_number
+        self.breakpoint = False
 
     @override
     def run(
@@ -186,6 +232,13 @@ class ReturnStmt(Stmt):
         value = evaluate(self.expr, expr_eval_fn, env, *eval_args)
 
         raise ReturnException(value)
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     def resolve(
         self,
@@ -228,6 +281,14 @@ class ReturnStmt(Stmt):
 @dataclass
 class BreakStmt(Stmt):
     brk: Token
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, brk: Token) -> None:
+        super().__init__()
+        self.brk = brk
+        self.line_number = brk.line
+        self.breakpoint = False
 
     @override
     def run(
@@ -238,6 +299,13 @@ class BreakStmt(Stmt):
         *eval_args,
     ):
         raise BreakException()
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     def resolve(
         self,
@@ -267,6 +335,14 @@ class BreakStmt(Stmt):
 @dataclass
 class ContinueStmt(Stmt):
     cont: Token
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, cont: Token) -> None:
+        super().__init__()
+        self.cont = cont
+        self.line_number = cont.line
+        self.breakpoint = False
 
     @override
     def run(
@@ -277,6 +353,13 @@ class ContinueStmt(Stmt):
         *eval_args,
     ):
         raise ContinueException()
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     def resolve(
         self,
@@ -303,9 +386,23 @@ class ContinueStmt(Stmt):
         return result
 
 
-@dataclass
 class DeclarationListStmt(Stmt):
-    declarations: list[VariableStmt]
+    declarations: list[Stmt]
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, declarations: list[Stmt], line_number: int) -> None:
+        super().__init__()
+        self.declarations = declarations
+        self.line_number = line_number
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -352,6 +449,8 @@ class ArrayDeclStmt(Stmt):
     name: Token
     initializer: expr.Expr | None
     ttype: ArduinoType
+    line_number: int
+    breakpoint: bool
 
     def __init__(
         self,
@@ -367,6 +466,15 @@ class ArrayDeclStmt(Stmt):
         self.name = name
         self.initializer = initializer
         self.ttype = None
+        self.line_number = specifiers[0].line
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     @override
     def __repr__(self) -> str:
@@ -488,6 +596,8 @@ class VariableStmt(Stmt):
     name: Token
     initializer: expr.Expr | None
     ttype: ArduinoType
+    line_number: int
+    breakpoint: bool
 
     def __init__(
         self,
@@ -501,6 +611,15 @@ class VariableStmt(Stmt):
         self.var_type = type_from_specifier_list(specifiers)
         self.const = TokenType.CONST in [spec.token for spec in specifiers]
         self.ttype = None
+        self.line_number = specifiers[0].line
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -598,11 +717,38 @@ class VariableStmt(Stmt):
         return ArduinoBuiltinType.ERR
 
 
-@dataclass
 class IfStmt(Stmt):
     condition: expr.Expr
     then_branch: Stmt
     else_branch: Stmt | None
+    line_number: int
+    breakpoint: bool
+
+    def __init__(
+        self,
+        condition: expr.Expr,
+        then_branch: Stmt,
+        else_branch: Stmt | None,
+        line_number,
+    ) -> None:
+        super().__init__()
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch
+        self.line_number = line_number
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        else:
+            if self.then_branch.set_breakpoint(line_number):
+                return True
+            if self.else_branch and self.else_branch.set_breakpoint(line_number):
+                return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -660,6 +806,8 @@ class FunctionStmt(Stmt):
     body: list[Stmt]
     return_type: Token
     ttype: ArduinoType
+    line_number: int
+    breakpoint: bool
 
     def __init__(
         self,
@@ -674,6 +822,19 @@ class FunctionStmt(Stmt):
         self.body = body
         self.return_type = type_from_specifier_list(specifiers)
         self.ttype = None
+        self.line_number = name.line
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        else:
+            for stmt in self.body:
+                if stmt.set_breakpoint(line_number):
+                    return True
+
+        return False
 
     @override
     def run(
@@ -737,10 +898,29 @@ class FunctionStmt(Stmt):
         return result
 
 
-@dataclass
 class CaseStmt(Stmt):
     label: expr.LiteralExpr | expr.VariableExpr
     stmts: list[Stmt]
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, label: expr.Expr, stmts: list[Stmt], line_number: int) -> None:
+        super().__init__()
+        self.label = label
+        self.stmts = stmts
+        self.line_number = line_number
+        self.breakpoint = False
+
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        else:
+            for stmt in self.stmts:
+                if stmt.set_breakpoint(line_number):
+                    return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -785,6 +965,7 @@ class CaseStmt(Stmt):
 @dataclass
 class DefaultStmt(Stmt):
     stmts: list[Stmt]
+    line_number: int
 
     @override
     def __repr__(self):
@@ -824,11 +1005,26 @@ class DefaultStmt(Stmt):
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-@dataclass
 class SwitchStmt(Stmt):
     var: expr.LiteralExpr | expr.VariableExpr
     cases: list[CaseStmt]
     default: DefaultStmt | None
+    line_number: int
+    breakpoint: bool
+
+    def __init__(
+        self,
+        var: expr.Expr,
+        cases: list[CaseStmt],
+        default: DefaultStmt | None,
+        line_number: int,
+    ) -> None:
+        super().__init__()
+        self.var = var
+        self.cases = cases
+        self.default = default
+        self.line_number = line_number
+        self.breakpoint = False
 
     @override
     def __repr__(self):
@@ -894,10 +1090,28 @@ class SwitchStmt(Stmt):
             self.default.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-@dataclass
 class WhileStmt(Stmt):
     condition: expr.Expr
     statement: Stmt
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, condition: expr.Expr, stmt: Stmt, line_number: int) -> None:
+        super().__init__()
+        self.condition = condition
+        self.statement = stmt
+        self.line_number = line_number
+        self.breakpoint = False
+
+    @override
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        elif self.statement.set_breakpoint(line_number):
+            return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -948,10 +1162,28 @@ class WhileStmt(Stmt):
         self.statement.resolve(scope_chain, diagnostics, fn_type, ControlFlowState.LOOP)
 
 
-@dataclass
 class DoWhileStmt(Stmt):
     statement: Stmt
     condition: expr.Expr
+    line_number: int
+    breakpoint: bool
+
+    def __init__(self, stmt: Stmt, condition: expr.Expr, line_number: int) -> None:
+        super().__init__()
+        self.statement = stmt
+        self.condition = condition
+        self.line_number = line_number
+        self.breakpoint = False
+
+    @override
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        elif self.statement.set_breakpoint(line_number):
+            return True
+
+        return False
 
     @override
     def __repr__(self):
@@ -1003,12 +1235,39 @@ class DoWhileStmt(Stmt):
         self.condition.resolve(scope_chain, diagnostics)
 
 
-@dataclass
 class ForStmt(Stmt):
     init_expr: expr.Expr | VariableStmt | None
     condition: expr.Expr | None
     loop_expr: expr.Expr | None
     statement: Stmt
+    line_number: int
+    breakpoint: bool
+
+    def __init__(
+        self,
+        init_expr: expr.Expr | VariableStmt | None,
+        condition: expr.Expr | None,
+        loop_expr: expr.Expr | None,
+        stmt: Stmt,
+        line_number: int,
+    ) -> None:
+        super().__init__()
+        self.init_expr = init_expr
+        self.condition = condition
+        self.loop_expr = loop_expr
+        self.statement = stmt
+        self.line_number = line_number
+        self.breakpoint = False
+
+    @override
+    def set_breakpoint(self, line_number: int) -> bool:
+        if self.line_number == line_number:
+            self.breakpoint = True
+            return True
+        elif self.statement.set_breakpoint(line_number):
+            return True
+
+        return False
 
     @override
     def __repr__(self):

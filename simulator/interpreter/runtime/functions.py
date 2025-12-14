@@ -69,7 +69,7 @@ class LibFn:
         for arg in arguments:
             arg_val = arg.value
             # Checking the ArduinoInstance type with isinstance would cause a circular import
-            if hasattr(arg_val, 'instance'): 
+            if hasattr(arg_val, "instance"):
                 arg_val = arg_val.instance
             call_args.append(arg_val)
 

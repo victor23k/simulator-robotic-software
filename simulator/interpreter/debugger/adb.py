@@ -73,6 +73,13 @@ class Debugger(Thread):
     def print(self):
         print(self.debug_state.current_node)
 
+    def set_breakpoint(self, line_number: int) -> bool:
+        for stmt in self.program:
+            if stmt.set_breakpoint(line_number):
+                return True
+
+        return False
+
 
 class DebugState:
     current_node: Stmt | Expr

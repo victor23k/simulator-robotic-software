@@ -201,7 +201,7 @@ class Parser:
             return declarator_list[0]
 
         self._consume(TokenType.SEMICOLON, "Expect ';' after declaration list.")
-        return DeclarationListStmt(declarator_list)
+        return DeclarationListStmt(declarator_list, specifiers[0].line)
 
     def _declarator(self, specifiers) -> VariableStmt | FunctionStmt | ArrayDeclStmt:
         # if self._match(TokenType.STAR):
@@ -287,10 +287,10 @@ class Parser:
                 return self._expression_statement()
 
     def _return_stmt(self):
-        self._advance()  # RETURN
+        return_token = self._advance()  # RETURN
         expr = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after return expression.")
-        return ReturnStmt(expr, ttype=None)
+        return ReturnStmt(expr, return_token.line)
 
     def _break_stmt(self):
         brk = self._advance()  # BREAK
@@ -303,7 +303,7 @@ class Parser:
         return ContinueStmt(cont)
 
     def _if_stmt(self):
-        self._advance()  # IF
+        if_token = self._advance()  # IF
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after if statement.")
         condition = self._expression()
@@ -315,10 +315,10 @@ class Parser:
         if self._match(TokenType.ELSE):
             else_branch = self._statement()
 
-        return IfStmt(condition, then_branch, else_branch)
+        return IfStmt(condition, then_branch, else_branch, if_token.line)
 
     def _switch_stmt(self) -> SwitchStmt:
-        self._advance()  # SWITCH
+        switch_token = self._advance()  # SWITCH
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after switch statement.")
         var = self._parse_atom()
@@ -337,17 +337,19 @@ class Parser:
 
         default = None
         if self._match(TokenType.DEFAULT):
+            default_token = self.previous
             self._consume(TokenType.COLON, "Expect ':' after default.")
             stmts: list[Stmt] = []
             while self._peek().token is not TokenType.RIGHT_BRACE:
                 stmts.append(self._statement())
 
-            default = DefaultStmt(stmts)
+            default = DefaultStmt(stmts, default_token.line)
 
         self._consume(TokenType.RIGHT_BRACE, "Expect '}' to end switch.")
-        return SwitchStmt(var, cases, default)
+        return SwitchStmt(var, cases, default, switch_token.line)
 
     def _case_stmt(self) -> CaseStmt:
+        case_token = self.previous
         label = self._parse_atom()
         if not (isinstance(label, LiteralExpr) or isinstance(label, VariableExpr)):
             raise self._error(
@@ -364,7 +366,7 @@ class Parser:
         ]:
             stmts.append(self._statement())
 
-        return CaseStmt(label, stmts)
+        return CaseStmt(label, stmts, case_token.line)
 
     def _block(self) -> BlockStmt:
         stmts: list[Stmt] = []
@@ -374,22 +376,25 @@ class Parser:
             if stmt is not None:
                 stmts.append(stmt)
 
-        self._consume(TokenType.RIGHT_BRACE, "Expect '}' to close a block.")
+        right_brace = self._consume(
+            TokenType.RIGHT_BRACE, "Expect '}' to close a block."
+        )
+        line_number = stmts[0].line_number if len(stmts) > 0 else right_brace.line
 
-        return BlockStmt(stmts)
+        return BlockStmt(stmts, line_number)
 
     def _while_stmt(self) -> WhileStmt:
-        self._advance()  # WHILE
+        while_token = self._advance()  # WHILE
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after while.")
         condition = self._expression()
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' to close while condition.")
 
         statement = self._statement()
-        return WhileStmt(condition, statement)
+        return WhileStmt(condition, statement, while_token.line)
 
     def _do_while_stmt(self) -> DoWhileStmt:
-        self._advance()  # DO
+        do_token = self._advance()  # DO
 
         statement = self._statement()
         self._consume(TokenType.WHILE, "Expect 'while' after do-while statement.")
@@ -398,10 +403,10 @@ class Parser:
         self._consume(TokenType.RIGHT_PAREN, "Expect ')' to close do-while condition.")
         self._consume(TokenType.SEMICOLON, "Expect ';' after do-while condition.")
 
-        return DoWhileStmt(statement, condition)
+        return DoWhileStmt(statement, condition, do_token.line)
 
     def _for_stmt(self) -> ForStmt:
-        self._advance()  # FOR
+        for_token = self._advance()  # FOR
 
         self._consume(TokenType.LEFT_PAREN, "Expect '(' after for.")
 
@@ -439,7 +444,7 @@ class Parser:
             )
 
         statement = self._statement()
-        return ForStmt(init_expr, condition, loop_expr, statement)
+        return ForStmt(init_expr, condition, loop_expr, statement, for_token.line)
 
     def _function_declaration(
         self, fn_specifiers: list[Token], identifier: Token
@@ -493,8 +498,8 @@ class Parser:
 
     def _expression_statement(self) -> ExpressionStmt:
         expr = self._expression()
-        self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
-        stmt = ExpressionStmt(expr)
+        semicolon = self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        stmt = ExpressionStmt(expr, semicolon.line)
         return stmt
 
     def _expression(self, min_prec: PrecLevel = PrecLevel.MINIMAL) -> Expr:

@@ -49,14 +49,22 @@ def main():
 
 def debugger_loop(debugger: Debugger):
     debugger.start()
+    help_prompt = """Commands available:
+c (continue)
+s (step) 
+n (next)
+p (print current node)
+b[line] (set breakpoint on line)
+"""
+
+    print("Welcome to the arduino debugger.")
+    print(help_prompt)
     while debugger.debug_state.stopped.wait():
         if debugger.debug_state.finished:
             print("finished debugging")
             break
         while True:
-            command = input(
-                "c (continue) | s (step) | n (next) | p (print current node):\t"
-            )
+            command = input("adb> ")
             match command:
                 case "c":
                     debugger.cont()
@@ -69,8 +77,18 @@ def debugger_loop(debugger: Debugger):
                     break
                 case "p":
                     debugger.print()
+                case "h":
+                    print(help_prompt)
+                case brk if brk.startswith('b'):
+                    line_number = int(brk[1:])
+                    if debugger.set_breakpoint(line_number):
+                        break
+                    else:
+                        print("Line not found.")
                 case _:
                     print("Command not recognized. Select a valid command.")
+                    print(help_prompt)
+
 
 if __name__ == "__main__":
     main()
