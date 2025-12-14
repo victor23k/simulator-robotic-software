@@ -58,7 +58,9 @@ class Stmt:
 
         match dbg_state.action:
             case Action.STEP | Action.NEXT:
-                dbg_state.lock.release()
+                dbg_state.stopped.set()
+                dbg_state.input_event.clear()
+                dbg_state.input_event.wait()
             case _:
                 pass
 
@@ -358,6 +360,7 @@ class ArrayDeclStmt(Stmt):
         name: Token,
         initializer: expr.Expr | None,
     ):
+        super().__init__()
         self.dimensions = dimensions
         self.array_type = type_from_specifier_list(specifiers)
         self.const = TokenType.CONST in [spec.token for spec in specifiers]
@@ -492,6 +495,7 @@ class VariableStmt(Stmt):
         ident: Token,
         initializer: expr.Expr | None = None,
     ):
+        super().__init__()
         self.name = ident
         self.initializer = initializer
         self.var_type = type_from_specifier_list(specifiers)
@@ -664,6 +668,7 @@ class FunctionStmt(Stmt):
         body: list[Stmt],
         specifiers: list[Token],
     ):
+        super().__init__()
         self.name = name
         self.params = params
         self.body = body

@@ -1,8 +1,10 @@
 import argparse
+import readline
 import logging
 import sys
 
 from simulator.arduino import Arduino
+from simulator.interpreter.debugger.adb import Debugger
 from simulator.interpreter.interpreter import Interpreter
 
 
@@ -40,9 +42,35 @@ def main():
             logging.info("Found some errors :(")
 
     elif args.command == "debug":
-        logging.warning("Debug not implemented yet")
-        pass
+        if arduino.compile(None, None):
+            debugger = arduino.debug()
+            debugger_loop(debugger)
 
+
+def debugger_loop(debugger: Debugger):
+    debugger.start()
+    while debugger.debug_state.stopped.wait():
+        if debugger.debug_state.finished:
+            print("finished debugging")
+            break
+        while True:
+            command = input(
+                "c (continue) | s (step) | n (next) | p (print current node):\t"
+            )
+            match command:
+                case "c":
+                    debugger.cont()
+                    break
+                case "s":
+                    debugger.step()
+                    break
+                case "n":
+                    debugger.next()
+                    break
+                case "p":
+                    debugger.print()
+                case _:
+                    print("Command not recognized. Select a valid command.")
 
 if __name__ == "__main__":
     main()

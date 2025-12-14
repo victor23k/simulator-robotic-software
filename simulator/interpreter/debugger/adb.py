@@ -5,7 +5,7 @@ Arduino debugger.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from threading import Lock, Thread
+from threading import Event, Thread
 from typing import TYPE_CHECKING, Any, Callable, override
 from enum import Enum
 
@@ -26,12 +26,14 @@ class Action(Enum):
 class Debugger(Thread):
     debug_state: DebugState
     environment: Environment
+    program: list[Stmt]
 
     def __init__(
         self,
-        start_node: Stmt,
+        program: list[Stmt],
         environment: Environment,
-        lock: Lock,
+        input_event: Event,
+        stopped: Event,
         group: None = None,
         target: Callable[..., object] | None = None,
         name: str | None = None,
@@ -41,23 +43,47 @@ class Debugger(Thread):
         daemon: bool | None = None,
     ) -> None:
         super().__init__(group, target, name, args, kwargs, daemon=daemon)
-        self.debug_state = DebugState(start_node, lock)
+        self.debug_state = DebugState(program[0], input_event, stopped)
+        self.program = program
         self.environment = environment
 
     @override
     def run(self) -> None:
-        while self.debug_state.lock.acquire():
-            self.debug_state.current_node.debug(
-                self.environment,
-                self.debug_state
-            )
+        for stmt in self.program:
+            stmt.debug(self.environment, self.debug_state)
+
+        self.debug_state.finished = True
+        self.debug_state.stopped.set()
+
+    def step(self):
+        self.debug_state.action = Action.STEP
+        self.debug_state.stopped.clear()
+        self.debug_state.input_event.set()
+
+    def next(self):
+        self.debug_state.action = Action.NEXT
+        self.debug_state.stopped.clear()
+        self.debug_state.input_event.set()
+
+    def cont(self):
+        self.debug_state.action = Action.CONTINUE
+        self.debug_state.stopped.clear()
+        self.debug_state.input_event.set()
+
+    def print(self):
+        print(self.debug_state.current_node)
+
 
 class DebugState:
-    current_node: Stmt | Expr | None
+    current_node: Stmt | Expr
     action: Action
-    lock: Lock
+    input_event: Event
+    stopped: Event
+    finished: bool
 
-    def __init__(self, start_node: Stmt, lock: Lock) -> None:
+    def __init__(self, start_node: Stmt, input_event: Event, stopped: Event) -> None:
         self.current_node = start_node
-        self.action = Action.CONTINUE
-        self.lock = lock
+        self.input_event = input_event
+        self.stopped = stopped
+        self.action = Action.STEP
+        self.finished = False

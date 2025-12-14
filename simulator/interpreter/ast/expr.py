@@ -61,7 +61,9 @@ class Expr:
 
         match dbg_state.action:
             case Action.STEP:
-                dbg_state.lock.release()
+                dbg_state.stopped.set()
+                dbg_state.input_event.clear()
+                dbg_state.input_event.wait()
             case _:
                 pass
 

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import logging
+from threading import Event
 from types import ModuleType
 from typing import TYPE_CHECKING, override
 from inspect import signature
+
+from simulator.interpreter.debugger.adb import Debugger
 
 if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt
@@ -24,7 +27,7 @@ import simulator.libraries.serial as serial
 import simulator.robot_components.robot_state as state
 
 sketch_logger = logging.getLogger("SketchLogger")
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 
 class Interpreter(Arduino):
@@ -76,7 +79,6 @@ class Interpreter(Arduino):
 
     @override
     def setup(self):
-
         logging.debug("Execute top level")
         for statement in self.statements:
             statement.execute(self.environment)
@@ -111,6 +113,17 @@ class Interpreter(Arduino):
             self.loop()
         else:
             self._log_diagnostics()
+
+    def debug(self):
+        """
+        Creates a Debugger object ready to interact with.
+        """
+
+        input_event = Event()
+        dbg_stopped = Event()
+
+        debugger = Debugger(self.statements, self.environment, input_event, dbg_stopped)
+        return debugger
 
     def run_test(self):
         """
