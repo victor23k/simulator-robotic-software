@@ -25,7 +25,9 @@ class Function:
 
         return range(len(self.params), len(self.params) + 1)
 
-    def call(self, arguments: list[Value | None], _ret_type) -> Value | None:
+    def call(
+        self, arguments: list[Value | None], _ret_type, debug: bool = False, *extra_args
+    ) -> Value | None:
         "Call the function and return."
 
         fn_env = Environment(self.closure)
@@ -35,7 +37,10 @@ class Function:
 
         try:
             for stmt in self.body:
-                stmt.execute(fn_env)
+                if debug:
+                    stmt.debug(fn_env, *extra_args)
+                else:
+                    stmt.execute(fn_env)
         except ReturnException as ret:
             return ret.value
 
@@ -64,7 +69,13 @@ class LibFn:
         self.fn_name = fn_name
         self.fn_arity = fn_arity
 
-    def call(self, arguments: list[Value], return_type: ArduinoType) -> Value | None:
+    def call(
+        self,
+        arguments: list[Value],
+        return_type: ArduinoType,
+        _debug: bool = False,
+        *_extra_args,
+    ) -> Value | None:
         call_args = []
         for arg in arguments:
             arg_val = arg.value

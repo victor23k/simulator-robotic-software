@@ -42,6 +42,8 @@ class ArduinoClass:
         self,
         arguments: list[Value],
         return_type: ArduinoType,
+        _debug: bool = False,
+        *_extra_args
     ) -> ArduinoInstance:
         obj = self.constructor.call(list(arguments), return_type)
         return ArduinoInstance(self, obj.value)

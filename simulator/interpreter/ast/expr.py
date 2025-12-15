@@ -634,7 +634,9 @@ class CallExpr(Expr):
 
         fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]
 
-        val = callee.value.call(fn_args, callee.value_type)
+        val = callee.value.call(
+            fn_args, callee.value_type, expr_eval_fn == "debug", *eval_args
+        )
         if not isinstance(val, Value):
             val = Value(self.ttype, val)
         return val
