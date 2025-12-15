@@ -1,6 +1,9 @@
 from datetime import datetime
+from threading import Thread
+import time
 
 import simulator.graphics.layers as layers
+from simulator.interpreter.debugger.adb import Debugger
 import simulator.output.console as console
 import simulator.output.console_gamification as console_gamification
 import simulator.graphics.screen_updater as screen_updater
@@ -18,6 +21,7 @@ class RobotsController:
         self.consoleGamification = console_gamification.ConsoleGamification()
         self.arduino_rt = arduino_rt
         self.arduino: Arduino = None
+        self.debugger: Debugger | None = None
         self.executing = False
         self.board = False
         self.new = True
@@ -37,6 +41,58 @@ class RobotsController:
         elif self.arduino.check():
             self.probe_robot(option_gamification)
 
+    def debug(self, option_gamification):
+        self.arduino = self.arduino_rt(self.view.get_code())
+        self.arduino.compile(self.console, self.robot_layer.robot.board)
+        self.debugger = self.arduino.debug(self.debug_loop_callback)
+
+        breakpoints = []
+        for breakpoint_line in breakpoints: 
+            self.debugger.set_breakpoint(breakpoint_line)
+
+        if not self.board and not self.executing:
+            screen_updater.layer = self.robot_layer
+            screen_updater.view = self.view
+            self.view.abort_after()
+            self.robot_layer.execute()
+            self.console.clear()
+            if self.arduino.valid:
+                self.executing = True
+                debug_thread = Thread(target=self.handle_debug)
+                debug_thread.start()
+        elif self.arduino.check():
+            self.probe_robot(option_gamification)
+
+    def handle_debug(self):
+        logging.info("starting debug")
+        self.debugger.start()
+        while self.debugger.debug_state.stopped.wait():
+            if self.debugger.debug_state.finished:
+                self.debugger.join()
+                logging.info("finished debugging")
+                self.console.write_output("finished debugging")
+                break
+
+    def dbg_next(self):
+        if self.debugger:
+            self.debugger.next()
+
+    def dbg_step(self):
+        if self.debugger:
+            self.debugger.step()
+
+    def dbg_continue(self):
+        if self.debugger:
+            self.debugger.cont()
+
+    def dbg_toggle_breakpoint(self, line_number):
+        if self.debugger:
+            breakpoint_set = self.debugger.set_breakpoint(line_number)
+            if breakpoint_set:
+                print(f"Breakpoint set on line {line_number}")
+            else:
+                print(f"oops. could not set breakpoint on line {line_number}")
+
     def drawing_loop(self):
         screen_updater.refresh()
         if not self.view.keys_used:
@@ -44,8 +100,14 @@ class RobotsController:
             self.arduino.loop()
         self.view.identifier = self.view.after(10, self.drawing_loop)
 
+    def debug_loop_callback(self):
+        screen_updater.refresh()
+        time.sleep(0.1)
+
     def stop(self):
         self.executing = False
+        if self.debugger:
+            self.debugger.stop()
         self.robot_layer.stop()
         self.view.abort_after()
 
@@ -130,6 +192,19 @@ class RobotsController:
             self.robot_layer.set_circuit(option)
 
     def send_input(self, text):
+        match text:
+            case "c":
+                self.debugger.cont()
+            case "s":
+                self.debugger.step()
+            case "n":
+                self.debugger.next()
+            case "p":
+                self.debugger.print()
+            case brk if brk.startswith('b'):
+                line_number = int(brk[1:])
+                self.debugger.set_breakpoint(line_number)
+
         self.console.input(text)
 
     def update_joystick(self, elem, value):

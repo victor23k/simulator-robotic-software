@@ -99,7 +99,6 @@ class Interpreter(Arduino):
         logging.debug("Execute loop()")
         loop_fn.value.call([], loop_fn.value_type)
 
-    @override
     def run(self):
         """
         Interprets the loaded Arduino sketch.
@@ -114,7 +113,7 @@ class Interpreter(Arduino):
         else:
             self._log_diagnostics()
 
-    def debug(self):
+    def debug(self, loop_callback):
         """
         Creates a Debugger object ready to interact with.
         """
@@ -122,7 +121,7 @@ class Interpreter(Arduino):
         input_event = Event()
         dbg_stopped = Event()
 
-        debugger = Debugger(self.statements, self.environment, input_event, dbg_stopped)
+        debugger = Debugger(self.statements, self.environment, input_event, dbg_stopped, loop_callback)
         return debugger
 
     def run_test(self):

@@ -43,7 +43,7 @@ def main():
 
     elif args.command == "debug":
         if arduino.compile(None, None):
-            debugger = arduino.debug()
+            debugger = arduino.debug(None)
             debugger_loop(debugger)
 
 
@@ -61,6 +61,7 @@ b[line] (set breakpoint on line)
     print(help_prompt)
     while debugger.debug_state.stopped.wait():
         if debugger.debug_state.finished:
+            debugger.join()
             print("finished debugging")
             break
         while True:

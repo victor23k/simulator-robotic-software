@@ -33,7 +33,7 @@ class MainApplication(tk.Tk):
             self.vertical_pane, orient=tk.HORIZONTAL, sashpad=5, sashrelief="solid", bg=BLUE)
         self.drawing_frame = DrawingFrame(
             self.horizontal_pane, self, bg=BLUE)
-        self.editor_frame = EditorFrame(self.horizontal_pane, bg=BLUE)
+        self.editor_frame = EditorFrame(self.horizontal_pane, self, bg=BLUE)
         self.console_frame = ConsoleFrame(
             self.vertical_pane, self, bg=DARK_BLUE)
 
@@ -88,8 +88,24 @@ class MainApplication(tk.Tk):
         self.drawing_frame.canvas.focus_force()
         self.controller.execute(self.selector_bar.gamification_option_selector.current())
 
+    def debug(self):
+        self.drawing_frame.canvas.focus_force()
+        self.controller.debug(self.selector_bar.gamification_option_selector.current())
+
     def stop(self):
         self.controller.stop()
+
+    def dbg_next(self):
+        self.controller.dbg_next()
+
+    def dbg_step(self):
+        self.controller.dbg_step()
+
+    def dbg_continue(self):
+        self.controller.dbg_continue()
+
+    def dbg_toggle_breakpoint(self, line_number):
+        self.controller.dbg_toggle_breakpoint(line_number)
 
     def editor_undo(self):
         self.editor_frame.text.edit_undo()
@@ -321,7 +337,6 @@ class MainApplication(tk.Tk):
         self.controller.record_results(False, self.challenge)
         self.stop()
         self.destroy()
-
 
 class PinConfigurationWindow(tk.Toplevel):
 
@@ -980,8 +995,7 @@ class EditorFrame(tk.Frame):
 
         self.text = self.TextEditor(self, bd=1, relief=tk.SOLID, wrap="none", font=("consolas", 12), undo=True,
                                     autoseparators=True)
-        self.line_bar = self.LineNumberBar(
-            self, width=30, bg=BLUE, bd=0, highlightthickness=0)
+        self.line_bar = self.LineNumberBar(application, self, width=30, bg=BLUE, bd=0, highlightthickness=0)
         self.sb_x = tk.Scrollbar(self, orient=tk.HORIZONTAL,
                                  command=self.text.xview)
         self.sb_y = tk.Scrollbar(self, orient=tk.VERTICAL,
@@ -1205,9 +1219,10 @@ class EditorFrame(tk.Frame):
 
     class LineNumberBar(tk.Canvas):
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, application: MainApplication, *args, **kwargs):
             tk.Canvas.__init__(self, *args, **kwargs)
             self.editor = None
+            self.application = application
 
         def attach(self, editor):
             self.editor = editor
@@ -1223,9 +1238,15 @@ class EditorFrame(tk.Frame):
                 line = str(i).split(".")[0]
                 x = 28 - 9 * len(line)
                 y = dline[1]
-                self.create_text(x, y, anchor="nw", text=line,
+                line_text = self.create_text(x, y, anchor="nw", text=line,
                                  fill="white", font=('consolas', 12, 'bold'))
+                self.tag_bind(line_text, "<Button-1>", lambda x:
+                    self.toggle_breakpoint(int(line)))
                 i = self.editor.index("%s+1line" % i)
+
+        def toggle_breakpoint(self, line_number: int):
+            self.application.dbg_toggle_breakpoint(line_number)
+
 
 
 class ConsoleFrame(tk.Frame):
@@ -1314,12 +1335,24 @@ class ButtonBar(tk.Frame):
         self.exec_frame = tk.Frame(self, bg=kwargs["bg"])
         self.hist_frame = tk.Frame(self, bg=kwargs["bg"])
         self.utils_frame = tk.Frame(self, bg=kwargs["bg"])
+        self.dbg_frame = tk.Frame(self, bg=kwargs["bg"])
         self.tooltip_hover = tk.Label(
             self, bg=kwargs["bg"], font=("consolas", 12), fg="white")
 
         self.__load_images()
 
         self.execute_button = ImageButton(
+            self.exec_frame,
+            images={
+                "blue": self.exec_img,
+                "white": self.exec_whi_img,
+                "yellow": self.exec_yel_img
+            },
+            bg=kwargs["bg"],
+            activebackground=DARK_BLUE,
+            bd=0
+        )
+        self.debug_button = ImageButton(
             self.exec_frame,
             images={
                 "blue": self.exec_img,
@@ -1390,37 +1423,106 @@ class ButtonBar(tk.Frame):
             command=self.application.open_file
         )
 
+        self.next_button = ImageButton(
+            self.dbg_frame,
+            images={
+                "blue": self.redo_img,
+                "white": self.redo_whi_img,
+                "yellow": self.redo_yel_img
+            },
+            bg=kwargs["bg"],
+            activebackground=DARK_BLUE,
+            bd=0,
+            command=self.next
+        )
+
+        self.step_button = ImageButton(
+            self.dbg_frame,
+            images={
+                "blue": self.redo_img,
+                "white": self.redo_whi_img,
+                "yellow": self.redo_yel_img
+            },
+            bg=kwargs["bg"],
+            activebackground=DARK_BLUE,
+            bd=0,
+            command=self.step
+        )
+
+        self.cont_button = ImageButton(
+            self.dbg_frame,
+            images={
+                "blue": self.exec_img,
+                "white": self.exec_whi_img,
+                "yellow": self.exec_yel_img
+            },
+            bg=kwargs["bg"],
+            activebackground=DARK_BLUE,
+            bd=0,
+            command=self.cont
+        )
+
         self.execute_button.set_tooltip_text(self.tooltip_hover, "Ejecutar")
+        self.debug_button.set_tooltip_text(self.tooltip_hover, "Depurar")
         self.stop_button.set_tooltip_text(self.tooltip_hover, "Detener")
         self.undo_button.set_tooltip_text(self.tooltip_hover, "Deshacer")
         self.redo_button.set_tooltip_text(self.tooltip_hover, "Rehacer")
         self.save_button.set_tooltip_text(self.tooltip_hover, "Guardar")
         self.import_button.set_tooltip_text(self.tooltip_hover, "Importar")
+        self.next_button.set_tooltip_text(self.tooltip_hover, "Paso siguiente")
+        self.step_button.set_tooltip_text(self.tooltip_hover, "Entrar")
+        self.cont_button.set_tooltip_text(self.tooltip_hover, "Continuar")
 
         self.execute_button.configure(command=self.execute)
+        self.debug_button.configure(command=self.debug)
         self.stop_button.configure(command=self.stop)
 
         self.exec_frame.grid(row=0, column=0)
         self.hist_frame.grid(row=0, column=1)
         self.utils_frame.grid(row=0, column=2)
-        self.tooltip_hover.grid(row=0, column=3)
+        self.dbg_frame.grid(row=0, column=3, padx=50)
+        self.tooltip_hover.grid(row=0, column=4, padx=50)
 
         self.execute_button.grid(row=0, column=1, padx=5, pady=5)
-        self.stop_button.grid(row=0, column=2, padx=5, pady=5)
+        self.debug_button.grid(row=0, column=2, padx=5, pady=5)
+        self.stop_button.grid(row=0, column=3, padx=5, pady=5)
         self.undo_button.grid(row=0, column=1, padx=5, pady=5)
         self.redo_button.grid(row=0, column=2, padx=5, pady=5)
         self.save_button.grid(row=0, column=1, padx=5, pady=5)
         self.import_button.grid(row=0, column=2, padx=5, pady=5)
+        self.next_button.grid(row=0, column=1, padx=5, pady=5)
+        self.step_button.grid(row=0, column=2, padx=5, pady=5)
+        self.cont_button.grid(row=0, column=3, padx=5, pady=5)
 
     def execute(self):
         self.execute_button.on_click()
         self.application.execute()
         self.execute_button.on_click_finish()
 
+    def debug(self):
+        self.debug_button.on_click()
+        self.application.debug()
+        self.debug_button.on_click_finish()
+
     def stop(self):
         self.stop_button.on_click()
         self.application.stop()
         self.stop_button.on_click_finish()
+
+    def step(self):
+        self.step_button.on_click()
+        self.application.dbg_step()
+        self.step_button.on_click_finish()
+
+    def next(self):
+        self.next_button.on_click()
+        self.application.dbg_next()
+        self.next_button.on_click_finish()
+
+    def cont(self):
+        self.cont_button.on_click()
+        self.application.dbg_continue()
+        self.cont_button.on_click_finish()
 
     def __load_images(self):
         self.exec_img = tk.PhotoImage(file="buttons/exec.png")

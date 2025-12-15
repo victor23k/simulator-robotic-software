@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from simulator.interpreter.debugger.adb import Debugger
+
 
 class Arduino(ABC):
     """
@@ -46,10 +48,10 @@ class Arduino(ABC):
 
         pass
 
-    def run(self):
+    @abstractmethod
+    def debug(self, loop_callback) -> Debugger: 
         """
-        Run Arduino sketch.
+        Creates a Debugger ready for execution controlled by the user.
         """
-        
-        self.setup()
-        self.loop()
+
+        pass

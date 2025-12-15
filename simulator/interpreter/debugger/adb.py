@@ -27,6 +27,7 @@ class Debugger(Thread):
     debug_state: DebugState
     environment: Environment
     program: list[Stmt]
+    loop_callback: Callable[..., object] | None
 
     def __init__(
         self,
@@ -34,6 +35,7 @@ class Debugger(Thread):
         environment: Environment,
         input_event: Event,
         stopped: Event,
+        loop_callback: Callable[..., object] | None = None,
         group: None = None,
         target: Callable[..., object] | None = None,
         name: str | None = None,
@@ -46,13 +48,25 @@ class Debugger(Thread):
         self.debug_state = DebugState(program[0], input_event, stopped)
         self.program = program
         self.environment = environment
+        self.loop_callback = loop_callback
 
     @override
     def run(self) -> None:
         for stmt in self.program:
             stmt.debug(self.environment, self.debug_state)
 
-        self.debug_state.finished = True
+        setup_fn = self.environment.get("setup", 0)
+        if setup_fn:
+            setup_fn.value.call([], setup_fn.value_type, True, self.debug_state)
+
+        loop_fn = self.environment.get("loop", 0)
+        if loop_fn:
+            while not self.debug_state.finished:
+                loop_fn.value.call([], loop_fn.value_type, True, self.debug_state)
+                if self.loop_callback:
+                    self.loop_callback()
+
+        self.stop()
         self.debug_state.stopped.set()
 
     def step(self):
@@ -69,6 +83,9 @@ class Debugger(Thread):
         self.debug_state.action = Action.CONTINUE
         self.debug_state.stopped.clear()
         self.debug_state.input_event.set()
+
+    def stop(self):
+        self.debug_state.finished = True
 
     def print(self):
         print(self.debug_state.current_node)

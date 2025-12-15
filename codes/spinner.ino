@@ -1,5 +1,6 @@
 #include <Servo.h>
 Servo servo_izq;
+Servo servo_dch;
 
 int led_rojo1 = 2;
 int led_rojo2 = 3;
@@ -11,13 +12,10 @@ void setup(){
     pinMode(led_rojo2, INPUT);
     Serial.begin(9600);
     servo_izq.attach(pin_servo_izq);
+    servo_dch.attach(pin_servo_dch);
 }
 
 void loop(){
     servo_izq.write(180);
-    Serial.println("180");
-    servo_izq.write(90);
-    Serial.println("90");
     servo_izq.write(0);
-    Serial.println("0");
 }
