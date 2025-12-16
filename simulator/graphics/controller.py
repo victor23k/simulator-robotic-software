@@ -8,6 +8,7 @@ import simulator.output.console as console
 import simulator.output.console_gamification as console_gamification
 import simulator.graphics.screen_updater as screen_updater
 import logging
+logger = logging.getLogger(__name__)
 
 from simulator.arduino import Arduino
 
@@ -64,12 +65,12 @@ class RobotsController:
             self.probe_robot(option_gamification)
 
     def handle_debug(self):
-        logging.debug("starting debug")
+        logger.debug("starting debug")
         self.debugger.start()
         while self.debugger.debug_state.stopped.wait():
             if self.debugger.debug_state.finished:
                 self.debugger.join()
-                logging.debug("finished debugging")
+                logger.debug("finished debugging")
                 self.console.write_output("finished debugging")
                 break
 
@@ -89,9 +90,9 @@ class RobotsController:
         if self.debugger:
             breakpoint_set = self.debugger.toggle_breakpoint(line_number)
             if breakpoint_set:
-                logging.debug(f"Breakpoint set on line {line_number}")
+                logger.debug(f"Breakpoint set on line {line_number}")
             else:
-                logging.debug(f"Breakpoint cleared on line {line_number}")
+                logger.debug(f"Breakpoint cleared on line {line_number}")
             return breakpoint_set
 
         return False
@@ -99,7 +100,7 @@ class RobotsController:
     def drawing_loop(self):
         screen_updater.refresh()
         if not self.view.keys_used:
-            logging.debug("Loop from drawing controller")
+            logger.debug("Loop from drawing controller")
             self.arduino.loop()
         self.view.identifier = self.view.after(10, self.drawing_loop)
 

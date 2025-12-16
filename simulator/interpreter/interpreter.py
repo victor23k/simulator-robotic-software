@@ -27,8 +27,6 @@ import simulator.libraries.serial as serial
 import simulator.robot_components.robot_state as state
 
 sketch_logger = logging.getLogger("SketchLogger")
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
-
 
 class Interpreter(Arduino):
     """
