@@ -88,20 +88,20 @@ class MainApplication(tk.Tk):
         self.drawing_frame.canvas.focus_force()
         self.controller.execute(self.selector_bar.gamification_option_selector.current())
 
-    def debug(self):
+    def debug(self, *args):
         self.drawing_frame.canvas.focus_force()
         self.controller.debug(self.selector_bar.gamification_option_selector.current())
 
     def stop(self):
         self.controller.stop()
 
-    def dbg_next(self):
+    def dbg_next(self, *args):
         self.controller.dbg_next()
 
-    def dbg_step(self):
+    def dbg_step(self, *args):
         self.controller.dbg_step()
 
-    def dbg_continue(self):
+    def dbg_continue(self, *args):
         self.controller.dbg_continue()
 
     def dbg_toggle_breakpoint(self, line_number) -> bool:
@@ -696,6 +696,15 @@ class MenuBar(tk.Menu):
             label="Ejecutar", command=application.execute, accelerator="F5")
         exec_menu.add_command(
             label="Detener", command=application.stop, accelerator="Ctrl+F5")
+        exec_menu.add_command(
+            label="Depurar", command=application.debug, accelerator="F7")
+        exec_menu.add_separator()
+        exec_menu.add_command(
+            label="Siguiente Instrucción", command=application.dbg_next, accelerator="F8")
+        exec_menu.add_command(
+            label="Evaluar expresión", command=application.dbg_step, accelerator="F9")
+        exec_menu.add_command(
+            label="Continuar depuración", command=application.dbg_continue, accelerator="F10")
         exec_menu.add_separator()
         exec_menu.add_command(
             label="Ampliar", command=lambda event: application.zoom_in(), accelerator="Ctrl++")
@@ -718,6 +727,10 @@ class MenuBar(tk.Menu):
         self.bind_all("<Control-a>", self.show_about)
         self.bind_all("<F5>", application.execute)
         self.bind_all("<Control-F5>", application.stop)
+        self.bind_all("<F7>", application.debug)
+        self.bind_all("<F8>", application.dbg_next)
+        self.bind_all("<F9>", application.dbg_step)
+        self.bind_all("<F10>", application.dbg_continue)
         self.bind_all("<Control-plus>", lambda event: application.zoom_in())
         self.bind_all("<Control-minus>", lambda event: application.zoom_out())
 
@@ -1347,24 +1360,12 @@ class ButtonBar(tk.Frame):
         self.exec_frame = tk.Frame(self, bg=kwargs["bg"])
         self.hist_frame = tk.Frame(self, bg=kwargs["bg"])
         self.utils_frame = tk.Frame(self, bg=kwargs["bg"])
-        self.dbg_frame = tk.Frame(self, bg=kwargs["bg"])
         self.tooltip_hover = tk.Label(
             self, bg=kwargs["bg"], font=("consolas", 12), fg="white")
 
         self.__load_images()
 
         self.execute_button = ImageButton(
-            self.exec_frame,
-            images={
-                "blue": self.exec_img,
-                "white": self.exec_whi_img,
-                "yellow": self.exec_yel_img
-            },
-            bg=kwargs["bg"],
-            activebackground=DARK_BLUE,
-            bd=0
-        )
-        self.debug_button = ImageButton(
             self.exec_frame,
             images={
                 "blue": self.exec_img,
@@ -1435,106 +1436,37 @@ class ButtonBar(tk.Frame):
             command=self.application.open_file
         )
 
-        self.next_button = ImageButton(
-            self.dbg_frame,
-            images={
-                "blue": self.redo_img,
-                "white": self.redo_whi_img,
-                "yellow": self.redo_yel_img
-            },
-            bg=kwargs["bg"],
-            activebackground=DARK_BLUE,
-            bd=0,
-            command=self.next
-        )
-
-        self.step_button = ImageButton(
-            self.dbg_frame,
-            images={
-                "blue": self.redo_img,
-                "white": self.redo_whi_img,
-                "yellow": self.redo_yel_img
-            },
-            bg=kwargs["bg"],
-            activebackground=DARK_BLUE,
-            bd=0,
-            command=self.step
-        )
-
-        self.cont_button = ImageButton(
-            self.dbg_frame,
-            images={
-                "blue": self.exec_img,
-                "white": self.exec_whi_img,
-                "yellow": self.exec_yel_img
-            },
-            bg=kwargs["bg"],
-            activebackground=DARK_BLUE,
-            bd=0,
-            command=self.cont
-        )
-
         self.execute_button.set_tooltip_text(self.tooltip_hover, "Ejecutar")
-        self.debug_button.set_tooltip_text(self.tooltip_hover, "Depurar")
         self.stop_button.set_tooltip_text(self.tooltip_hover, "Detener")
         self.undo_button.set_tooltip_text(self.tooltip_hover, "Deshacer")
         self.redo_button.set_tooltip_text(self.tooltip_hover, "Rehacer")
         self.save_button.set_tooltip_text(self.tooltip_hover, "Guardar")
         self.import_button.set_tooltip_text(self.tooltip_hover, "Importar")
-        self.next_button.set_tooltip_text(self.tooltip_hover, "Paso siguiente")
-        self.step_button.set_tooltip_text(self.tooltip_hover, "Entrar")
-        self.cont_button.set_tooltip_text(self.tooltip_hover, "Continuar")
 
         self.execute_button.configure(command=self.execute)
-        self.debug_button.configure(command=self.debug)
         self.stop_button.configure(command=self.stop)
 
         self.exec_frame.grid(row=0, column=0)
         self.hist_frame.grid(row=0, column=1)
         self.utils_frame.grid(row=0, column=2)
-        self.dbg_frame.grid(row=0, column=3, padx=50)
-        self.tooltip_hover.grid(row=0, column=4, padx=50)
+        self.tooltip_hover.grid(row=0, column=3)
 
         self.execute_button.grid(row=0, column=1, padx=5, pady=5)
-        self.debug_button.grid(row=0, column=2, padx=5, pady=5)
-        self.stop_button.grid(row=0, column=3, padx=5, pady=5)
+        self.stop_button.grid(row=0, column=2, padx=5, pady=5)
         self.undo_button.grid(row=0, column=1, padx=5, pady=5)
         self.redo_button.grid(row=0, column=2, padx=5, pady=5)
         self.save_button.grid(row=0, column=1, padx=5, pady=5)
         self.import_button.grid(row=0, column=2, padx=5, pady=5)
-        self.next_button.grid(row=0, column=1, padx=5, pady=5)
-        self.step_button.grid(row=0, column=2, padx=5, pady=5)
-        self.cont_button.grid(row=0, column=3, padx=5, pady=5)
 
     def execute(self):
         self.execute_button.on_click()
         self.application.execute()
         self.execute_button.on_click_finish()
 
-    def debug(self):
-        self.debug_button.on_click()
-        self.application.debug()
-        self.debug_button.on_click_finish()
-
     def stop(self):
         self.stop_button.on_click()
         self.application.stop()
         self.stop_button.on_click_finish()
-
-    def step(self):
-        self.step_button.on_click()
-        self.application.dbg_step()
-        self.step_button.on_click_finish()
-
-    def next(self):
-        self.next_button.on_click()
-        self.application.dbg_next()
-        self.next_button.on_click_finish()
-
-    def cont(self):
-        self.cont_button.on_click()
-        self.application.dbg_continue()
-        self.cont_button.on_click_finish()
 
     def __load_images(self):
         self.exec_img = tk.PhotoImage(file="buttons/exec.png")
