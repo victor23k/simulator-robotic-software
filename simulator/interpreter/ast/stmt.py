@@ -53,8 +53,8 @@ class Stmt:
     def to_string(self, ntab: int, name: str = "") -> str:
         return ""
 
-    def set_breakpoint(self, line_number: int) -> bool:
-        return False
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
+        pass
 
     def debug(self, env: Environment, dbg_state: DebugState) -> Value | None:
         dbg_state.current_node = self
@@ -113,16 +113,16 @@ class BlockStmt(Stmt):
 
         del block_env
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
         else:
             for stmt in self.stmts:
-                if stmt.set_breakpoint(line_number):
-                    return True
+                if brk_stmt := stmt.set_breakpoint(line_number):
+                    return brk_stmt
 
-        return False
+        return None
 
     def resolve(
         self,
@@ -177,12 +177,12 @@ class ExpressionStmt(Stmt):
     ):
         evaluate(self.expr, expr_eval_fn, env, *eval_args)
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     def resolve(
         self,
@@ -233,12 +233,12 @@ class ReturnStmt(Stmt):
 
         raise ReturnException(value)
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     def resolve(
         self,
@@ -300,12 +300,12 @@ class BreakStmt(Stmt):
     ):
         raise BreakException()
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     def resolve(
         self,
@@ -354,12 +354,12 @@ class ContinueStmt(Stmt):
     ):
         raise ContinueException()
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     def resolve(
         self,
@@ -397,12 +397,12 @@ class DeclarationListStmt(Stmt):
         self.line_number = line_number
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -469,12 +469,12 @@ class ArrayDeclStmt(Stmt):
         self.line_number = specifiers[0].line
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     @override
     def __repr__(self) -> str:
@@ -614,12 +614,12 @@ class VariableStmt(Stmt):
         self.line_number = specifiers[0].line
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -738,17 +738,17 @@ class IfStmt(Stmt):
         self.line_number = line_number
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
         else:
-            if self.then_branch.set_breakpoint(line_number):
-                return True
-            if self.else_branch and self.else_branch.set_breakpoint(line_number):
-                return True
+            if brk_stmt := self.then_branch.set_breakpoint(line_number):
+                return brk_stmt
+            if brk_stmt := self.else_branch and self.else_branch.set_breakpoint(line_number):
+                return brk_stmt
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -825,16 +825,16 @@ class FunctionStmt(Stmt):
         self.line_number = name.line
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
         else:
             for stmt in self.body:
-                if stmt.set_breakpoint(line_number):
-                    return True
+                if brk_stmt := stmt.set_breakpoint(line_number):
+                    return brk_stmt
 
-        return False
+        return None
 
     @override
     def run(
@@ -911,16 +911,16 @@ class CaseStmt(Stmt):
         self.line_number = line_number
         self.breakpoint = False
 
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
+            return self
         else:
             for stmt in self.stmts:
-                if stmt.set_breakpoint(line_number):
-                    return True
+                if brk_stmt := stmt.set_breakpoint(line_number):
+                    return brk_stmt
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -1104,14 +1104,14 @@ class WhileStmt(Stmt):
         self.breakpoint = False
 
     @override
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
-        elif self.statement.set_breakpoint(line_number):
-            return True
+            return self
+        elif brk_stmt := self.statement.set_breakpoint(line_number):
+            return brk_stmt
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -1176,14 +1176,14 @@ class DoWhileStmt(Stmt):
         self.breakpoint = False
 
     @override
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
-        elif self.statement.set_breakpoint(line_number):
-            return True
+            return self
+        elif brk_stmt := self.statement.set_breakpoint(line_number):
+            return brk_stmt
 
-        return False
+        return None
 
     @override
     def __repr__(self):
@@ -1260,14 +1260,14 @@ class ForStmt(Stmt):
         self.breakpoint = False
 
     @override
-    def set_breakpoint(self, line_number: int) -> bool:
+    def set_breakpoint(self, line_number: int) -> Stmt | None:
         if self.line_number == line_number:
             self.breakpoint = True
-            return True
-        elif self.statement.set_breakpoint(line_number):
-            return True
+            return self
+        elif brk_stmt := self.statement.set_breakpoint(line_number):
+            return brk_stmt
 
-        return False
+        return None
 
     @override
     def __repr__(self):

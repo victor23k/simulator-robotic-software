@@ -26,6 +26,7 @@ class Action(Enum):
 class Debugger(Thread):
     debug_state: DebugState
     environment: Environment
+    breakpoints: dict[int, Stmt]
     program: list[Stmt]
     loop_callback: Callable[..., object] | None
 
@@ -48,6 +49,7 @@ class Debugger(Thread):
         self.debug_state = DebugState(program[0], input_event, stopped)
         self.program = program
         self.environment = environment
+        self.breakpoints = {}
         self.loop_callback = loop_callback
 
     @override
@@ -90,10 +92,15 @@ class Debugger(Thread):
     def print(self):
         print(self.debug_state.current_node)
 
-    def set_breakpoint(self, line_number: int) -> bool:
-        for stmt in self.program:
-            if stmt.set_breakpoint(line_number):
-                return True
+    def toggle_breakpoint(self, line_number: int) -> bool:
+        if line_number in self.breakpoints:
+            stmt = self.breakpoints.pop(line_number)
+            stmt.breakpoint = False
+        else:
+            for stmt in self.program:
+                if brk_stmt := stmt.set_breakpoint(line_number):
+                    self.breakpoints[line_number] = brk_stmt
+                    return True
 
         return False
 

@@ -64,12 +64,12 @@ class RobotsController:
             self.probe_robot(option_gamification)
 
     def handle_debug(self):
-        logging.info("starting debug")
+        logging.debug("starting debug")
         self.debugger.start()
         while self.debugger.debug_state.stopped.wait():
             if self.debugger.debug_state.finished:
                 self.debugger.join()
-                logging.info("finished debugging")
+                logging.debug("finished debugging")
                 self.console.write_output("finished debugging")
                 break
 
@@ -85,13 +85,16 @@ class RobotsController:
         if self.debugger:
             self.debugger.cont()
 
-    def dbg_toggle_breakpoint(self, line_number):
+    def dbg_toggle_breakpoint(self, line_number) -> bool:
         if self.debugger:
-            breakpoint_set = self.debugger.set_breakpoint(line_number)
+            breakpoint_set = self.debugger.toggle_breakpoint(line_number)
             if breakpoint_set:
-                print(f"Breakpoint set on line {line_number}")
+                logging.debug(f"Breakpoint set on line {line_number}")
             else:
-                print(f"oops. could not set breakpoint on line {line_number}")
+                logging.debug(f"Breakpoint cleared on line {line_number}")
+            return breakpoint_set
+
+        return False
 
     def drawing_loop(self):
         screen_updater.refresh()

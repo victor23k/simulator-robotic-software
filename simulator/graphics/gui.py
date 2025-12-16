@@ -104,8 +104,8 @@ class MainApplication(tk.Tk):
     def dbg_continue(self):
         self.controller.dbg_continue()
 
-    def dbg_toggle_breakpoint(self, line_number):
-        self.controller.dbg_toggle_breakpoint(line_number)
+    def dbg_toggle_breakpoint(self, line_number) -> bool:
+        return self.controller.dbg_toggle_breakpoint(line_number)
 
     def editor_undo(self):
         self.editor_frame.text.edit_undo()
@@ -1240,12 +1240,24 @@ class EditorFrame(tk.Frame):
                 y = dline[1]
                 line_text = self.create_text(x, y, anchor="nw", text=line,
                                  fill="white", font=('consolas', 12, 'bold'))
-                self.tag_bind(line_text, "<Button-1>", lambda x:
-                    self.toggle_breakpoint(int(line)))
+                self.tag_bind(
+                    line_text, 
+                    "<Double-Button-1>",
+                    lambda _, line=line, x=x, y=y:
+                        self.toggle_breakpoint(int(line), x, y)
+                )
+
                 i = self.editor.index("%s+1line" % i)
 
-        def toggle_breakpoint(self, line_number: int):
-            self.application.dbg_toggle_breakpoint(line_number)
+        def toggle_breakpoint(self, line_number: int, x: int, y: int):
+            tag = f"bk{line_number}"
+            if self.application.dbg_toggle_breakpoint(line_number):
+                self.create_oval(x-10, y+5, x-5, y+10, fill="red",
+                                 tags=tag)
+            else:
+                breakpoint_circle = self.find_withtag(tag)
+                if breakpoint_circle:
+                    self.delete(tag)
 
 
 
