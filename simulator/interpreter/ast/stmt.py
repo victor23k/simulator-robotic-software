@@ -58,6 +58,7 @@ class Stmt:
 
     def debug(self, env: Environment, dbg_state: DebugState) -> Value | None:
         dbg_state.current_node = self
+        dbg_state.current_line = self.line_number
 
         match dbg_state.action:
             case Action.STEP | Action.NEXT:

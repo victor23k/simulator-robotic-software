@@ -42,7 +42,7 @@ class RobotsController:
         elif self.arduino.check():
             self.probe_robot(option_gamification)
 
-    def debug(self, option_gamification):
+    def debug(self, option_gamification, stop_callback):
         self.arduino = self.arduino_rt(self.view.get_code())
         self.arduino.compile(self.console, self.robot_layer.robot.board)
         self.debugger = self.arduino.debug(self.debug_loop_callback)
@@ -59,20 +59,25 @@ class RobotsController:
             self.console.clear()
             if self.arduino.valid:
                 self.executing = True
-                debug_thread = Thread(target=self.handle_debug)
+                debug_thread = Thread(
+                    target=self.handle_debug,
+                    args=[stop_callback]
+                )
                 debug_thread.start()
         elif self.arduino.check():
             self.probe_robot(option_gamification)
 
-    def handle_debug(self):
+    def handle_debug(self, *args, **kwargs):
         logger.debug("starting debug")
+        stop_callback, *_ = args
         self.debugger.start()
         while self.debugger.debug_state.stopped.wait():
             if self.debugger.debug_state.finished:
                 self.debugger.join()
-                logger.debug("finished debugging")
                 self.console.write_output("finished debugging")
                 break
+            else:
+                stop_callback(self.debugger.debug_state.current_line)
 
     def dbg_next(self):
         if self.debugger:

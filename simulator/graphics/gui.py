@@ -90,13 +90,18 @@ class MainApplication(tk.Tk):
 
     def debug(self, *args):
         self.drawing_frame.canvas.focus_force()
-        self.controller.debug(self.selector_bar.gamification_option_selector.current())
+        self.controller.debug(
+            self.selector_bar.gamification_option_selector.current(),
+            self.editor_frame.update_debug_tracker
+        )
 
     def stop(self):
         self.controller.stop()
+        self.editor_frame.reset_dbg()
 
     def dbg_next(self, *args):
         self.controller.dbg_next()
+        self.editor_frame.clipboard_get
 
     def dbg_step(self, *args):
         self.controller.dbg_step()
@@ -1008,7 +1013,7 @@ class EditorFrame(tk.Frame):
 
         self.text = self.TextEditor(self, bd=1, relief=tk.SOLID, wrap="none", font=("consolas", 12), undo=True,
                                     autoseparators=True)
-        self.line_bar = self.LineNumberBar(application, self, width=30, bg=BLUE, bd=0, highlightthickness=0)
+        self.line_bar = self.LineNumberBar(application, self, width=50, bg=BLUE, bd=0, highlightthickness=0)
         self.sb_x = tk.Scrollbar(self, orient=tk.HORIZONTAL,
                                  command=self.text.xview)
         self.sb_y = tk.Scrollbar(self, orient=tk.VERTICAL,
@@ -1031,6 +1036,12 @@ class EditorFrame(tk.Frame):
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
+
+    def update_debug_tracker(self, line_number):
+        self.line_bar.update_debug_tracker(line_number)
+
+    def reset_dbg(self):
+        self.line_bar.reset_dbg()
 
     def create_file(self):
         self.text.delete("1.0", tk.END)
@@ -1249,29 +1260,65 @@ class EditorFrame(tk.Frame):
                 if dline is None:
                     break
                 line = str(i).split(".")[0]
-                x = 28 - 9 * len(line)
+                x = 48 - 9 * len(line)
                 y = dline[1]
-                line_text = self.create_text(x, y, anchor="nw", text=line,
-                                 fill="white", font=('consolas', 12, 'bold'))
+
+                line_text = self.create_text(
+                    x, y, anchor="nw",
+                    tags=self.line_number_tag(int(line)), 
+                    text=line,
+                    fill="white", font=('consolas', 12, 'bold')
+                )
+
                 self.tag_bind(
                     line_text, 
                     "<Double-Button-1>",
-                    lambda _, line=line, x=x, y=y:
-                        self.toggle_breakpoint(int(line), x, y)
+                    lambda _, line=line:
+                        self.toggle_breakpoint(int(line))
                 )
 
                 i = self.editor.index("%s+1line" % i)
 
-        def toggle_breakpoint(self, line_number: int, x: int, y: int):
+        def line_number_tag(self, line_number: int) -> str:
+            return f"ln{line_number}"
+
+        def toggle_breakpoint(self, line_number: int):
             tag = f"bk{line_number}"
+            x, y = self.get_line_coords(line_number)
             if self.application.dbg_toggle_breakpoint(line_number):
+                print("creating circle:", x-10, y+5)
                 self.create_oval(x-10, y+5, x-5, y+10, fill="red",
-                                 tags=tag)
+                                 tags=[tag, "bk"])
             else:
                 breakpoint_circle = self.find_withtag(tag)
                 if breakpoint_circle:
                     self.delete(tag)
 
+        def get_line_coords(self, line_number: int):
+            line_tag = self.line_number_tag(line_number)
+            return self.coords(line_tag)
+
+        def update_debug_tracker(self, line_number: int):
+            tag = "debug_tracker"
+            triangle = self.find_withtag(tag)
+            x, y = self.get_line_coords(line_number)
+            if triangle:
+                self.coords(
+                    triangle, 
+                    x-20, y+8,
+                    x-30, y+3,
+                    x-30, y+13,
+                )
+            else:
+                self.create_polygon(
+                    x-20, y+8,
+                    x-30, y+3,
+                    x-30, y+13,
+                    fill="green", tags=tag
+                )
+
+        def reset_dbg(self):
+            self.delete("debug_tracker")
 
 
 class ConsoleFrame(tk.Frame):

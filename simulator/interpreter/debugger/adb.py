@@ -107,6 +107,7 @@ class Debugger(Thread):
 
 class DebugState:
     current_node: Stmt | Expr
+    current_line: int
     action: Action
     input_event: Event
     stopped: Event
@@ -114,6 +115,7 @@ class DebugState:
 
     def __init__(self, start_node: Stmt, input_event: Event, stopped: Event) -> None:
         self.current_node = start_node
+        self.current_line = start_node.line_number
         self.input_event = input_event
         self.stopped = stopped
         self.action = Action.STEP
