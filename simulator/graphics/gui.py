@@ -36,6 +36,7 @@ class MainApplication(tk.Tk):
         self.editor_frame = EditorFrame(self.horizontal_pane, self, bg=BLUE)
         self.console_frame = ConsoleFrame(
             self.vertical_pane, self, bg=DARK_BLUE)
+        self.variables_window = None
 
         self.identifier = None
         self.controller = controller.RobotsController(self, arduino_rt)
@@ -92,8 +93,13 @@ class MainApplication(tk.Tk):
         self.drawing_frame.canvas.focus_force()
         self.controller.debug(
             self.selector_bar.gamification_option_selector.current(),
-            self.editor_frame.update_debug_tracker
+            self.update_debug
         )
+
+    def update_debug(self, *args):
+        self.editor_frame.update_debug_tracker(*args)
+        if self.variables_window:
+            self.variables_window.update_values()
 
     def stop(self):
         self.controller.stop()
@@ -111,6 +117,9 @@ class MainApplication(tk.Tk):
 
     def dbg_toggle_breakpoint(self, line_number) -> bool:
         return self.controller.dbg_toggle_breakpoint(line_number)
+
+    def dbg_view_variables(self):
+        self.variables_window = VariablesWidget(self, self.controller.dbg_values)
 
     def editor_undo(self):
         self.editor_frame.text.edit_undo()
@@ -710,6 +719,8 @@ class MenuBar(tk.Menu):
             label="Evaluar expresión", command=application.dbg_step, accelerator="F9")
         exec_menu.add_command(
             label="Continuar depuración", command=application.dbg_continue, accelerator="F10")
+        exec_menu.add_command(
+            label="Ver variables", command=application.dbg_view_variables)
         exec_menu.add_separator()
         exec_menu.add_command(
             label="Ampliar", command=lambda event: application.zoom_in(), accelerator="Ctrl++")
@@ -1286,7 +1297,6 @@ class EditorFrame(tk.Frame):
             tag = f"bk{line_number}"
             x, y = self.get_line_coords(line_number)
             if self.application.dbg_toggle_breakpoint(line_number):
-                print("creating circle:", x-10, y+5)
                 self.create_oval(x-10, y+5, x-5, y+10, fill="red",
                                  tags=[tag, "bk"])
             else:
@@ -1638,3 +1648,29 @@ class SelectorBar(tk.Frame):
             self.lb_gamification_option.grid(row=0, column=2)
         if not self.gamification_option_selector.winfo_ismapped():
             self.gamification_option_selector.grid(row=0, column=3, padx=(5, 10))
+
+class VariablesWidget(tk.Toplevel):
+
+    def __init__(self, parent, refresh_values, *args, **kwargs):
+        tk.Toplevel.__init__(self, parent, *args, **kwargs)
+        self.refresh_values = refresh_values
+        self.title("Depuración: Variables")
+        self.geometry("900x600")
+        self.tree = ttk.Treeview(self, columns=("variable", "type", "value"), show="headings")
+        self.tree.pack(fill="both", expand=True)
+        self.tree.heading("variable", text="Variable")
+        self.tree.heading("type", text="Tipo")
+        self.tree.heading("value", text="Valor")
+        self.tree.column("variable", width=120, minwidth=100, stretch=False)
+        self.tree.column("type", width=120, minwidth=100, stretch=False)
+        self.tree.column("value", width=360, minwidth=200)
+        self.update_values()
+
+    def update_values(self):
+        variable_values = self.refresh_values()
+
+        for key, val in variable_values.items():
+            val_type, val_val = val
+            if key in self.tree.get_children():
+                self.tree.delete(key)
+            self.tree.insert("", "end", values=(key, val_type, val_val), iid=key)

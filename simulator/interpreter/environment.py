@@ -26,6 +26,10 @@ class Value:
             and self.value == value.value
         )
 
+    @override
+    def __str__(self) -> str:
+        return f"{str(self.value_type)} {str(self.value)}"
+
 
 class Environment:
     """

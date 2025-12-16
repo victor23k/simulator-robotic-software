@@ -24,6 +24,9 @@ class ArduinoBuiltinType(Enum):
 
     VOID = 12
 
+    @override
+    def __str__(self) -> str:
+        return self.name
 
 @dataclass
 class ArduinoArray:
@@ -37,11 +40,17 @@ class ArduinoArray:
     def __hash__(self) -> int:
         return self.ttype.__hash__()
 
+    @override
+    def __str__(self) -> str:
+        return f"{self.ttype}[]"
 
 @dataclass
 class ArduinoObjType:
     classname: str
 
+    @override
+    def __str__(self) -> str:
+        return self.classname
 
 def str_to_arduino_type(type_name: str) -> ArduinoType:
     match type_name:

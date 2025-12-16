@@ -50,6 +50,9 @@ class Servo:
         self.max = 2400
         self.speed = 90
 
+    def __str__(self) -> str:
+        return str(self.servo)
+
     def set_board(self, board: boards.Board):
         """
         Sets the board that the robot is using

@@ -94,7 +94,16 @@ class Debugger(Thread):
 
     def get_values(self):
         user_created_keys = set(self.environment.values) - self.environment.lib_values
-        return [self.environment.values.get(key) for key in user_created_keys]
+        user_created_keys = user_created_keys - set(["setup", "loop"])
+        user_created_keys = set(sorted(user_created_keys))
+
+        values = dict()
+        for key in user_created_keys:
+            val = self.environment.values.get(key)
+            if val:
+                values[key] = (str(val.value_type), str(val.value))
+
+        return values
 
     def toggle_breakpoint(self, line_number: int) -> bool:
         if line_number in self.breakpoints:

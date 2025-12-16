@@ -78,6 +78,7 @@ class RobotsController:
                 break
             else:
                 stop_callback(self.debugger.debug_state.current_line)
+            self.debugger.debug_state.input_event.wait()
 
     def dbg_next(self):
         if self.debugger:
@@ -90,6 +91,12 @@ class RobotsController:
     def dbg_continue(self):
         if self.debugger:
             self.debugger.cont()
+
+    def dbg_values(self) -> dict[str, object]:
+        if self.debugger:
+            return self.debugger.get_values()
+
+        return dict()
 
     def dbg_toggle_breakpoint(self, line_number) -> bool:
         if self.debugger:

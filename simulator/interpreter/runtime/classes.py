@@ -70,6 +70,10 @@ class ArduinoInstance:
     def __repr__(self) -> str:
         return f"ArduinoInstance(klass={self.klass}, instance={self.instance})"
 
+    @override
+    def __str__(self) -> str:
+        return str(self.instance)
+
     def get(self, name: Token) -> Value:
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]

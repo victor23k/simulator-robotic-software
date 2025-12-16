@@ -51,6 +51,9 @@ class Servo(Element):
         self.max = 2400  # default arduino value
         self.value = 90  # stopped (180 and 0 full speed)
 
+    def __str__(self) -> str:
+        return f"Pin: {self.pin}, Value: {self.value}"
+
     def set_value(self, pin, value):
         """
         Writes speed to servo.
