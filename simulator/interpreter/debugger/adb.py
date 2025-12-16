@@ -89,8 +89,12 @@ class Debugger(Thread):
     def stop(self):
         self.debug_state.finished = True
 
-    def print(self):
-        print(self.debug_state.current_node)
+    def print(self) -> str:
+        return str(self.debug_state.current_node)
+
+    def get_values(self):
+        user_created_keys = set(self.environment.values) - self.environment.lib_values
+        return [self.environment.values.get(key) for key in user_created_keys]
 
     def toggle_breakpoint(self, line_number: int) -> bool:
         if line_number in self.breakpoints:

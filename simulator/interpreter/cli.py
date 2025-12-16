@@ -57,8 +57,7 @@ p (print current node)
 b[line] (set breakpoint on line)
 """
 
-    print("Welcome to the arduino debugger.")
-    print(help_prompt)
+    print(f"Welcome to the arduino debugger.\n{help_prompt}")
     while debugger.debug_state.stopped.wait():
         if debugger.debug_state.finished:
             debugger.join()
@@ -77,7 +76,9 @@ b[line] (set breakpoint on line)
                     debugger.next()
                     break
                 case "p":
-                    debugger.print()
+                    print(debugger.print())
+                case "v":
+                    print(debugger.get_values())
                 case "h":
                     print(help_prompt)
                 case brk if brk.startswith('b'):
@@ -87,8 +88,7 @@ b[line] (set breakpoint on line)
                     else:
                         print("Line not found.")
                 case _:
-                    print("Command not recognized. Select a valid command.")
-                    print(help_prompt)
+                    print(f"Command not recognized. Select a valid command.\n{help_prompt}")
 
 
 if __name__ == "__main__":

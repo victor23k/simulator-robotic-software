@@ -28,6 +28,7 @@ import simulator.robot_components.robot_state as state
 
 sketch_logger = logging.getLogger("SketchLogger")
 
+
 class Interpreter(Arduino):
     """
     Arduino sketch interpreter.
@@ -119,7 +120,9 @@ class Interpreter(Arduino):
         input_event = Event()
         dbg_stopped = Event()
 
-        debugger = Debugger(self.statements, self.environment, input_event, dbg_stopped, loop_callback)
+        debugger = Debugger(
+            self.statements, self.environment, input_event, dbg_stopped, loop_callback
+        )
         return debugger
 
     def run_test(self):
@@ -160,7 +163,7 @@ class Interpreter(Arduino):
             arity = self._compute_fn_arity(fn[2])
             resolver.define_library_fn(fn_name, fn_return_type)
             self.environment.define(
-                fn_name, Value(fn_return_type, LibFn(standard, fn[1], arity))
+                fn_name, Value(fn_return_type, LibFn(standard, fn[1], arity)), lib=True
             )
 
     def _setup_singleton(self, library_class: ModuleType, resolver: Resolver):
@@ -184,7 +187,9 @@ class Interpreter(Arduino):
 
         lib_singleton = lib_class.call([], lib_classtype)
         resolver.define_library_fn(lib_classname, lib_classtype)
-        self.environment.define(lib_classname, Value(lib_classtype, lib_singleton))
+        self.environment.define(
+            lib_classname, Value(lib_classtype, lib_singleton), lib=True
+        )
 
     def _setup_library_class(
         self, library_class: ModuleType, parser: Parser, resolver: Resolver
@@ -216,7 +221,9 @@ class Interpreter(Arduino):
         )
         lib_classtype = ArduinoObjType(lib_classname)
         resolver.define_library_fn(lib_classname, lib_classtype)
-        self.environment.define(lib_classname, Value(lib_classtype, lib_class))
+        self.environment.define(
+            lib_classname, Value(lib_classtype, lib_class), lib=True
+        )
         parser.add_type_name(lib_classname)
 
     def _compute_fn_arity(self, parameters: list[str]) -> int | range:

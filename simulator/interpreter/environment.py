@@ -40,17 +40,20 @@ class Environment:
 
     values: dict[str, Value]
     enclosing: Self | None
+    lib_values: set[str]
+    non_modifiable: set[str]
 
     def __init__(self, enclosing: Self | None):
         self.values = {}
         self.enclosing = enclosing
+        self.lib_values = set()
         self.non_modifiable = set()
 
     @override
     def __repr__(self) -> str:
         return f"Environment=(values={self.values}, enclosing={self.enclosing})"
 
-    def define(self, name: str, value: Value | None):
+    def define(self, name: str, value: Value | None, lib: bool = False):
         """
         Defines a variable by its `name` and `value`.
 
@@ -60,6 +63,9 @@ class Environment:
 
         # this should not happen, checked in the Resolver
         assert name not in self.values
+
+        if lib:
+            self.lib_values.add(name)
 
         # if shadowing is not allowed, use depth to get the env to define
         self.values[name] = value
