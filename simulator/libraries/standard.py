@@ -31,7 +31,7 @@ def get_name():
     return "Standard"
 
 
-def get_methods():
+def get_methods(constructors: bool=True):
     """
     Returns the methods of the library as a dict, whose
     key is the naming in Arduino and whose value is the
@@ -135,7 +135,8 @@ def get_methods():
     # Los siguientes métodos deberían encontrarse en una clase externa, sin embargo se ha decidido mantenerlos aquí
     #       para simplificar el diseño del código.
     methods["makeKeymap"] = ("int", "make_keymap", ["char"], -1)
-    methods["Keypad"] = ("Keypad", "keypad", ["int", "byte", "byte", "int", "int"], -1)
+    if constructors:
+        methods["Keypad"] = ("Keypad", "keypad", ["int", "byte", "byte", "int", "int"], -1)
     return methods
 
 

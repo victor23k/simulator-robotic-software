@@ -158,7 +158,7 @@ class Interpreter(Arduino):
                 self._setup_library_class(library_module, parser, resolver)
 
     def _setup_standard_library_functions(self, resolver: Resolver):
-        for fn_name, fn in standard.get_methods().items():
+        for fn_name, fn in standard.get_methods(constructors=False).items():
             fn_return_type = str_to_arduino_type(fn[0])
             arity = self._compute_fn_arity(fn[2])
             resolver.define_library_fn(fn_name, fn_return_type)
