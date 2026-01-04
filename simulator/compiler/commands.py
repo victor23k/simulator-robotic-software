@@ -10,6 +10,7 @@ import libraries.standard as standard
 import libraries.serial as serial
 import robot_components.robot_state as state
 from simulator.arduino import Arduino
+from simulator.interpreter.debugger.adb import Debugger
 
 module = None
 logger = logging.getLogger("SketchLogger")
@@ -112,6 +113,11 @@ class ArduinoCompiler(Arduino):
                         "El sketch no se ha podido ejecutar correctamente",
                     )
                 )
+
+    @override
+    def debug(self, loop_callback) -> Debugger:
+        pass
+    
 
     def print_warnings(self, warnings):
         for warning in warnings:

@@ -55,3 +55,11 @@ class Arduino(ABC):
         """
 
         pass
+
+    def run(self):
+        """
+        Run Arduino sketch.
+        """
+        
+        self.setup()
+        self.loop()

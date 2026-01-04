@@ -4,9 +4,11 @@ import logging
 import sys
 
 from simulator.arduino import Arduino
+from simulator.compiler.commands import ArduinoCompiler
 from simulator.interpreter.debugger.adb import Debugger
 from simulator.interpreter.interpreter import Interpreter
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
 def main():
     """Command Line Interface of the Arduino Interpreter."""
@@ -22,6 +24,14 @@ def main():
         dest="file",
         help="Path to file containing the Arduino sketch source code. If no path is specified, tries to read from stdin",
     )
+    parser.add_argument(
+        "--arduino-runtime",
+        type=str,
+        choices=["compiler", "interpreter"],
+        default="interpreter",
+        help="Choose the runtime that executes Arduino code",
+        required=False,
+    )
 
     args = parser.parse_args()
 
@@ -30,10 +40,16 @@ def main():
 
     code = args.file.read()
 
-    arduino: Arduino = Interpreter(code)
+    if args.arduino_runtime == "compiler":
+        arduino_runtime = ArduinoCompiler
+    else:
+        arduino_runtime = Interpreter
+
+    arduino: Arduino = arduino_runtime(code)
 
     if args.command == "run":
-        arduino.run()
+        if arduino.compile(None, None):
+            arduino.run()
 
     elif args.command == "check":
         if arduino.compile(None, None):
@@ -45,7 +61,6 @@ def main():
         if arduino.compile(None, None):
             debugger = arduino.debug(None)
             debugger_loop(debugger)
-
 
 def debugger_loop(debugger: Debugger):
     debugger.start()
@@ -81,14 +96,16 @@ b[line] (set breakpoint on line)
                     print(debugger.get_values())
                 case "h":
                     print(help_prompt)
-                case brk if brk.startswith('b'):
+                case brk if brk.startswith("b"):
                     line_number = int(brk[1:])
-                    if debugger.set_breakpoint(line_number):
+                    if debugger.toggle_breakpoint(line_number):
                         break
                     else:
                         print("Line not found.")
                 case _:
-                    print(f"Command not recognized. Select a valid command.\n{help_prompt}")
+                    print(
+                        f"Command not recognized. Select a valid command.\n{help_prompt}"
+                    )
 
 
 if __name__ == "__main__":

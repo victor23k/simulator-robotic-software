@@ -83,20 +83,16 @@ class Interpreter(Arduino):
             statement.execute(self.environment)
 
         setup_fn = self.environment.get("setup", 0)
-        assert isinstance(setup_fn, Value)
-        assert isinstance(setup_fn.value, Function)
-
-        logging.debug("Execute setup()")
-        setup_fn.value.call([], setup_fn.value_type)
+        if isinstance(setup_fn, Value) and isinstance(setup_fn.value, Function):
+            logging.debug("Execute setup()")
+            setup_fn.value.call([], setup_fn.value_type)
 
     @override
     def loop(self):
         loop_fn = self.environment.get("loop", 0)
-        assert isinstance(loop_fn, Value)
-        assert isinstance(loop_fn.value, Function)
-
-        logging.debug("Execute loop()")
-        loop_fn.value.call([], loop_fn.value_type)
+        if isinstance(loop_fn, Value) and isinstance(loop_fn.value, Function):
+            logging.debug("Execute loop()")
+            loop_fn.value.call([], loop_fn.value_type)
 
     def run(self):
         """

@@ -20,6 +20,10 @@ keywords = {
     "INPUT": TokenType.INPUT,
     "INPUT_PULLUP": TokenType.INPUT_PULLUP,
     "OUTPUT": TokenType.OUTPUT,
+    "true": TokenType.TRUE,
+    "false": TokenType.FALSE,
+    "HIGH": TokenType.HIGH,
+    "LOW": TokenType.LOW,
 }
 
 types = {

@@ -714,7 +714,7 @@ class MenuBar(tk.Menu):
             label="Depurar", command=application.debug, accelerator="F7")
         exec_menu.add_separator()
         exec_menu.add_command(
-            label="Siguiente Instrucción", command=application.dbg_next, accelerator="F8")
+            label="Siguiente instrucción", command=application.dbg_next, accelerator="F8")
         exec_menu.add_command(
             label="Evaluar expresión", command=application.dbg_step, accelerator="F9")
         exec_menu.add_command(
