@@ -963,10 +963,16 @@ class CaseStmt(Stmt):
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
 
-@dataclass
 class DefaultStmt(Stmt):
     stmts: list[Stmt]
     line_number: int
+    breakpoint: bool
+
+    def __init__(self, stmts: list[Stmt], line_number: int) -> None:
+        super().__init__()
+        self.stmts = stmts
+        self.line_number = line_number
+        self.breakpoint = False
 
     @override
     def __repr__(self):
