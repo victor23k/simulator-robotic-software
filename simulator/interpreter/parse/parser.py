@@ -609,6 +609,8 @@ class Parser:
                     | TokenType.INPUT_PULLUP
                     | TokenType.INPUT
                     | TokenType.OUTPUT
+                    | TokenType.HIGH
+                    | TokenType.LOW
                 ) as token
             ):
                 return LiteralExpr(token)
