@@ -399,14 +399,17 @@ class UnaryExpr(Expr):
         self, env: Environment, expr_eval_fn: str = "evaluate", *eval_args
     ) -> Value | None:
         var = evaluate(self.operand, env, expr_eval_fn, *eval_args)
-        operand_assign_fn = self.operand.evaluate_l(env)
 
         if var is None:
             raise Exception
 
         op_fn = self.op_table[self.op.lexeme]
 
-        new_var = operand_assign_fn(op_fn(var.value))
+        if self.op.token in [TokenType.INCREMENT, TokenType.DECREMENT]:
+            operand_assign_fn = self.operand.evaluate_l(env)
+            new_var = operand_assign_fn(op_fn(var.value))
+        else:
+            new_var = Value(self.ttype, op_fn(var.value))
 
         if self.prefix:
             return new_var
@@ -606,8 +609,6 @@ class GetExpr(Expr):
 
 class CallExpr(Expr):
     callee: Expr
-    # callee can be the function name (VariableExpr) and a method call on an
-    # object (GetExpr). The latter is not implemented yet.
     arguments: list[Expr]
     ttype: ArduinoType
 
