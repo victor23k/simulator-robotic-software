@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, override
 if TYPE_CHECKING:
     from simulator.interpreter.lex.token import Token
 
-from simulator.interpreter.environment import Value
+from simulator.interpreter.runtime.environment import Value
 from simulator.interpreter.sema.types import ArduinoType
 from simulator.interpreter.runtime.functions import LibFn
 

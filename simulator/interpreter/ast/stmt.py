@@ -15,12 +15,12 @@ from simulator.interpreter.sema.resolver import (
 )
 import simulator.interpreter.sema.scope as scope
 from simulator.interpreter.runtime.functions import Function, ReturnException
-from simulator.interpreter.diagnostic import (
+from simulator.interpreter.report.diagnostic import (
     ArduinoRuntimeError,
     Diagnostic,
     diagnostic_from_token,
 )
-from simulator.interpreter.environment import Environment, Value
+from simulator.interpreter.runtime.environment import Environment, Value
 from simulator.interpreter.lex.token import Token, TokenType
 from simulator.interpreter.sema.types import (
     ArduinoArray,

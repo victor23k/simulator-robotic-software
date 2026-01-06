@@ -12,7 +12,7 @@ from simulator.interpreter.ast.expr import (
     UnaryExpr,
     VariableExpr,
 )
-from simulator.interpreter.diagnostic import Diagnostic
+from simulator.interpreter.report.diagnostic import Diagnostic
 from simulator.interpreter.parse.precedence import PrecLevel, get_binary_op_precedence
 from simulator.interpreter.lex.scanner import Scanner
 from simulator.interpreter.ast.stmt import (

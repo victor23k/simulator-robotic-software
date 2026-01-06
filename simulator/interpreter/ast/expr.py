@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
     from simulator.interpreter.sema.scope import ScopeChain
-    from simulator.interpreter.environment import Environment
+    from simulator.interpreter.runtime.environment import Environment
 
 from simulator.interpreter.debugger.adb import Action, DebugState
 from simulator.interpreter.runtime.classes import (
     ArduinoClass,
     ArduinoInstance,
 )
-from simulator.interpreter.environment import Value
-from simulator.interpreter.diagnostic import (
+from simulator.interpreter.runtime.environment import Value
+from simulator.interpreter.report.diagnostic import (
     ArduinoRuntimeError,
     diagnostic_from_token,
     Diagnostic,

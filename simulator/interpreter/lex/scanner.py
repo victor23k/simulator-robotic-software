@@ -1,4 +1,4 @@
-from simulator.interpreter.diagnostic import Diagnostic
+from simulator.interpreter.report.diagnostic import Diagnostic
 from simulator.interpreter.lex.token import Token, TokenType
 
 keywords = {

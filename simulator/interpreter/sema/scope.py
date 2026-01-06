@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import override
 
-from simulator.interpreter.diagnostic import Diagnostic, diagnostic_from_token
+from simulator.interpreter.report.diagnostic import Diagnostic, diagnostic_from_token
 from simulator.interpreter.lex.token import Token
 from simulator.interpreter.sema.types import (
     ArduinoBuiltinType,

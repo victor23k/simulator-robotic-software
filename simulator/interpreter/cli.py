@@ -6,7 +6,7 @@ import sys
 from simulator.arduino import Arduino
 from simulator.compiler.commands import ArduinoCompiler
 from simulator.interpreter.debugger.adb import Debugger
-from simulator.interpreter.interpreter import Interpreter
+from simulator.interpreter.runtime.interpreter import Interpreter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 

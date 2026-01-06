@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt, VariableStmt
     from simulator.interpreter.sema.types import ArduinoType
 
-from simulator.interpreter.environment import Environment, Value
+from simulator.interpreter.runtime.environment import Environment, Value
 
 
 @dataclass

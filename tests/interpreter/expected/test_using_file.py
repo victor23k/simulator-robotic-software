@@ -6,9 +6,9 @@ import re
 
 from simulator.interpreter.runtime.classes import ArduinoInstance
 from simulator.interpreter.lex.scanner import Scanner
-from simulator.interpreter.diagnostic import printable_diagnostics
-from simulator.interpreter.environment import Value
-from simulator.interpreter.interpreter import Interpreter
+from simulator.interpreter.report.diagnostic import printable_diagnostics
+from simulator.interpreter.runtime.environment import Value
+from simulator.interpreter.runtime.interpreter import Interpreter
 from simulator.interpreter.sema.types import ArduinoBuiltinType, ArduinoObjType
 
 from tests.interpreter.ast_spec import *

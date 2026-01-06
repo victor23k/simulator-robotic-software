@@ -9,7 +9,7 @@ from threading import Event, Thread
 from typing import TYPE_CHECKING, Any, Callable, override
 from enum import Enum
 
-from simulator.interpreter.environment import Environment
+from simulator.interpreter.runtime.environment import Environment
 
 if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt

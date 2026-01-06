@@ -2,7 +2,7 @@ import argparse
 import logging
 import simulator.graphics.gui as gui
 from simulator.compiler.commands import ArduinoCompiler
-from simulator.interpreter.interpreter import Interpreter
+from simulator.interpreter.runtime.interpreter import Interpreter
 
 def main():
     parser = argparse.ArgumentParser()

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt
 
-from simulator.interpreter.diagnostic import Diagnostic
+from simulator.interpreter.report.diagnostic import Diagnostic
 from simulator.interpreter.sema.scope import ScopeChain
 from simulator.interpreter.sema.types import ArduinoType
 

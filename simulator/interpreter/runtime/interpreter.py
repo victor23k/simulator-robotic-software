@@ -12,10 +12,10 @@ if TYPE_CHECKING:
     from simulator.interpreter.ast.stmt import Stmt
 
 from simulator.arduino import Arduino
-from simulator.interpreter.diagnostic import Diagnostic
-from simulator.interpreter.environment import Environment, Value
+from simulator.interpreter.report.diagnostic import Diagnostic
+from simulator.interpreter.runtime.environment import Environment, Value
 from simulator.interpreter.parse.parser import Parser
-from simulator.interpreter.preprocessor import Preprocessor
+from simulator.interpreter.preprocess.preprocessor import Preprocessor
 from simulator.interpreter.sema.resolver import Resolver
 from simulator.interpreter.sema.types import ArduinoObjType, str_to_arduino_type
 from simulator.interpreter.runtime.classes import ArduinoClass
