@@ -1,6 +1,6 @@
 import unittest
 
-from simulator.interpreter.preprocessor import Preprocessor
+from simulator.interpreter.preprocess.preprocessor import Preprocessor
 from simulator.libraries.libs import LibraryManager
 
 
@@ -17,4 +17,5 @@ class TestPreprocessor(unittest.TestCase):
         processed_code = preprocessor.process(libraryManager)
 
         self.assertEqual(processed_code.strip(), "")
-        self.assertEqual(libraryManager.get_available_libs(), ["Servo", "Serial"])
+        imported_libs = list(set([lib.get_name() for lib in libraryManager.get_available_libs()]))
+        self.assertEqual(sorted(imported_libs), sorted(["Servo", "Serial", "String"]))
