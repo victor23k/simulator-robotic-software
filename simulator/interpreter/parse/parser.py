@@ -611,6 +611,8 @@ class Parser:
                     | TokenType.OUTPUT
                     | TokenType.HIGH
                     | TokenType.LOW
+                    | TokenType.TRUE
+                    | TokenType.FALSE
                 ) as token
             ):
                 return LiteralExpr(token)

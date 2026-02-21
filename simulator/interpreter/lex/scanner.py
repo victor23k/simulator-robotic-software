@@ -181,10 +181,15 @@ class Scanner:
                     self.start = self.current
                     return self.__next__()
                 elif self._peek() == "*":
-                    while self._peek() != "*" and self._peek_next() != "/":
+                    self._advance()
+                    while True: 
+                        if self._peek() == "*" and self._peek_next() == "/":
+                            break
                         if not self._skip_newline():
                             self._advance()
 
+                    self._advance()
+                    self._advance()
                     self.start = self.current
                     return self.__next__()
                 elif self._peek() == "=":
@@ -225,6 +230,15 @@ class Scanner:
                     next_token = self._produce_empty_token(TokenType.LOGICAL_AND)
                 else:
                     next_token = self._produce_empty_token(TokenType.AMPERSAND)
+            case "|":
+                if self._peek() == "=":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.OR_EQUAL)
+                elif self._peek() == "|":
+                    self._advance()
+                    next_token = self._produce_empty_token(TokenType.LOGICAL_OR)
+                else:
+                    next_token = self._produce_empty_token(TokenType.BITWISE_OR)
             case "0":
                 match self._peek():
                     case "b":
