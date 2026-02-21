@@ -182,6 +182,8 @@ class Board:
             True if operation done, False if else
         """
         if self.__is_used_pin(pin):
+            if mode in ["INPUT", "OUTPUT", "INPUT_PULLUP"]:
+                mode = self.__getattribute__(mode)
             self.used_pins[pin]["mode"] = mode
             return True
         return False
