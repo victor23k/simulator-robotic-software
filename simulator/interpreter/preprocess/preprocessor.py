@@ -27,14 +27,14 @@ class Preprocessor:
 
         internal_libraries: list[str] = re.findall(internal_libraries_regex, self.code)
         external_libraries: list[str] = re.findall(external_libraries_regex, self.code)
-        self.code = re.sub(internal_libraries_regex, "", self.code)
-        self.code = re.sub(external_libraries_regex, "", self.code)
+        self.code = re.sub(internal_libraries_regex, "\n"*len(internal_libraries), self.code)
+        self.code = re.sub(external_libraries_regex, "\n"*len(external_libraries), self.code)
 
         for lib in internal_libraries + external_libraries:
             libraryManager.add_library(lib)
 
         matches = re.findall(define_regex, self.code)
-        self.code = re.sub(define_regex, "", self.code)
+        self.code = re.sub(define_regex, "\n"*len(matches), self.code)
         for const, value in matches:
             self.code = re.sub(const, value, self.code)
 
