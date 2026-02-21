@@ -40,6 +40,9 @@ class Resolver:
     """
     Semantic analysis. Performs type checking and resolves the scopes for
     variables.
+
+    Function declarations are resolved in a first pass to prevent the need for
+    forward declarations.
     """
 
     diagnostics: list[Diagnostic]
@@ -52,6 +55,10 @@ class Resolver:
         self.function_type = FunctionType()
 
     def resolve(self, statements: list[Stmt]):
+        for statement in statements:
+            if hasattr(statement, 'resolve_decl'): 
+                statement.resolve_decl(self.scope_chain, self.diagnostics)
+
         for statement in statements:
             statement.resolve(
                 self.scope_chain,

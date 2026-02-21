@@ -848,6 +848,14 @@ class FunctionStmt(Stmt):
         fn = Function(self.params, self.body, env)
         env.define(self.name.lexeme, Value(self.ttype, fn))
 
+    def resolve_decl(
+        self,
+        scope_chain: scope.ScopeChain,
+        _diagnostics: list[Diagnostic],
+    ):
+        self.ttype = token_to_arduino_type(self.return_type)
+        scope_chain.declare(self.name, self.ttype)
+
     def resolve(
         self,
         scope_chain: scope.ScopeChain,
@@ -857,7 +865,6 @@ class FunctionStmt(Stmt):
     ):
         scope_chain.begin_scope()
 
-        self.ttype = token_to_arduino_type(self.return_type)
         fn_type = FunctionType()
         fn_type.fn_state = FunctionState.FUNCTION
         fn_type.return_type = self.ttype
@@ -868,8 +875,6 @@ class FunctionStmt(Stmt):
             stmt.resolve(scope_chain, diagnostics, fn_type, breakable)
 
         scope_chain.end_scope()
-
-        scope_chain.declare(self.name, self.ttype)
 
     @override
     def __repr__(self):
