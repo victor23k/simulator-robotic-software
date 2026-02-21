@@ -36,15 +36,14 @@
         callee=VariableExprSpec(
             vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='add')
         ),
-        arguments=[BinaryExprSpec(
-                lhs=LiteralExprSpec(
-                  value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
-                ),  
-                op=TokenSpec(token=TokenType.PLUS),
-                rhs=LiteralExprSpec(
-                  value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
-                ),
-        )]
+        arguments=[
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=5)
+          ),
+          LiteralExprSpec(
+            value=TokenSpec(token=TokenType.INT_LITERAL, literal=7)
+          ),
+        ]
       )
     )
 ]
