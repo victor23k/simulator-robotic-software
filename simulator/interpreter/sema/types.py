@@ -74,7 +74,8 @@ def str_to_arduino_type(type_name: str) -> ArduinoType:
 
 def token_to_arduino_type(token: Token) -> ArduinoType:
     match token.token:
-        case TokenType.INT | TokenType.INT_LITERAL:
+        case (TokenType.INT | TokenType.INT_LITERAL | TokenType.INPUT |
+            TokenType.OUTPUT | TokenType.HIGH | TokenType.LOW):
             return ArduinoBuiltinType.INT
         case TokenType.FLOAT | TokenType.FLOAT_LITERAL:
             return ArduinoBuiltinType.FLOAT
@@ -84,7 +85,7 @@ def token_to_arduino_type(token: Token) -> ArduinoType:
             return ArduinoObjType("String")
         case TokenType.DOUBLE:
             return ArduinoBuiltinType.DOUBLE
-        case TokenType.BOOL | TokenType.TRUE | TokenType.FALSE:
+        case TokenType.BOOL | TokenType.BOOLEAN | TokenType.TRUE | TokenType.FALSE:
             return ArduinoBuiltinType.BOOL
         case TokenType.IDENTIFIER:
             return ArduinoObjType(token.lexeme)
@@ -130,7 +131,12 @@ def coerce_value(arduino_type: ArduinoType, value: object) -> object:
             | ArduinoBuiltinType.BYTE
             | ArduinoBuiltinType.CHAR
         ):
-            return int(value)
+            if value == 'LOW':
+                return 0
+            elif value == 'HIGH':
+                return 1
+            else:
+                return int(value)
         case ArduinoBuiltinType.FLOAT | ArduinoBuiltinType.DOUBLE:
             return float(value)
         case ArduinoBuiltinType.BOOL:
