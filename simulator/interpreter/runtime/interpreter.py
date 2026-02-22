@@ -164,14 +164,16 @@ class Interpreter(Arduino):
 
     def _setup_singleton(self, library_class: ModuleType, resolver: Resolver):
         lib_methods: dict[str, Value] = dict()
+        lib_classname = library_class.get_name()
+
         for fn_name, fn in library_class.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
             arity = self._compute_fn_arity(fn[2])
             lib_methods[fn_name] = Value(
                 fn_return_type, LibFn(library_class, fn[1], arity)
             )
+            resolver.define_method(lib_classname, fn_name, fn_return_type)
 
-        lib_classname = library_class.get_name()
         lib_class = getattr(library_class, lib_classname)
         init_method = getattr(lib_class, "__init__")
         lib_init_params = signature(init_method).parameters
@@ -191,14 +193,15 @@ class Interpreter(Arduino):
         self, library_class: ModuleType, parser: Parser, resolver: Resolver
     ):
         lib_methods: dict[str, Value] = dict()
+        lib_classname = library_class.get_name()
         for fn_name, fn in library_class.get_methods().items():
             fn_return_type = str_to_arduino_type(fn[0])
             arity = self._compute_fn_arity(fn[2])
             lib_methods[fn_name] = Value(
                 fn_return_type, LibFn(library_class, fn[1], arity)
             )
+            resolver.define_method(lib_classname, fn_name, fn_return_type)
 
-        lib_classname = library_class.get_name()
         lib_class = getattr(library_class, lib_classname)
         init_method = getattr(lib_class, "__init__")
         lib_init_params = signature(init_method).parameters

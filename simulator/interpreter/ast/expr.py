@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import abstractmethod
 from typing import TYPE_CHECKING, override
 
 if TYPE_CHECKING:
@@ -581,7 +580,10 @@ class GetExpr(Expr):
     @override
     def resolve(self, scope_chain: ScopeChain, diagnostics: list[Diagnostic]):
         self.obj.resolve(scope_chain, diagnostics)
-        self.ttype = self.obj.ttype
+        if isinstance(self.obj.ttype, ArduinoObjType):
+            self.ttype = scope_chain.get_method_type(self.obj.ttype.classname, self.name)
+        else:
+            self.gen_diagnostic(f"Type {self.obj.ttype} found, but expected a class.")
 
     def gen_diagnostic(self, message: str) -> Diagnostic:
         return diagnostic_from_token(message, self.name)
@@ -630,7 +632,7 @@ class CallExpr(Expr):
 
         if len(self.arguments) not in callee.value.arity():
             raise ArduinoRuntimeError(
-                f"Error calling {callee.value}. Expected {callee.value.arity()} arguments but got {len(self.arguments)}."
+                f"Error calling {self.callee}. Expected {callee.value.arity()} arguments but got {len(self.arguments)}."
             )
 
         fn_args = [fn_arg.evaluate(env) for fn_arg in self.arguments]

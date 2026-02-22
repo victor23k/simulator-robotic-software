@@ -34,20 +34,35 @@ class Var:
     state: VarState
 
 
+class ClassVar:
+    """
+    The entity that represents a class and its methods inside a Scope.
+    Classes can't be declared, only included from libraries, so this entity is
+    only used at the global scope.
+    """
+
+    methods: dict[str, ArduinoType]
+
+    def __init__(self) -> None:
+        self.methods = {}
+
 class Scope:
     """
     A scope defines a region where a name maps to a certain entity (Cratfing
     Interpreters, Robert Nystrom).
 
-    In this intepreter, the entity is Var, that contains the type and state of
-    the variable.
+    In this intepreter, the entities are of type Var and ClassVar. Var contains
+    the type and state of the variable. ClassVar contains method names mapped to
+    their return types.
     """
 
     variables: dict[str, Var]
+    classes: dict[str, ClassVar]
     non_modifiable: set[str]
 
     def __init__(self):
         self.variables = {}
+        self.classes = {}
         self.non_modifiable = set()
 
     @override
@@ -112,6 +127,12 @@ class ScopeChain:
         scope = self._at_distance(0)
         scope.variables[fn_name] = Var(return_type, VarState.DEFINED)
 
+    def define_method(self, classname: str, method: str, return_type: ArduinoType):
+        scope = self._at_distance(0)
+        if classname not in scope.classes:
+            scope.classes[classname] = ClassVar()
+        scope.classes[classname].methods[method] = return_type
+
     def use(self, name_token: Token) -> int:
         for depth in range(0, len(self.scopes)):
             var = self._at_distance(depth).variables.get(name_token.lexeme)
@@ -123,6 +144,10 @@ class ScopeChain:
         self.diagnostics.append(diag)
 
         return 0
+
+    def get_method_type(self, classname: str, method: Token) -> ArduinoType:
+        scope = self._at_distance(-1)
+        return scope.classes[classname].methods[method.lexeme]
 
     def get_type(self, name_token: Token) -> ArduinoType:
         for depth in range(0, len(self.scopes)):

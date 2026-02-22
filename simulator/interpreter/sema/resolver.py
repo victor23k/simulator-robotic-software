@@ -69,3 +69,6 @@ class Resolver:
 
     def define_library_fn(self, fn_name: str, return_type: ArduinoType):
         self.scope_chain.define_lib(fn_name, return_type)
+
+    def define_method(self, classname: str, name: str, return_type: ArduinoType):
+        self.scope_chain.define_method(classname, name, return_type)
