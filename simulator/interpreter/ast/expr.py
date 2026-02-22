@@ -245,7 +245,7 @@ class AssignExpr(Expr):
 
     def check_type(self, _scope_chain: ScopeChain, diags: list[Diagnostic]):
         if types_compatibility(self.l_value.ttype, self.r_value.ttype):
-            self.ttype = coerce_types(self.l_value.ttype, self.r_value.ttype)
+            self.ttype = self.l_value.ttype
         else:
             diag = diagnostic_from_token(
                 "Type of value assigned is not compatible with variable.", self.op
