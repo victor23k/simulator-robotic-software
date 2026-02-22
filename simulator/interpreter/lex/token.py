@@ -112,6 +112,8 @@ class TokenType(Enum):
 
     COLON = 120
 
+    ANALOG_PIN = 130
+
 
 @dataclass
 class Token:

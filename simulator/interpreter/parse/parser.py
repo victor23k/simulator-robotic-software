@@ -613,6 +613,7 @@ class Parser:
                     | TokenType.LOW
                     | TokenType.TRUE
                     | TokenType.FALSE
+                    | TokenType.ANALOG_PIN
                 ) as token
             ):
                 return LiteralExpr(token)

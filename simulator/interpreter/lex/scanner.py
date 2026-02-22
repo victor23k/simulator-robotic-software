@@ -261,7 +261,11 @@ class Scanner:
             case "\x00":
                 pass
             case char:
-                if is_decimal(char):
+                if char == 'A' and self._peek() in ['0','1','2','3','4','5']:
+                    num = self._advance()
+                    next_token = self._produce_token(TokenType.ANALOG_PIN,
+                                                     int(num))
+                elif is_decimal(char):
                     next_token = self._number()
                 elif char.isalpha():
                     next_token = self._identifier()
