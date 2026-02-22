@@ -1,6 +1,7 @@
 from datetime import datetime
 from threading import Thread
 import time
+from tkinter import IntVar
 
 import simulator.graphics.layers as layers
 from simulator.interpreter.debugger.adb import Debugger
@@ -26,6 +27,8 @@ class RobotsController:
         self.executing = False
         self.board = False
         self.new = True
+        self.tick_rate_ms = 16 # 60hz
+        self._tick_var = IntVar()
 
     def execute(self, option_gamification):
         self.arduino = self.arduino_rt(self.view.get_code())
@@ -38,7 +41,7 @@ class RobotsController:
             if self.arduino.compile(self.console, self.robot_layer.robot.board):
                 self.arduino.setup()
                 self.executing = True
-                self.drawing_loop()
+                self.view.after(0, self.drawing_loop)
         elif self.arduino.check():
             self.probe_robot(option_gamification)
 
@@ -110,11 +113,29 @@ class RobotsController:
         return False
 
     def drawing_loop(self):
-        screen_updater.refresh()
-        if not self.view.keys_used:
-            logger.debug("Loop from drawing controller")
-            self.arduino.loop()
-        self.view.identifier = self.view.after(10, self.drawing_loop)
+        self.view.after(0, self.tick)
+        while self.executing:
+            if not self.view.keys_used:
+                logger.debug("Loop from drawing controller")
+                self.view.after(0, self.arduino.loop)
+            self.wait_tick()
+
+    def tick(self):
+        """Called externally each simulation step."""
+        self._tick_var.set(self._tick_var.get() + 1)
+        if self.executing:
+            screen_updater.refresh()
+            self.view.after(self.tick_rate_ms, self.tick)
+
+    def wait_tick(self):
+        """Interpreter blocks here until the next tick."""
+        self.view.wait_variable(self._tick_var)
+
+    def wait(self, ms):
+        """Wait for a number of ticks equivalent to ms."""
+        ticks = max(1, ms // self.tick_rate_ms)
+        for _ in range(ticks):
+            self.wait_tick()
 
     def debug_loop_callback(self):
         screen_updater.refresh()
@@ -247,7 +268,7 @@ class RobotsController:
     def save_pin_data(self, pin_data):
         robot = self.robot_layer.robot
         self.__detach_pins(robot, pin_data)
-        self.__set_pins(robot, pin_data)
+        # self.__set_pins(robot, pin_data)
         if 'servo_left' in pin_data:
             robot.detach_servo_left()
             robot.set_servo_left(robot.parse_pin(pin_data['servo_left']))

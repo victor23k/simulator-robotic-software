@@ -85,7 +85,7 @@ class MainApplication(tk.Tk):
         self.__update_track()
         # if not, the track raises exception
 
-    def execute(self):
+    def execute(self, *args):
         self.drawing_frame.canvas.focus_force()
         self.controller.execute(self.selector_bar.gamification_option_selector.current())
 
@@ -101,7 +101,7 @@ class MainApplication(tk.Tk):
         if self.variables_window:
             self.variables_window.update_values()
 
-    def stop(self):
+    def stop(self, *args):
         self.controller.stop()
         self.editor_frame.reset_dbg()
 
