@@ -74,6 +74,18 @@ class ArduinoInstance:
     def __str__(self) -> str:
         return str(self.instance)
 
+    def __add__(self, other: ArduinoInstance | str):
+        if self.klass.name != "String":
+            raise NotImplementedError(f"Concatenate with + is not available for object type {self.klass.name}")
+
+        return self.instance + other
+
+    def __radd__(self, other: ArduinoInstance | str):
+        if self.klass.name != "String":
+            raise NotImplementedError(f"Concatenate with + is not available for object type {self.klass.name}")
+
+        return other + str(self.instance)
+
     def get(self, name: Token) -> Value:
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]

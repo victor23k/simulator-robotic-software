@@ -61,7 +61,10 @@ class String:
     NOT_IMPL_WARNING = -2
 
     def __init__(self, string="", *args, **kwargs):
-        self.string = string
+        self.string = str(string)
+
+    def __str__(self) -> str:
+        return self.string
 
     def __repr__(self) -> str:
         return self.string

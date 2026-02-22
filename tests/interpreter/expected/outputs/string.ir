@@ -60,4 +60,37 @@
       arguments=[LiteralExprSpec(value=TokenSpec(token=TokenType.STRING_LITERAL))]
     )
   ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String'),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='first'),
+    initializer=CallExprSpec(
+      callee=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String')
+      ),
+      arguments=[
+        LiteralExprSpec(
+          value=TokenSpec(token=TokenType.STRING_LITERAL)
+        )
+      ]
+    )
+  ),
+  VariableStmtSpec(
+    var_type=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String'),
+    name=TokenSpec(token=TokenType.IDENTIFIER, lexeme='second'),
+    initializer=CallExprSpec(
+      callee=VariableExprSpec(
+        vname=TokenSpec(token=TokenType.IDENTIFIER, lexeme='String')
+      ),
+      arguments=[
+        BinaryExprSpec(
+          lhs=VariableExprSpec(vname=TokenSpec(token=TokenType.IDENTIFIER,
+          lexeme='first')),
+          op=TokenSpec(token=TokenType.PLUS),
+          rhs=LiteralExprSpec(
+            value=TokenSpec(token=TokenType.STRING_LITERAL)
+          ),
+        )
+      ]
+    )
+  ),
 ]
