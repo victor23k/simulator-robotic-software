@@ -64,6 +64,8 @@ def str_to_arduino_type(type_name: str) -> ArduinoType:
             return ArduinoBuiltinType.INT
         case "uint":
             return ArduinoBuiltinType.UNSIGNED_INT
+        case "ulong":
+            return ArduinoBuiltinType.UNSIGNED_LONG
         case "float":
             return ArduinoBuiltinType.FLOAT
         case "char":
