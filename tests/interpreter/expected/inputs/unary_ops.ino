@@ -24,4 +24,4 @@ INT k = 4
 INT c = 6
 INT d = 4
 INT bitwise_a = -6
-BOOL not_truthy = False
+BOOL not_truthy = 0

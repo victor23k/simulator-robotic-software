@@ -13,5 +13,5 @@ FLOAT b = 6.0
 FLOAT c = 6.0
 FLOAT d = 6.0
 
-BOOL comp_1 = False
-BOOL comp_2 = True
+BOOL comp_1 = 0
+BOOL comp_2 = 1
